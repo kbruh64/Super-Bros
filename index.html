@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Bros - Platform Fighter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        #game-container {
+            border: 4px solid #e94560;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.3);
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .controls-info {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container"></div>
+    <div id="loading">Loading Super Bros...</div>
+    <div class="controls-info">
+        P1: WASD + G(attack) + H(special) | P2: Arrows + Numpad1(attack) + Numpad2(special) | ESC: Pause
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script src="js/constants.js"></script>
+    <script src="js/characters.js"></script>
+    <script src="js/arenas.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/scenes/BootScene.js"></script>
+    <script src="js/scenes/MenuScene.js"></script>
+    <script src="js/scenes/CharacterSelectScene.js"></script>
+    <script src="js/scenes/StageSelectScene.js"></script>
+    <script src="js/scenes/GameScene.js"></script>
+    <script src="js/scenes/PauseScene.js"></script>
+    <script src="js/scenes/VictoryScene.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

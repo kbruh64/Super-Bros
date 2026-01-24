@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ct-devmcp__do_dis"
+    ]
+  }
+}
