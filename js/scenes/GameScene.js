@@ -517,24 +517,28 @@ class GameScene extends Phaser.Scene {
     }
 
     setupInput() {
-        // Player 1 controls (WASD + G, H)
+        // Player 1 controls (WASD + F/Shift, E/Right Ctrl)
         this.p1Keys = {
             up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
             down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
             left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
             right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.G),
-            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H)
+            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F),
+            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
+            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
+            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
         };
 
-        // Player 2 controls (Arrows + Numpad)
+        // Player 2 controls (Arrows + F/Shift, E/Right Ctrl)
         this.p2Keys = {
             up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
             down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
             left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
             right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
-            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_ONE),
-            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_TWO)
+            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F),
+            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
+            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
+            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
         };
 
         // Pause
@@ -675,8 +679,8 @@ class GameScene extends Phaser.Scene {
             up: this.p1Keys.up.isDown,
             down: this.p1Keys.down.isDown,
             jump: Phaser.Input.Keyboard.JustDown(this.p1Keys.up),
-            attack: Phaser.Input.Keyboard.JustDown(this.p1Keys.attack),
-            special: Phaser.Input.Keyboard.JustDown(this.p1Keys.special)
+            attack: Phaser.Input.Keyboard.JustDown(this.p1Keys.attack) || Phaser.Input.Keyboard.JustDown(this.p1Keys.attackAlt),
+            special: Phaser.Input.Keyboard.JustDown(this.p1Keys.special) || Phaser.Input.Keyboard.JustDown(this.p1Keys.specialAlt)
         };
 
         // Player 2 (if not AI)
@@ -687,8 +691,8 @@ class GameScene extends Phaser.Scene {
                 up: this.p2Keys.up.isDown,
                 down: this.p2Keys.down.isDown,
                 jump: Phaser.Input.Keyboard.JustDown(this.p2Keys.up),
-                attack: Phaser.Input.Keyboard.JustDown(this.p2Keys.attack),
-                special: Phaser.Input.Keyboard.JustDown(this.p2Keys.special)
+                attack: Phaser.Input.Keyboard.JustDown(this.p2Keys.attack) || Phaser.Input.Keyboard.JustDown(this.p2Keys.attackAlt),
+                special: Phaser.Input.Keyboard.JustDown(this.p2Keys.special) || Phaser.Input.Keyboard.JustDown(this.p2Keys.specialAlt)
             };
         }
     }
@@ -867,25 +871,29 @@ class GameScene extends Phaser.Scene {
         const direction = fighter.facingRight ? 1 : -1;
         const charId = fighter.characterData.id;
 
-        // Show special effect
-        const specialEffect = this.add.image(
-            fighter.x + direction * 50,
-            fighter.y,
-            `special_${charId}`
-        );
-        specialEffect.setFlipX(!fighter.facingRight);
-        specialEffect.setBlendMode('ADD');
-        specialEffect.setScale(1.5);
+        // Show special effect with error handling
+        try {
+            const specialEffect = this.add.image(
+                fighter.x + direction * 50,
+                fighter.y,
+                `special_${charId}`
+            );
+            specialEffect.setFlipX(!fighter.facingRight);
+            specialEffect.setBlendMode('ADD');
+            specialEffect.setScale(1.5);
 
-        this.tweens.add({
-            targets: specialEffect,
-            x: specialEffect.x + direction * 30,
-            alpha: 0,
-            scaleX: 2,
-            scaleY: 2,
-            duration: 400,
-            onComplete: () => specialEffect.destroy()
-        });
+            this.tweens.add({
+                targets: specialEffect,
+                x: specialEffect.x + direction * 30,
+                alpha: 0,
+                scaleX: 2,
+                scaleY: 2,
+                duration: 400,
+                onComplete: () => specialEffect.destroy()
+            });
+        } catch (e) {
+            console.warn('Special effect asset not found:', `special_${charId}`);
+        }
 
         // Check if it's a projectile-based attack
         if (attack.range > 80) {
@@ -908,13 +916,25 @@ class GameScene extends Phaser.Scene {
 
     createProjectile(fighter, attack, direction) {
         const charId = fighter.characterData.id;
-        const projectile = this.add.image(
-            fighter.x + direction * 40,
-            fighter.y,
-            `special_${charId}`
-        );
-        projectile.setScale(1.2);
-        projectile.setFlipX(!fighter.facingRight);
+        
+        let projectile;
+        try {
+            projectile = this.add.image(
+                fighter.x + direction * 40,
+                fighter.y,
+                `special_${charId}`
+            );
+            projectile.setScale(1.2);
+            projectile.setFlipX(!fighter.facingRight);
+        } catch (e) {
+            // Fallback: create a simple circle if asset fails
+            projectile = this.add.circle(
+                fighter.x + direction * 40,
+                fighter.y,
+                12,
+                fighter.characterData.color
+            );
+        }
 
         this.physics.add.existing(projectile);
         projectile.body.setVelocityX(direction * 400);
