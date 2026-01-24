@@ -503,9 +503,10 @@ class BootScene extends Phaser.Scene {
     generateSpecialEffects() {
         // Generate unique special attack effects for each character
         CHARACTER_LIST.forEach(char => {
-            const graphics = this.make.graphics({ x: 0, y: 0, add: false });
+            try {
+                const graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
-            switch (char.id) {
+                switch (char.id) {
                 case 'warrior':
                     // Sword slash arc
                     graphics.lineStyle(6, 0xffffff, 0.9);
@@ -677,10 +678,22 @@ class BootScene extends Phaser.Scene {
                     graphics.lineStyle(3, 0xddbb00, 0.7);
                     graphics.strokeCircle(30, 30, 15);
                     break;
+                default:
+                    // Generic energy ball fallback
+                    graphics.fillStyle(0xffffff, 0.5);
+                    graphics.fillCircle(30, 30, 20);
+                    graphics.fillStyle(0xffff00, 0.7);
+                    graphics.fillCircle(30, 30, 12);
+                    graphics.fillStyle(0xff00ff, 0.8);
+                    graphics.fillCircle(30, 30, 6);
+                    break;
             }
 
             graphics.generateTexture(`special_${char.id}`, 60, 60);
             graphics.destroy();
+            } catch (e) {
+                console.warn(`Failed to generate special effect for ${char.id}:`, e);
+            }
         });
     }
 

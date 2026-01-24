@@ -872,27 +872,30 @@ class GameScene extends Phaser.Scene {
         const charId = fighter.characterData.id;
 
         // Show special effect with error handling
-        try {
-            const specialEffect = this.add.image(
-                fighter.x + direction * 50,
-                fighter.y,
-                `special_${charId}`
-            );
-            specialEffect.setFlipX(!fighter.facingRight);
-            specialEffect.setBlendMode('ADD');
-            specialEffect.setScale(1.5);
+        const textureKey = `special_${charId}`;
+        if (this.textures.exists(textureKey)) {
+            try {
+                const specialEffect = this.add.image(
+                    fighter.x + direction * 50,
+                    fighter.y,
+                    textureKey
+                );
+                specialEffect.setFlipX(!fighter.facingRight);
+                specialEffect.setBlendMode('ADD');
+                specialEffect.setScale(1.5);
 
-            this.tweens.add({
-                targets: specialEffect,
-                x: specialEffect.x + direction * 30,
-                alpha: 0,
-                scaleX: 2,
-                scaleY: 2,
-                duration: 400,
-                onComplete: () => specialEffect.destroy()
-            });
-        } catch (e) {
-            console.warn('Special effect asset not found:', `special_${charId}`);
+                this.tweens.add({
+                    targets: specialEffect,
+                    x: specialEffect.x + direction * 30,
+                    alpha: 0,
+                    scaleX: 2,
+                    scaleY: 2,
+                    duration: 400,
+                    onComplete: () => specialEffect.destroy()
+                });
+            } catch (e) {
+                console.warn('Error creating special effect:', e);
+            }
         }
 
         // Check if it's a projectile-based attack
@@ -916,18 +919,31 @@ class GameScene extends Phaser.Scene {
 
     createProjectile(fighter, attack, direction) {
         const charId = fighter.characterData.id;
+        const textureKey = `special_${charId}`;
         
         let projectile;
-        try {
-            projectile = this.add.image(
-                fighter.x + direction * 40,
-                fighter.y,
-                `special_${charId}`
-            );
-            projectile.setScale(1.2);
-            projectile.setFlipX(!fighter.facingRight);
-        } catch (e) {
-            // Fallback: create a simple circle if asset fails
+        
+        // Try to use texture if it exists, otherwise create a simple circle
+        if (this.textures.exists(textureKey)) {
+            try {
+                projectile = this.add.image(
+                    fighter.x + direction * 40,
+                    fighter.y,
+                    textureKey
+                );
+                projectile.setScale(1.2);
+                projectile.setFlipX(!fighter.facingRight);
+            } catch (e) {
+                console.warn('Error creating projectile image, using fallback:', e);
+                projectile = this.add.circle(
+                    fighter.x + direction * 40,
+                    fighter.y,
+                    12,
+                    fighter.characterData.color
+                );
+            }
+        } else {
+            // Fallback: create a simple circle if texture doesn't exist
             projectile = this.add.circle(
                 fighter.x + direction * 40,
                 fighter.y,
