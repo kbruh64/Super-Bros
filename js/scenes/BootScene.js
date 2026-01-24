@@ -593,6 +593,90 @@ class BootScene extends Phaser.Scene {
                     graphics.fillCircle(15, 35, 8);
                     graphics.fillCircle(8, 38, 6);
                     break;
+                case 'frostmage':
+                    // Ice shard burst
+                    graphics.fillStyle(0x88ddff, 1);
+                    graphics.fillCircle(30, 30, 16);
+                    graphics.fillStyle(0x44aaff, 0.9);
+                    graphics.fillCircle(30, 30, 12);
+                    graphics.fillStyle(0xccffff, 1);
+                    graphics.fillCircle(30, 30, 8);
+                    // Ice spikes
+                    graphics.lineStyle(3, 0x88ddff, 0.8);
+                    graphics.beginPath();
+                    graphics.moveTo(30, 8);
+                    graphics.lineTo(35, 20);
+                    graphics.lineTo(30, 25);
+                    graphics.lineTo(25, 20);
+                    graphics.closePath();
+                    graphics.stroke();
+                    break;
+                case 'demon':
+                    // Infernal flame burst
+                    graphics.fillStyle(0xff2200, 0.6);
+                    graphics.fillCircle(30, 30, 22);
+                    graphics.fillStyle(0xff6600, 0.7);
+                    graphics.fillCircle(30, 30, 16);
+                    graphics.fillStyle(0xff9900, 0.8);
+                    graphics.fillCircle(30, 30, 10);
+                    graphics.fillStyle(0xffcc00, 0.9);
+                    graphics.fillCircle(30, 30, 5);
+                    break;
+                case 'angel':
+                    // Holy light beam
+                    graphics.fillStyle(0xffff44, 0.3);
+                    graphics.fillCircle(30, 30, 24);
+                    graphics.fillStyle(0xffff88, 0.5);
+                    graphics.fillCircle(30, 30, 18);
+                    graphics.fillStyle(0xffffff, 0.7);
+                    graphics.fillCircle(30, 30, 12);
+                    graphics.fillStyle(0xffff00, 1);
+                    graphics.fillCircle(30, 30, 6);
+                    break;
+                case 'shadow':
+                    // Dark void
+                    graphics.fillStyle(0x330033, 0.4);
+                    graphics.fillCircle(30, 30, 20);
+                    graphics.fillStyle(0x660066, 0.6);
+                    graphics.fillCircle(30, 30, 15);
+                    graphics.fillStyle(0x990099, 0.8);
+                    graphics.fillCircle(30, 30, 10);
+                    graphics.lineStyle(2, 0xcc00cc, 0.9);
+                    graphics.strokeCircle(30, 30, 16);
+                    break;
+                case 'beast':
+                    // Roaring aura
+                    graphics.fillStyle(0xaa6633, 0.5);
+                    graphics.fillCircle(30, 30, 20);
+                    graphics.lineStyle(4, 0xdd8844, 0.8);
+                    graphics.strokeCircle(30, 30, 18);
+                    graphics.lineStyle(3, 0xffaa55, 0.6);
+                    graphics.strokeCircle(30, 30, 23);
+                    graphics.fillStyle(0xff9933, 0.7);
+                    graphics.fillRect(20, 25, 20, 10);
+                    break;
+                case 'druid':
+                    // Vine growth
+                    graphics.lineStyle(4, 0x00aa44, 0.8);
+                    graphics.beginPath();
+                    graphics.moveTo(30, 10);
+                    graphics.quadraticCurveTo(25, 20, 30, 30);
+                    graphics.quadraticCurveTo(35, 40, 30, 50);
+                    graphics.stroke();
+                    graphics.fillStyle(0x22dd66, 0.7);
+                    graphics.fillCircle(30, 20, 6);
+                    graphics.fillCircle(20, 30, 6);
+                    graphics.fillCircle(40, 35, 6);
+                    break;
+                case 'knight':
+                    // Shield bash glow
+                    graphics.lineStyle(5, 0xccaa00, 0.9);
+                    graphics.strokeCircle(30, 30, 22);
+                    graphics.fillStyle(0xffcc00, 0.4);
+                    graphics.fillCircle(30, 30, 18);
+                    graphics.lineStyle(3, 0xddbb00, 0.7);
+                    graphics.strokeCircle(30, 30, 15);
+                    break;
             }
 
             graphics.generateTexture(`special_${char.id}`, 60, 60);

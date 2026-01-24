@@ -111,6 +111,104 @@ const CHARACTERS = {
             special: { damage: 16, knockback: 1.4, range: 180, startup: 14, duration: 25, type: 'pistol' }
         },
         description: 'Swashbuckler with a trusty pistol'
+    },
+    FROSTMAGE: {
+        id: 'frostmage',
+        name: 'Frost Mage',
+        color: 0x44ccff,
+        speed: 240,
+        weight: 0.95,
+        jumpPower: 1.15,
+        size: { width: 40, height: 60 },
+        attacks: {
+            normal: { damage: 8, knockback: 0.7, range: 55, startup: 5, duration: 14 },
+            special: { damage: 20, knockback: 1.6, range: 140, startup: 12, duration: 35, type: 'ice' }
+        },
+        description: 'Freezes enemies with icy blasts and control'
+    },
+    DEMON: {
+        id: 'demon',
+        name: 'Demon',
+        color: 0xdd2244,
+        speed: 320,
+        weight: 1.2,
+        jumpPower: 1.4,
+        size: { width: 48, height: 65 },
+        attacks: {
+            normal: { damage: 13, knockback: 1.1, range: 60, startup: 6, duration: 16 },
+            special: { damage: 24, knockback: 1.9, range: 90, startup: 10, duration: 32, type: 'inferno' }
+        },
+        description: 'Aggressive fighter with devastating combos'
+    },
+    ANGEL: {
+        id: 'angel',
+        name: 'Angel',
+        color: 0xffff88,
+        speed: 310,
+        weight: 0.9,
+        jumpPower: 1.35,
+        size: { width: 42, height: 62 },
+        attacks: {
+            normal: { damage: 9, knockback: 0.8, range: 50, startup: 4, duration: 12 },
+            special: { damage: 17, knockback: 1.5, range: 160, startup: 11, duration: 28, type: 'holy' }
+        },
+        description: 'Graceful with powerful ranged holy attacks'
+    },
+    SHADOW: {
+        id: 'shadow',
+        name: 'Shadow',
+        color: 0x663366,
+        speed: 360,
+        weight: 0.8,
+        jumpPower: 1.25,
+        size: { width: 35, height: 56 },
+        attacks: {
+            normal: { damage: 10, knockback: 0.9, range: 45, startup: 3, duration: 11 },
+            special: { damage: 19, knockback: 1.4, range: 110, startup: 7, duration: 22, type: 'shadow' }
+        },
+        description: 'Stealth fighter with teleporting darkness attacks'
+    },
+    BEAST: {
+        id: 'beast',
+        name: 'Beast',
+        color: 0x996633,
+        speed: 330,
+        weight: 1.4,
+        jumpPower: 1.1,
+        size: { width: 50, height: 62 },
+        attacks: {
+            normal: { damage: 14, knockback: 1.2, range: 48, startup: 5, duration: 13 },
+            special: { damage: 21, knockback: 1.7, range: 65, startup: 9, duration: 26, type: 'roar' }
+        },
+        description: 'Wild and powerful with raw strength'
+    },
+    DRUID: {
+        id: 'druid',
+        name: 'Druid',
+        color: 0x00aa44,
+        speed: 250,
+        weight: 1.0,
+        jumpPower: 1.2,
+        size: { width: 42, height: 59 },
+        attacks: {
+            normal: { damage: 8, knockback: 0.75, range: 55, startup: 6, duration: 15 },
+            special: { damage: 19, knockback: 1.5, range: 130, startup: 13, duration: 33, type: 'nature' }
+        },
+        description: 'Nature-wielder with growing vine attacks'
+    },
+    KNIGHT: {
+        id: 'knight',
+        name: 'Knight',
+        color: 0xccaa00,
+        speed: 260,
+        weight: 1.25,
+        jumpPower: 0.95,
+        size: { width: 48, height: 64 },
+        attacks: {
+            normal: { damage: 12, knockback: 1.15, range: 58, startup: 7, duration: 17 },
+            special: { damage: 23, knockback: 1.8, range: 75, startup: 14, duration: 30, type: 'shield' }
+        },
+        description: 'Armored warrior with defensive shield bash'
     }
 };
 
