@@ -249,6 +249,149 @@ class BootScene extends Phaser.Scene {
         graphics.fillRect(x * p, y * p, w * p, h * p);
     }
 
+    drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor) {
+        const darkColor = mainColor.clone().darken(30).color;
+        const lightColor = mainColor.clone().lighten(40).color;
+
+        switch (character.id) {
+            case 'warrior':
+                // Silver helmet
+                graphics.fillStyle(0x8899aa, 1);
+                this.fillRect(graphics, bx - 2, by - 6, 4, 2);
+                graphics.fillStyle(0xaabbcc, 1);
+                this.fillRect(graphics, bx - 1, by - 6, 2, 1);
+                // Helmet crest
+                graphics.fillStyle(0xff4444, 1);
+                this.fillRect(graphics, bx, by - 7, 1, 1);
+                // Sword during attack
+                if (animation === 'attack' || animation === 'special') {
+                    graphics.fillStyle(0xcccccc, 1);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 1, 1, 4);
+                    graphics.fillStyle(0xffffff, 1);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 2, 1, 1);
+                }
+                break;
+
+            case 'speedster':
+                // Spiky green hair
+                graphics.fillStyle(0x44ff44, 1);
+                this.fillRect(graphics, bx - 2, by - 7, 1, 2);
+                this.fillRect(graphics, bx, by - 8, 1, 3);
+                this.fillRect(graphics, bx + 1, by - 7, 1, 2);
+                // Speed goggles
+                graphics.fillStyle(0xffff00, 1);
+                this.fillRect(graphics, bx - 2, by - 4, 1, 1);
+                this.fillRect(graphics, bx + 1, by - 4, 1, 1);
+                // Speed trail
+                if (animation === 'walk' || animation === 'attack') {
+                    graphics.fillStyle(0x44ff44, 0.4);
+                    this.fillRect(graphics, bx - 4, by, 1, 3);
+                }
+                break;
+
+            case 'tank':
+                // Blue flat top
+                graphics.fillStyle(0x334466, 1);
+                this.fillRect(graphics, bx - 2, by - 6, 4, 1);
+                // Shoulder pads
+                graphics.fillStyle(0x4455ff, 1);
+                this.fillRect(graphics, bx - 3, by, 1, 2);
+                this.fillRect(graphics, bx + 2, by, 1, 2);
+                break;
+
+            case 'ninja':
+                // Black mask
+                graphics.fillStyle(0x222233, 1);
+                this.fillRect(graphics, bx - 2, by - 3, 4, 2);
+                // Eyes through mask
+                graphics.fillStyle(0xffffff, 1);
+                this.fillRect(graphics, bx - 1, by - 3, 1, 1);
+                this.fillRect(graphics, bx, by - 3, 1, 1);
+                // Headband tails
+                graphics.fillStyle(0x882222, 1);
+                this.fillRect(graphics, bx + 2, by - 5, 2, 1);
+                // Shuriken during special
+                if (animation === 'special' && frame >= 2) {
+                    graphics.fillStyle(0xcccccc, 1);
+                    this.fillRect(graphics, bx + 5 + frame, by + 1, 1, 1);
+                }
+                break;
+
+            case 'brawler':
+                // Orange mohawk
+                graphics.fillStyle(0xff6622, 1);
+                this.fillRect(graphics, bx - 1, by - 7, 2, 2);
+                this.fillRect(graphics, bx, by - 8, 1, 1);
+                // Fire effect during special
+                if (animation === 'special') {
+                    graphics.fillStyle(0xff4400, 0.7);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 1, 1, 2);
+                    graphics.fillStyle(0xffff00, 0.8);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by, 1, 1);
+                }
+                break;
+
+            case 'mage':
+                // Purple wizard hat
+                graphics.fillStyle(0x6622aa, 1);
+                this.fillRect(graphics, bx - 2, by - 7, 4, 2);
+                this.fillRect(graphics, bx - 1, by - 8, 2, 1);
+                this.fillRect(graphics, bx, by - 9, 1, 1);
+                // Hat star
+                graphics.fillStyle(0xffff00, 1);
+                this.fillRect(graphics, bx, by - 7, 1, 1);
+                // Staff
+                graphics.fillStyle(0x664422, 1);
+                this.fillRect(graphics, bx - 4, by, 1, 5);
+                graphics.fillStyle(0xff44ff, 1);
+                this.fillRect(graphics, bx - 4, by - 1, 1, 1);
+                // Magic particles
+                if (animation === 'special') {
+                    graphics.fillStyle(0xff88ff, 0.8);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by, 1, 1);
+                }
+                break;
+
+            case 'robot':
+                // Metal head
+                graphics.fillStyle(0x666677, 1);
+                this.fillRect(graphics, bx - 2, by - 5, 4, 4);
+                // Visor
+                graphics.fillStyle(0x00ffff, 1);
+                this.fillRect(graphics, bx - 1, by - 4, 2, 1);
+                // Antenna
+                graphics.fillStyle(0x888899, 1);
+                this.fillRect(graphics, bx, by - 7, 1, 2);
+                graphics.fillStyle(0xff0000, 1);
+                this.fillRect(graphics, bx, by - 8, 1, 1);
+                // Laser during special
+                if (animation === 'special' && frame >= 1) {
+                    graphics.fillStyle(0x00ffff, 0.8);
+                    for (let i = 0; i < 3 + frame; i++) {
+                        this.fillRect(graphics, bx + 3 + i, by + 1, 1, 1);
+                    }
+                }
+                break;
+
+            case 'pirate':
+                // Red bandana
+                graphics.fillStyle(0xcc2222, 1);
+                this.fillRect(graphics, bx - 2, by - 6, 4, 1);
+                this.fillRect(graphics, bx + 2, by - 5, 1, 1);
+                // Eyepatch
+                graphics.fillStyle(0x111111, 1);
+                this.fillRect(graphics, bx + 1, by - 3, 1, 1);
+                // Cutlass during attack
+                if (animation === 'attack' || animation === 'special') {
+                    graphics.fillStyle(0xccaa77, 1);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by + 1, 1, 1);
+                    graphics.fillStyle(0xcccccc, 1);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 1, 1, 2);
+                }
+                break;
+        }
+    }
+
     drawCharacterHair(graphics, x, y, character, darkColor, lightColor) {
         switch (character.id) {
             case 'warrior':
