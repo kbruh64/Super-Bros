@@ -583,24 +583,22 @@ class GameScene extends Phaser.Scene {
 
     handleProjectileHit(projectile, fighter) {
         try {
-            console.log('Collision detected!', projectile, fighter);
-            
             if (!projectile || !projectile.active) return;
-            if (!fighter) return;
+            if (!fighter || !fighter.body) return;
             if (projectile.hasHit) return;
             
             projectile.hasHit = true;
-            console.log('Applying knockback to', fighter.characterData.name);
+            console.log('Hit detected on:', fighter.characterData?.name || 'unknown');
             
-            // Apply simple knockback
-            if (fighter.body) {
-                const direction = projectile.x < fighter.x ? 1 : -1;
-                fighter.body.setVelocityX(direction * 300);
-                fighter.body.setVelocityY(-200);
+            // Apply knockback
+            const direction = projectile.x < fighter.x ? 1 : -1;
+            fighter.body.setVelocityX(direction * 300);
+            fighter.body.setVelocityY(-200);
+            
+            // Destroy immediately
+            if (projectile.active) {
+                projectile.destroy();
             }
-            
-            // Destroy projectile immediately
-            projectile.destroy();
         } catch (e) {
             console.error('Collision error:', e);
         }
@@ -937,35 +935,36 @@ class GameScene extends Phaser.Scene {
             const startX = fighter.x + direction * 40;
             const startY = fighter.y;
             
-            // Create directly in the physics group
-            const projectile = fighter.projectiles.create(startX, startY);
-            if (!projectile) return;
-            
-            // Add a visual circle to the projectile
-            const circle = this.add.circle(0, 0, 12, fighter.characterData.color);
-            projectile.add(circle);
-            
-            // Setup physics
+            // Create a simple physics sprite without texture
+            const projectile = this.physics.add.sprite(startX, startY, null);
             projectile.body.setVelocityX(direction * 350);
             projectile.body.setAllowGravity(false);
-            projectile.body.setCollideWorldBounds(true);
-            projectile.body.onWorldBounds = true;
+            
+            // Draw a circle on it
+            const graphics = this.make.graphics({ x: startX, y: startY, add: false });
+            graphics.fillStyle(fighter.characterData.color, 1);
+            graphics.fillCircle(0, 0, 10);
+            graphics.generateTexture('projectile_temp', 20, 20);
+            graphics.destroy();
+            
+            projectile.setTexture('projectile_temp');
             
             // Mark as projectile
             projectile.isProjectile = true;
             projectile.damage = 10;
             projectile.hasHit = false;
             
-            // Auto-destroy after 3 seconds
+            // Add to group
+            fighter.projectiles.add(projectile);
+            
+            // Destroy after timeout
             this.time.delayedCall(3000, () => {
-                try {
-                    if (projectile && projectile.active) {
-                        projectile.destroy();
-                    }
-                } catch (e) {}
+                if (projectile && projectile.active) {
+                    projectile.destroy();
+                }
             });
             
-            console.log('Projectile created:', projectile.x, projectile.y);
+            console.log('Projectile created');
         } catch (e) {
             console.error('Error creating projectile:', e);
         }
