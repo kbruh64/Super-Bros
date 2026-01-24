@@ -578,19 +578,32 @@ class GameScene extends Phaser.Scene {
 
     handleProjectileHit(projectile, fighter) {
         try {
-            // Make sure projectile still exists and hasn't been destroyed
-            if (!projectile || !projectile.active || !fighter || fighter.isInvincible) return;
+            // Extensive validation
+            if (!projectile) return;
+            if (!projectile.active) return;
+            if (!fighter) return;
+            if (!fighter.body) return;
+            if (fighter.isInvincible) return;
+            
+            // Prevent same projectile hitting same fighter multiple times
+            if (!projectile.hasHit) {
+                projectile.hasHit = true;
+                
+                const damage = typeof projectile.damage === 'number' ? projectile.damage : 10;
+                const knockback = typeof projectile.knockback === 'number' ? projectile.knockback : 1;
+                const direction = projectile.x < fighter.x ? 1 : -1;
 
-            const damage = projectile.damage || 10;
-            const knockback = projectile.knockback || 1;
-            const direction = projectile.x < fighter.x ? 1 : -1;
+                // Apply damage
+                this.applyDamage(fighter, damage, knockback, direction);
 
-            // Apply damage
-            this.applyDamage(fighter, damage, knockback, direction);
-
-            // Safely destroy projectile
-            if (projectile.active) {
-                projectile.destroy();
+                // Destroy projectile after brief delay
+                this.time.delayedCall(50, () => {
+                    try {
+                        if (projectile && projectile.active) {
+                            projectile.destroy();
+                        }
+                    } catch (e) {}
+                });
             }
         } catch (e) {
             console.error('Error in handleProjectileHit:', e);
@@ -1028,8 +1041,18 @@ class GameScene extends Phaser.Scene {
 
     applyDamage(fighter, damage, knockbackMult, direction) {
         try {
-            if (!fighter || !fighter.body || fighter.isInvincible) return;
+            if (!fighter) return;
+            if (!fighter.body) return;
+            if (fighter.isInvincible) return;
+            if (typeof damage !== 'number' || damage <= 0) return;
+            if (typeof knockbackMult !== 'number') knockbackMult = 1;
+            if (typeof direction !== 'number') direction = 1;
 
+            // Initialize damage if not set
+            if (typeof fighter.damage !== 'number') {
+                fighter.damage = 0;
+            }
+            
             fighter.damage += damage;
 
             // Calculate knockback based on damage
@@ -1037,8 +1060,12 @@ class GameScene extends Phaser.Scene {
             const totalKnockback = knockbackForce * knockbackMult;
 
             // Apply knockback
-            fighter.body.setVelocityX(direction * totalKnockback);
-            fighter.body.setVelocityY(-totalKnockback * 0.5);
+            try {
+                fighter.body.setVelocityX(direction * totalKnockback);
+                fighter.body.setVelocityY(-totalKnockback * 0.5);
+            } catch (e) {
+                console.warn('Error applying knockback:', e);
+            }
 
             // Hitstun
             fighter.hitstun = HITSTUN_BASE + (fighter.damage * HITSTUN_GROWTH);
