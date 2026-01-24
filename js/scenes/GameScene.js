@@ -927,59 +927,53 @@ class GameScene extends Phaser.Scene {
         try {
             const charId = fighter.characterData.id;
             const textureKey = `special_${charId}`;
+            const startX = fighter.x + direction * 40;
+            const startY = fighter.y;
             
             let projectile;
             
-            // Try to use texture if it exists, otherwise create a simple circle
+            // Create projectile directly in the physics group
             if (this.textures.exists(textureKey)) {
                 try {
-                    projectile = this.add.image(
-                        fighter.x + direction * 40,
-                        fighter.y,
-                        textureKey
-                    );
+                    projectile = fighter.projectiles.create(startX, startY, textureKey);
                     if (projectile) {
                         projectile.setScale(1.2);
                         projectile.setFlipX(!fighter.facingRight);
-                        // Add physics to image immediately
-                        this.physics.add.existing(projectile);
                     }
                 } catch (e) {
-                    // Fallback if texture image fails
                     projectile = null;
                 }
             }
             
-            // If no texture or texture creation failed, use circle
+            // Fallback: create circle if texture doesn't exist
             if (!projectile) {
                 try {
-                    projectile = this.add.circle(
-                        fighter.x + direction * 40,
-                        fighter.y,
-                        12,
-                        fighter.characterData.color
-                    );
-                    // Add physics to circle immediately
-                    if (projectile) {
-                        this.physics.add.existing(projectile);
-                    }
+                    // Create as image first, then add to physics group
+                    const circle = this.add.circle(startX, startY, 12, fighter.characterData.color);
+                    projectile = fighter.projectiles.add(circle);
                 } catch (e) {
                     console.warn('Error creating projectile fallback:', e);
                     return;
                 }
             }
 
-            if (!projectile || !projectile.body) return;
+            if (!projectile) return;
 
             // Setup physics body
             try {
-                projectile.body.setVelocityX(direction * 400);
-                projectile.body.setAllowGravity(false);
-                projectile.body.setCollideWorldBounds(true);
-                projectile.body.onWorldBounds = true;
+                if (!projectile.body) {
+                    this.physics.add.existing(projectile);
+                }
+                if (projectile.body) {
+                    projectile.body.setVelocityX(direction * 400);
+                    projectile.body.setVelocityY(0);
+                    projectile.body.setAllowGravity(false);
+                    projectile.body.setCollideWorldBounds(true);
+                    projectile.body.onWorldBounds = true;
+                }
             } catch (e) {
-                console.warn('Error setting velocity on projectile:', e);
-                projectile.destroy();
+                console.warn('Error setting projectile physics:', e);
+                if (projectile) projectile.destroy();
                 return;
             }
 
@@ -990,15 +984,6 @@ class GameScene extends Phaser.Scene {
             try {
                 projectile.setBlendMode('ADD');
             } catch (e) {}
-
-            // Add to fighter's projectile group
-            try {
-                if (fighter.projectiles && fighter.projectiles.add) {
-                    fighter.projectiles.add(projectile);
-                }
-            } catch (e) {
-                console.warn('Error adding projectile to group:', e);
-            }
 
             // Add rotation for some projectile types
             if (attack.type === 'shuriken') {
