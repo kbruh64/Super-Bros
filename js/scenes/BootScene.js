@@ -92,148 +92,161 @@ class BootScene extends Phaser.Scene {
     drawCharacterFrame(graphics, offsetX, offsetY, character, animation, bounce, frame) {
         const color = character.color;
         const mainColor = Phaser.Display.Color.IntegerToColor(color);
-        const darkColor = mainColor.clone().darken(40).color;
-        const lightColor = mainColor.clone().lighten(30).color;
-        const skinColor = 0xffdbac;
-        const darkSkin = 0xd4a574;
-        const eyeColor = 0x000000;
+        const darkColor = mainColor.clone().darken(30).color;
+        const lightColor = mainColor.clone().lighten(40).color;
+        const skinColor = 0xffd4b3;
+        const darkSkin = 0xe6b89c;
+        const outlineColor = 0x222233;
         const p = this.pixelSize;
 
-        // Character dimensions in pixels (will be multiplied by pixelSize)
-        const cx = offsetX + 24; // Center X
-        const cy = offsetY + 32 + bounce; // Center Y with bounce
+        // Center position in the frame
+        const cx = offsetX + 24;
+        const cy = offsetY + 36 + Math.floor(bounce);
 
-        // Animation-specific modifications
-        let armAngle = 0;
-        let legOffset = 0;
-        let attackExtend = 0;
-        let hurtShake = 0;
+        // Animation modifiers
+        let armSwing = 0, legSwing = 0, attackPunch = 0, squash = 0, shake = 0;
 
         switch (animation) {
             case 'idle':
-                // Subtle breathing
+                squash = Math.sin(frame * Math.PI / 3) * 0.5;
                 break;
             case 'walk':
-                legOffset = Math.sin(frame * Math.PI / 3) * 3;
-                armAngle = Math.sin(frame * Math.PI / 3) * 0.3;
+                legSwing = Math.sin(frame * Math.PI / 3) * 2;
+                armSwing = -legSwing;
                 break;
             case 'jump':
-                legOffset = frame === 0 ? -2 : 2;
+                squash = frame === 0 ? 1 : -1;
                 break;
             case 'attack':
-                attackExtend = frame < 2 ? frame * 4 : (4 - frame) * 4;
+                attackPunch = [0, 3, 5, 2][frame];
                 break;
             case 'special':
-                attackExtend = Math.sin(frame * Math.PI / 2) * 6;
+                attackPunch = [1, 3, 4, 2][frame];
                 break;
             case 'hurt':
-                hurtShake = frame === 0 ? -2 : 2;
+                shake = frame === 0 ? -1 : 1;
                 break;
         }
 
-        const baseX = Math.floor((cx + hurtShake) / p);
-        const baseY = Math.floor(cy / p);
+        const bx = Math.floor(cx / p) + shake;
+        const by = Math.floor(cy / p);
 
-        // === BODY (Torso) ===
-        for (let y = 0; y < 5; y++) {
-            for (let x = -2; x <= 2; x++) {
-                const isEdge = Math.abs(x) === 2 || y === 0 || y === 4;
-                this.drawPixel(graphics, baseX + x, baseY + y, isEdge ? darkColor : color);
-            }
-        }
-        // Highlight
-        this.drawPixel(graphics, baseX - 1, baseY + 1, lightColor, 0.7);
-        this.drawPixel(graphics, baseX, baseY + 1, lightColor, 0.5);
+        // === OUTLINE & BODY FILL ===
+        // Draw outline first for cleaner look
+        graphics.fillStyle(outlineColor, 1);
+
+        // Head outline
+        this.fillRect(graphics, bx - 3, by - 6, 6, 1);
+        this.fillRect(graphics, bx - 3, by - 5, 1, 5);
+        this.fillRect(graphics, bx + 2, by - 5, 1, 5);
+
+        // Body outline
+        this.fillRect(graphics, bx - 3, by, 1, 5);
+        this.fillRect(graphics, bx + 2, by, 1, 5);
+        this.fillRect(graphics, bx - 3, by + 5, 6, 1);
 
         // === HEAD ===
-        for (let y = -4; y < 0; y++) {
-            for (let x = -2; x <= 2; x++) {
-                if (y === -4 && Math.abs(x) === 2) continue; // Round corners
-                const isEdge = Math.abs(x) === 2 || y === -4;
-                this.drawPixel(graphics, baseX + x, baseY + y, isEdge ? darkSkin : skinColor);
-            }
-        }
+        graphics.fillStyle(skinColor, 1);
+        this.fillRect(graphics, bx - 2, by - 5, 4, 5);
+
+        // Face highlight
+        graphics.fillStyle(0xffe4c9, 1);
+        this.fillRect(graphics, bx - 1, by - 4, 2, 2);
 
         // Eyes
-        const eyeY = baseY - 2;
-        const blinkFrame = frame === 3 && animation === 'idle';
-        if (!blinkFrame) {
-            this.drawPixel(graphics, baseX - 1, eyeY, eyeColor);
-            this.drawPixel(graphics, baseX + 1, eyeY, eyeColor);
-            // Eye shine
-            graphics.fillStyle(0xffffff, 0.8);
-            graphics.fillRect((baseX - 1) * p + 1, eyeY * p + 1, 2, 2);
-            graphics.fillRect((baseX + 1) * p + 1, eyeY * p + 1, 2, 2);
-        } else {
-            // Blink - horizontal line
-            graphics.fillStyle(eyeColor, 1);
-            graphics.fillRect((baseX - 1) * p, eyeY * p + 2, p, 1);
-            graphics.fillRect((baseX + 1) * p, eyeY * p + 2, p, 1);
+        graphics.fillStyle(0xffffff, 1);
+        this.fillRect(graphics, bx - 2, by - 3, 1, 1);
+        this.fillRect(graphics, bx + 1, by - 3, 1, 1);
+
+        const blinking = frame === 3 && animation === 'idle';
+        if (!blinking) {
+            graphics.fillStyle(0x111122, 1);
+            this.fillRect(graphics, bx - 2, by - 3, 1, 1);
+            this.fillRect(graphics, bx + 1, by - 3, 1, 1);
+            // Pupils/shine
+            graphics.fillStyle(0xffffff, 1);
+            graphics.fillRect((bx - 2) * p, (by - 3) * p, 2, 2);
+            graphics.fillRect((bx + 1) * p, (by - 3) * p, 2, 2);
         }
 
-        // Hair/Helmet based on character
-        this.drawCharacterHair(graphics, baseX, baseY - 4, character, darkColor, lightColor);
+        // Mouth
+        graphics.fillStyle(darkSkin, 1);
+        this.fillRect(graphics, bx - 1, by - 1, 2, 1);
+
+        // === TORSO ===
+        graphics.fillStyle(color, 1);
+        this.fillRect(graphics, bx - 2, by, 4, 4);
+
+        // Torso highlight
+        graphics.fillStyle(lightColor, 1);
+        this.fillRect(graphics, bx - 1, by, 2, 1);
+
+        // Torso shading
+        graphics.fillStyle(darkColor, 1);
+        this.fillRect(graphics, bx - 2, by + 3, 4, 1);
 
         // === ARMS ===
-        const armY = baseY + 1;
+        const leftArmX = bx - 3;
+        const rightArmX = bx + 2;
+        const armLen = 3;
+
         if (animation === 'attack' || animation === 'special') {
-            // Extended arm for attack
-            for (let i = 0; i < 3 + Math.floor(attackExtend / 4); i++) {
-                this.drawPixel(graphics, baseX + 3 + i, armY, skinColor);
+            // Punching arm
+            graphics.fillStyle(skinColor, 1);
+            for (let i = 0; i <= attackPunch; i++) {
+                this.fillRect(graphics, rightArmX + i, by + 1, 1, 2);
             }
-            // Weapon/effect at end
-            if (animation === 'attack') {
-                this.drawPixel(graphics, baseX + 3 + Math.floor(attackExtend / 4) + 3, armY, 0xcccccc);
-                this.drawPixel(graphics, baseX + 3 + Math.floor(attackExtend / 4) + 4, armY - 1, 0xffffff);
-            }
-            // Other arm normal
-            this.drawPixel(graphics, baseX - 3, armY, skinColor);
-            this.drawPixel(graphics, baseX - 3, armY + 1, skinColor);
+            // Fist
+            graphics.fillStyle(skinColor, 1);
+            this.fillRect(graphics, rightArmX + attackPunch, by, 1, 3);
+
+            // Other arm
+            graphics.fillStyle(skinColor, 1);
+            this.fillRect(graphics, leftArmX, by + 1, 1, 2);
         } else {
-            // Normal arms with walk animation
-            const leftArmY = armY + Math.round(Math.sin(armAngle) * 2);
-            const rightArmY = armY - Math.round(Math.sin(armAngle) * 2);
-            this.drawPixel(graphics, baseX - 3, leftArmY, skinColor);
-            this.drawPixel(graphics, baseX - 3, leftArmY + 1, skinColor);
-            this.drawPixel(graphics, baseX + 3, rightArmY, skinColor);
-            this.drawPixel(graphics, baseX + 3, rightArmY + 1, skinColor);
+            // Normal arms with swing
+            graphics.fillStyle(skinColor, 1);
+            const lArmY = by + 1 + Math.round(armSwing / 2);
+            const rArmY = by + 1 - Math.round(armSwing / 2);
+            this.fillRect(graphics, leftArmX, lArmY, 1, 2);
+            this.fillRect(graphics, rightArmX, rArmY, 1, 2);
         }
 
         // === LEGS ===
-        const legY = baseY + 5;
+        const legY = by + 4;
+        graphics.fillStyle(color, 1);
+
         if (animation === 'walk') {
-            // Walking legs
-            const leftLegX = baseX - 1 + Math.round(legOffset / 3);
-            const rightLegX = baseX + 1 - Math.round(legOffset / 3);
-            for (let i = 0; i < 3; i++) {
-                this.drawPixel(graphics, leftLegX, legY + i, color);
-                this.drawPixel(graphics, rightLegX, legY + i, color);
-            }
+            const lLegX = bx - 1 + Math.round(legSwing / 2);
+            const rLegX = bx + Math.round(-legSwing / 2);
+            this.fillRect(graphics, lLegX, legY, 1, 3);
+            this.fillRect(graphics, rLegX, legY, 1, 3);
             // Feet
-            this.drawPixel(graphics, leftLegX, legY + 3, darkColor);
-            this.drawPixel(graphics, rightLegX, legY + 3, darkColor);
+            graphics.fillStyle(darkColor, 1);
+            this.fillRect(graphics, lLegX - 1, legY + 3, 2, 1);
+            this.fillRect(graphics, rLegX, legY + 3, 2, 1);
         } else if (animation === 'jump') {
-            // Tucked or extended legs
+            // Tucked legs
             const spread = frame === 0 ? 0 : 1;
-            for (let i = 0; i < 3; i++) {
-                this.drawPixel(graphics, baseX - 1 - spread, legY + i - (frame === 0 ? 1 : 0), color);
-                this.drawPixel(graphics, baseX + 1 + spread, legY + i - (frame === 0 ? 1 : 0), color);
-            }
+            this.fillRect(graphics, bx - 1 - spread, legY - (frame === 0 ? 1 : 0), 1, 2);
+            this.fillRect(graphics, bx + spread, legY - (frame === 0 ? 1 : 0), 1, 2);
         } else {
             // Standing legs
-            for (let i = 0; i < 3; i++) {
-                this.drawPixel(graphics, baseX - 1, legY + i, color);
-                this.drawPixel(graphics, baseX + 1, legY + i, color);
-            }
+            this.fillRect(graphics, bx - 1, legY, 1, 3);
+            this.fillRect(graphics, bx, legY, 1, 3);
             // Feet
-            this.drawPixel(graphics, baseX - 2, legY + 3, darkColor);
-            this.drawPixel(graphics, baseX - 1, legY + 3, darkColor);
-            this.drawPixel(graphics, baseX + 1, legY + 3, darkColor);
-            this.drawPixel(graphics, baseX + 2, legY + 3, darkColor);
+            graphics.fillStyle(darkColor, 1);
+            this.fillRect(graphics, bx - 2, legY + 3, 2, 1);
+            this.fillRect(graphics, bx, legY + 3, 2, 1);
         }
 
-        // === CHARACTER-SPECIFIC DETAILS ===
-        this.drawCharacterDetails(graphics, baseX, baseY, character, animation, frame, attackExtend);
+        // === CHARACTER-SPECIFIC FEATURES ===
+        this.drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor);
+    }
+
+    fillRect(graphics, x, y, w, h) {
+        const p = this.pixelSize;
+        graphics.fillRect(x * p, y * p, w * p, h * p);
     }
 
     drawCharacterHair(graphics, x, y, character, darkColor, lightColor) {
@@ -583,6 +596,9 @@ class BootScene extends Phaser.Scene {
     }
 
     create() {
+        // IMPORTANT: Add frame data BEFORE creating animations
+        this.addFrameData();
+
         // Create animations for all characters
         this.createAnimations();
 
@@ -590,10 +606,25 @@ class BootScene extends Phaser.Scene {
         this.scene.start('MenuScene');
     }
 
-    createAnimations() {
+    addFrameData() {
         const frameWidth = 48;
         const frameHeight = 64;
 
+        // Add spritesheet frame data to texture manager FIRST
+        CHARACTER_LIST.forEach(char => {
+            const texture = this.textures.get(`char_${char.id}`);
+
+            // Add individual frames
+            for (let row = 0; row < 4; row++) {
+                for (let col = 0; col < 6; col++) {
+                    const frameIndex = row * 6 + col;
+                    texture.add(frameIndex, 0, col * frameWidth, row * frameHeight, frameWidth, frameHeight);
+                }
+            }
+        });
+    }
+
+    createAnimations() {
         CHARACTER_LIST.forEach(char => {
             // Idle animation (row 0, frames 0-5)
             this.anims.create({
@@ -654,20 +685,6 @@ class BootScene extends Phaser.Scene {
                 frameRate: 10,
                 repeat: 0
             });
-        });
-
-        // Add spritesheet frame data to texture manager
-        CHARACTER_LIST.forEach(char => {
-            const texture = this.textures.get(`char_${char.id}`);
-            texture.add('__BASE', 0, 0, 0, frameWidth * 6, frameHeight * 4);
-
-            // Add individual frames
-            for (let row = 0; row < 4; row++) {
-                for (let col = 0; col < 6; col++) {
-                    const frameIndex = row * 6 + col;
-                    texture.add(frameIndex, 0, col * frameWidth, row * frameHeight, frameWidth, frameHeight);
-                }
-            }
         });
     }
 }
