@@ -577,25 +577,23 @@ class GameScene extends Phaser.Scene {
     }
 
     handleProjectileHit(projectile, fighter) {
-        // Make sure projectile still exists and hasn't been destroyed
-        if (!projectile || !projectile.active || fighter.isInvincible) return;
+        try {
+            // Make sure projectile still exists and hasn't been destroyed
+            if (!projectile || !projectile.active || !fighter || fighter.isInvincible) return;
 
-        const damage = projectile.damage || 10;
-        const knockback = projectile.knockback || 1;
-        const direction = projectile.x < fighter.x ? 1 : -1;
+            const damage = projectile.damage || 10;
+            const knockback = projectile.knockback || 1;
+            const direction = projectile.x < fighter.x ? 1 : -1;
 
-        // Apply damage
-        this.applyDamage(fighter, damage, knockback, direction);
+            // Apply damage
+            this.applyDamage(fighter, damage, knockback, direction);
 
-        // Destroy projectile with effect
-        if (this.hitEmitter && projectile.x && projectile.y) {
-            this.hitEmitter.setPosition(projectile.x, projectile.y);
-            this.hitEmitter.explode(10);
-        }
-
-        // Safely destroy projectile
-        if (projectile.active) {
-            projectile.destroy();
+            // Safely destroy projectile
+            if (projectile.active) {
+                projectile.destroy();
+            }
+        } catch (e) {
+            console.error('Error in handleProjectileHit:', e);
         }
     }
 
@@ -926,83 +924,107 @@ class GameScene extends Phaser.Scene {
     }
 
     createProjectile(fighter, attack, direction) {
-        const charId = fighter.characterData.id;
-        const textureKey = `special_${charId}`;
-        
-        let projectile;
-        
-        // Try to use texture if it exists, otherwise create a simple circle
-        if (this.textures.exists(textureKey)) {
-            try {
-                projectile = this.add.image(
-                    fighter.x + direction * 40,
-                    fighter.y,
-                    textureKey
-                );
-                projectile.setScale(1.2);
-                projectile.setFlipX(!fighter.facingRight);
-            } catch (e) {
-                console.warn('Error creating projectile image, using fallback:', e);
-                projectile = this.add.circle(
-                    fighter.x + direction * 40,
-                    fighter.y,
-                    12,
-                    fighter.characterData.color
-                );
-            }
-        } else {
-            // Fallback: create a simple circle if texture doesn't exist
-            projectile = this.add.circle(
-                fighter.x + direction * 40,
-                fighter.y,
-                12,
-                fighter.characterData.color
-            );
-        }
-
-        // Add physics body
         try {
-            this.physics.add.existing(projectile);
-            projectile.body.setVelocityX(direction * 400);
-            projectile.body.setAllowGravity(false);
-            projectile.body.setCollideWorldBounds(true);
-            projectile.body.onWorldBounds = true;
-        } catch (e) {
-            console.warn('Error setting up projectile physics:', e);
-        }
-
-        // Set projectile properties
-        projectile.damage = attack.damage || 10;
-        projectile.knockback = attack.knockback || 1;
-        projectile.setBlendMode('ADD');
-
-        // Add to fighter's projectile group
-        fighter.projectiles.add(projectile);
-
-        // Add rotation for some projectile types
-        if (attack.type === 'shuriken') {
-            try {
-                this.tweens.add({
-                    targets: projectile,
-                    angle: direction * 360 * 3,
-                    duration: 1000,
-                    repeat: -1
-                });
-            } catch (e) {
-                console.warn('Error creating rotation tween:', e);
+            const charId = fighter.characterData.id;
+            const textureKey = `special_${charId}`;
+            
+            let projectile;
+            
+            // Try to use texture if it exists, otherwise create a simple circle
+            if (this.textures.exists(textureKey)) {
+                try {
+                    projectile = this.add.image(
+                        fighter.x + direction * 40,
+                        fighter.y,
+                        textureKey
+                    );
+                    if (projectile) {
+                        projectile.setScale(1.2);
+                        projectile.setFlipX(!fighter.facingRight);
+                        // Add physics to image immediately
+                        this.physics.add.existing(projectile);
+                    }
+                } catch (e) {
+                    // Fallback if texture image fails
+                    projectile = null;
+                }
             }
-        }
+            
+            // If no texture or texture creation failed, use circle
+            if (!projectile) {
+                try {
+                    projectile = this.add.circle(
+                        fighter.x + direction * 40,
+                        fighter.y,
+                        12,
+                        fighter.characterData.color
+                    );
+                    // Add physics to circle immediately
+                    if (projectile) {
+                        this.physics.add.existing(projectile);
+                    }
+                } catch (e) {
+                    console.warn('Error creating projectile fallback:', e);
+                    return;
+                }
+            }
 
-        // Destroy after time
-        this.time.delayedCall(2000, () => {
+            if (!projectile || !projectile.body) return;
+
+            // Setup physics body
             try {
-                if (projectile && projectile.active) {
-                    projectile.destroy();
+                projectile.body.setVelocityX(direction * 400);
+                projectile.body.setAllowGravity(false);
+                projectile.body.setCollideWorldBounds(true);
+                projectile.body.onWorldBounds = true;
+            } catch (e) {
+                console.warn('Error setting velocity on projectile:', e);
+                projectile.destroy();
+                return;
+            }
+
+            // Set projectile properties
+            projectile.damage = attack.damage || 10;
+            projectile.knockback = attack.knockback || 1;
+            
+            try {
+                projectile.setBlendMode('ADD');
+            } catch (e) {}
+
+            // Add to fighter's projectile group
+            try {
+                if (fighter.projectiles && fighter.projectiles.add) {
+                    fighter.projectiles.add(projectile);
                 }
             } catch (e) {
-                console.warn('Error destroying projectile:', e);
+                console.warn('Error adding projectile to group:', e);
             }
-        });
+
+            // Add rotation for some projectile types
+            if (attack.type === 'shuriken') {
+                try {
+                    this.tweens.add({
+                        targets: projectile,
+                        angle: direction * 360 * 3,
+                        duration: 1000,
+                        repeat: -1
+                    });
+                } catch (e) {}
+            }
+
+            // Destroy after time
+            try {
+                this.time.delayedCall(2000, () => {
+                    try {
+                        if (projectile && projectile.active) {
+                            projectile.destroy();
+                        }
+                    } catch (e) {}
+                });
+            } catch (e) {}
+        } catch (e) {
+            console.error('Error in createProjectile:', e);
+        }
     }
 
     checkHitbox(hitbox, target) {
@@ -1021,7 +1043,7 @@ class GameScene extends Phaser.Scene {
 
     applyDamage(fighter, damage, knockbackMult, direction) {
         try {
-            if (!fighter || !fighter.body) return;
+            if (!fighter || !fighter.body || fighter.isInvincible) return;
 
             fighter.damage += damage;
 
@@ -1030,18 +1052,19 @@ class GameScene extends Phaser.Scene {
             const totalKnockback = knockbackForce * knockbackMult;
 
             // Apply knockback
-            if (fighter.body) {
-                fighter.body.setVelocityX(direction * totalKnockback);
-                fighter.body.setVelocityY(-totalKnockback * 0.5);
-            }
+            fighter.body.setVelocityX(direction * totalKnockback);
+            fighter.body.setVelocityY(-totalKnockback * 0.5);
 
             // Hitstun
             fighter.hitstun = HITSTUN_BASE + (fighter.damage * HITSTUN_GROWTH);
 
-            // Visual effects
-            if (this.hitEmitter) {
-                this.hitEmitter.setPosition(fighter.x, fighter.y);
-                this.hitEmitter.explode(15);
+            // Visual effects - use hitEmitter safely
+            try {
+                if (this.hitEmitter && fighter.x && fighter.y) {
+                    this.hitEmitter.emitParticleAt(fighter.x, fighter.y, 15);
+                }
+            } catch (e) {
+                // Silently fail if emitter doesn't work
             }
 
             // Impact effect
@@ -1064,21 +1087,25 @@ class GameScene extends Phaser.Scene {
                     });
                 }
             } catch (e) {
-                console.warn('Error creating impact effect:', e);
+                // Silently fail if impact effect doesn't work
             }
 
-            // Camera shake based on damage
-            const shakeIntensity = Math.min(damage * 0.001, 0.01);
-            if (this.cameras && this.cameras.main) {
-                this.cameras.main.shake(100, shakeIntensity);
+            // Camera effects
+            try {
+                const shakeIntensity = Math.min(damage * 0.001, 0.01);
+                if (this.cameras && this.cameras.main) {
+                    this.cameras.main.shake(100, shakeIntensity);
 
-                // Screen flash for big hits
-                if (damage >= 15) {
-                    this.cameras.main.flash(50, 255, 255, 255);
+                    // Screen flash for big hits
+                    if (damage >= 15) {
+                        this.cameras.main.flash(50, 255, 255, 255);
+                    }
                 }
+            } catch (e) {
+                // Silently fail if camera effects don't work
             }
         } catch (e) {
-            console.warn('Error in applyDamage:', e);
+            console.error('Error in applyDamage:', e);
         }
     }
 
