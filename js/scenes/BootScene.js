@@ -87,6 +87,7 @@ class BootScene extends Phaser.Scene {
         }
 
         graphics.generateTexture(`char_${character.id}`, sheetWidth, sheetHeight);
+        graphics.destroy();
     }
 
     drawCharacterFrame(graphics, offsetX, offsetY, character, animation, bounce, frame) {
@@ -595,6 +596,7 @@ class BootScene extends Phaser.Scene {
             }
 
             graphics.generateTexture(`special_${char.id}`, 60, 60);
+            graphics.destroy();
         });
     }
 
@@ -612,6 +614,7 @@ class BootScene extends Phaser.Scene {
         mainGraphics.lineTo(95, 3);
         mainGraphics.stroke();
         mainGraphics.generateTexture('platform_main', 100, 40);
+        mainGraphics.destroy();
 
         const floatGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         floatGraphics.fillStyle(0x2a4a6a, 1);
@@ -623,6 +626,7 @@ class BootScene extends Phaser.Scene {
         floatGraphics.lineStyle(2, 0x6a9aba, 0.6);
         floatGraphics.strokeRoundedRect(0, 0, 100, 25, 8);
         floatGraphics.generateTexture('platform_floating', 100, 25);
+        floatGraphics.destroy();
     }
 
     generateParticleTextures() {
@@ -632,6 +636,7 @@ class BootScene extends Phaser.Scene {
         starGraphics.fillStyle(0xffffff, 0.5);
         starGraphics.fillCircle(8, 8, 6);
         starGraphics.generateTexture('particle_star', 16, 16);
+        starGraphics.destroy();
 
         const sparkGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         sparkGraphics.fillStyle(0xffff00, 1);
@@ -639,6 +644,7 @@ class BootScene extends Phaser.Scene {
         sparkGraphics.fillStyle(0xffffff, 1);
         sparkGraphics.fillCircle(6, 6, 2);
         sparkGraphics.generateTexture('particle_spark', 12, 12);
+        sparkGraphics.destroy();
 
         const emberGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         emberGraphics.fillStyle(0xff4400, 0.8);
@@ -646,11 +652,13 @@ class BootScene extends Phaser.Scene {
         emberGraphics.fillStyle(0xff8800, 1);
         emberGraphics.fillCircle(5, 5, 2);
         emberGraphics.generateTexture('particle_ember', 10, 10);
+        emberGraphics.destroy();
 
         const snowGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         snowGraphics.fillStyle(0xffffff, 0.9);
         snowGraphics.fillCircle(4, 4, 3);
         snowGraphics.generateTexture('particle_snow', 8, 8);
+        snowGraphics.destroy();
 
         const hitGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         hitGraphics.fillStyle(0xffffff, 1);
@@ -658,16 +666,19 @@ class BootScene extends Phaser.Scene {
         hitGraphics.fillStyle(0xffff00, 0.8);
         hitGraphics.fillCircle(16, 16, 6);
         hitGraphics.generateTexture('particle_hit', 32, 32);
+        hitGraphics.destroy();
 
         const smokeGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         smokeGraphics.fillStyle(0x888888, 0.6);
         smokeGraphics.fillCircle(10, 10, 10);
         smokeGraphics.generateTexture('particle_smoke', 20, 20);
+        smokeGraphics.destroy();
 
         const trailGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         trailGraphics.fillStyle(0xffffff, 0.8);
         trailGraphics.fillCircle(4, 4, 4);
         trailGraphics.generateTexture('particle_trail', 8, 8);
+        trailGraphics.destroy();
     }
 
     generateUITextures() {
@@ -679,6 +690,7 @@ class BootScene extends Phaser.Scene {
         btnGraphics.lineStyle(2, 0xff8899, 0.8);
         btnGraphics.strokeRoundedRect(0, 0, 200, 50, 10);
         btnGraphics.generateTexture('button', 200, 50);
+        btnGraphics.destroy();
 
         const selectGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         selectGraphics.fillStyle(0x16213e, 1);
@@ -686,6 +698,7 @@ class BootScene extends Phaser.Scene {
         selectGraphics.lineStyle(3, 0xe94560, 1);
         selectGraphics.strokeRoundedRect(0, 0, 120, 140, 8);
         selectGraphics.generateTexture('char_select_box', 120, 140);
+        selectGraphics.destroy();
 
         const stageGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         stageGraphics.fillStyle(0x16213e, 1);
@@ -693,6 +706,7 @@ class BootScene extends Phaser.Scene {
         stageGraphics.lineStyle(3, 0xe94560, 1);
         stageGraphics.strokeRoundedRect(0, 0, 180, 120, 8);
         stageGraphics.generateTexture('stage_select_box', 180, 120);
+        stageGraphics.destroy();
 
         const hpBgGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         hpBgGraphics.fillStyle(0x1a1a2e, 1);
@@ -700,6 +714,7 @@ class BootScene extends Phaser.Scene {
         hpBgGraphics.lineStyle(2, 0x3a3a4e, 1);
         hpBgGraphics.strokeRoundedRect(0, 0, 200, 30, 5);
         hpBgGraphics.generateTexture('hp_bg', 200, 30);
+        hpBgGraphics.destroy();
 
         const stockGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         stockGraphics.fillStyle(0xe94560, 1);
@@ -707,6 +722,7 @@ class BootScene extends Phaser.Scene {
         stockGraphics.fillStyle(0xff6680, 1);
         stockGraphics.fillCircle(8, 8, 3);
         stockGraphics.generateTexture('stock_icon', 20, 20);
+        stockGraphics.destroy();
     }
 
     generateAttackEffects() {
@@ -718,6 +734,7 @@ class BootScene extends Phaser.Scene {
             slashGraphics.stroke();
         }
         slashGraphics.generateTexture('effect_slash', 80, 80);
+        slashGraphics.destroy();
 
         const impactGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         impactGraphics.fillStyle(0xffffff, 0.9);
@@ -727,6 +744,7 @@ class BootScene extends Phaser.Scene {
         impactGraphics.fillStyle(0xffffff, 1);
         impactGraphics.fillCircle(30, 30, 8);
         impactGraphics.generateTexture('effect_impact', 60, 60);
+        impactGraphics.destroy();
 
         const shieldGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         shieldGraphics.lineStyle(4, 0x00aaff, 0.8);
@@ -736,6 +754,7 @@ class BootScene extends Phaser.Scene {
         shieldGraphics.fillStyle(0x00aaff, 0.2);
         shieldGraphics.fillCircle(30, 35, 28);
         shieldGraphics.generateTexture('effect_shield', 60, 70);
+        shieldGraphics.destroy();
     }
 
     create() {
