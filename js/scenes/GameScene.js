@@ -583,11 +583,14 @@ class GameScene extends Phaser.Scene {
 
     handleProjectileHit(projectile, fighter) {
         try {
+            console.log('Collision detected!', projectile, fighter);
+            
             if (!projectile || !projectile.active) return;
             if (!fighter) return;
             if (projectile.hasHit) return;
             
             projectile.hasHit = true;
+            console.log('Applying knockback to', fighter.characterData.name);
             
             // Apply simple knockback
             if (fighter.body) {
@@ -934,35 +937,35 @@ class GameScene extends Phaser.Scene {
             const startX = fighter.x + direction * 40;
             const startY = fighter.y;
             
-            // Create simple circle projectile with physics
-            const projectile = this.add.circle(startX, startY, 12, fighter.characterData.color);
-            this.physics.add.existing(projectile);
+            // Create directly in the physics group
+            const projectile = fighter.projectiles.create(startX, startY);
+            if (!projectile) return;
             
-            if (!projectile.body) {
-                projectile.destroy();
-                return;
-            }
+            // Add a visual circle to the projectile
+            const circle = this.add.circle(0, 0, 12, fighter.characterData.color);
+            projectile.add(circle);
             
-            // Set velocity
+            // Setup physics
             projectile.body.setVelocityX(direction * 350);
             projectile.body.setAllowGravity(false);
             projectile.body.setCollideWorldBounds(true);
             projectile.body.onWorldBounds = true;
             
-            // Store data
-            projectile.damage = attack.damage || 10;
-            projectile.owner = fighter;
+            // Mark as projectile
+            projectile.isProjectile = true;
+            projectile.damage = 10;
             projectile.hasHit = false;
-            
-            // Add to fighter's projectiles for tracking
-            fighter.projectiles.add(projectile);
             
             // Auto-destroy after 3 seconds
             this.time.delayedCall(3000, () => {
-                if (projectile && projectile.active) {
-                    projectile.destroy();
-                }
+                try {
+                    if (projectile && projectile.active) {
+                        projectile.destroy();
+                    }
+                } catch (e) {}
             });
+            
+            console.log('Projectile created:', projectile.x, projectile.y);
         } catch (e) {
             console.error('Error creating projectile:', e);
         }
