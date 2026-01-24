@@ -250,7 +250,9 @@ class BootScene extends Phaser.Scene {
         // Hit effect particle
         const hitGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         hitGraphics.fillStyle(0xffffff, 1);
-        hitGraphics.fillStar(16, 16, 4, 16, 8);
+        hitGraphics.fillCircle(16, 16, 12);
+        hitGraphics.fillStyle(0xffff00, 0.8);
+        hitGraphics.fillCircle(16, 16, 6);
         hitGraphics.generateTexture('particle_hit', 32, 32);
 
         // Smoke particle
@@ -324,9 +326,11 @@ class BootScene extends Phaser.Scene {
         // Impact effect
         const impactGraphics = this.make.graphics({ x: 0, y: 0, add: false });
         impactGraphics.fillStyle(0xffffff, 0.9);
-        impactGraphics.fillStar(30, 30, 6, 30, 15);
-        impactGraphics.fillStyle(0xffff00, 0.6);
-        impactGraphics.fillStar(30, 30, 6, 20, 10);
+        impactGraphics.fillCircle(30, 30, 25);
+        impactGraphics.fillStyle(0xffff00, 0.8);
+        impactGraphics.fillCircle(30, 30, 15);
+        impactGraphics.fillStyle(0xffffff, 1);
+        impactGraphics.fillCircle(30, 30, 8);
         impactGraphics.generateTexture('effect_impact', 60, 60);
 
         // Shield effect
