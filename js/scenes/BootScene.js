@@ -507,7 +507,7 @@ class BootScene extends Phaser.Scene {
                 const graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
                 switch (char.id) {
-                case 'warrior':
+                    case 'warrior':
                     // Sword slash arc
                     graphics.lineStyle(6, 0xffffff, 0.9);
                     graphics.beginPath();
@@ -687,10 +687,10 @@ class BootScene extends Phaser.Scene {
                     graphics.fillStyle(0xff00ff, 0.8);
                     graphics.fillCircle(30, 30, 6);
                     break;
-            }
+                }
 
-            graphics.generateTexture(`special_${char.id}`, 60, 60);
-            graphics.destroy();
+                graphics.generateTexture(`special_${char.id}`, 60, 60);
+                graphics.destroy();
             } catch (e) {
                 console.warn(`Failed to generate special effect for ${char.id}:`, e);
             }
