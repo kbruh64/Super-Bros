@@ -554,9 +554,14 @@ class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.player1, this.platforms, this.handlePlatformCollision, null, this);
         this.physics.add.collider(this.player2, this.platforms, this.handlePlatformCollision, null, this);
 
-        // Projectile collisions
-        this.physics.add.overlap(this.player1.projectiles, this.player2, this.handleProjectileHit, null, this);
-        this.physics.add.overlap(this.player2.projectiles, this.player1, this.handleProjectileHit, null, this);
+        // Projectile collisions - we'll handle these in update loop instead
+        this.projectileCollisions = this.physics.add.overlap(
+            [this.player1.projectiles, this.player2.projectiles],
+            [this.player1, this.player2],
+            this.handleProjectileHit,
+            null,
+            this
+        );
     }
 
     handlePlatformCollision(fighter, platform) {
@@ -579,35 +584,20 @@ class GameScene extends Phaser.Scene {
     handleProjectileHit(projectile, fighter) {
         try {
             if (!projectile || !projectile.active) return;
-            if (!fighter || !fighter.body) return;
-            if (fighter.isInvincible) return;
+            if (!fighter) return;
             if (projectile.hasHit) return;
-
+            
             projectile.hasHit = true;
-
-            const damage = 10;
-            const knockback = 1;
-            const direction = projectile.x < fighter.x ? 1 : -1;
-
-            try {
-                if (typeof fighter.damage !== 'number') fighter.damage = 0;
-                fighter.damage += damage;
-
-                const kbForce = BASE_KNOCKBACK + (fighter.damage * KNOCKBACK_GROWTH * 100);
-                if (fighter.body) {
-                    fighter.body.setVelocityX(direction * kbForce * knockback);
-                    fighter.body.setVelocityY(-(kbForce * knockback * 0.5));
-                }
-                
-                fighter.hitstun = HITSTUN_BASE + (fighter.damage * HITSTUN_GROWTH);
-            } catch (e) {
-                console.warn('Error applying damage:', e);
+            
+            // Apply simple knockback
+            if (fighter.body) {
+                const direction = projectile.x < fighter.x ? 1 : -1;
+                fighter.body.setVelocityX(direction * 300);
+                fighter.body.setVelocityY(-200);
             }
-
-            // Destroy projectile
-            try {
-                projectile.destroy();
-            } catch (e) {}
+            
+            // Destroy projectile immediately
+            projectile.destroy();
         } catch (e) {
             console.error('Collision error:', e);
         }
@@ -941,90 +931,40 @@ class GameScene extends Phaser.Scene {
 
     createProjectile(fighter, attack, direction) {
         try {
-            const charId = fighter.characterData.id;
-            const textureKey = `special_${charId}`;
             const startX = fighter.x + direction * 40;
             const startY = fighter.y;
             
-            let projectile;
+            // Create simple circle projectile with physics
+            const projectile = this.add.circle(startX, startY, 12, fighter.characterData.color);
+            this.physics.add.existing(projectile);
             
-            // Create projectile directly in the physics group
-            if (this.textures.exists(textureKey)) {
-                try {
-                    projectile = fighter.projectiles.create(startX, startY, textureKey);
-                    if (projectile) {
-                        projectile.setScale(1.2);
-                        projectile.setFlipX(!fighter.facingRight);
-                    }
-                } catch (e) {
-                    projectile = null;
-                }
-            }
-            
-            // Fallback: create circle if texture doesn't exist
-            if (!projectile) {
-                try {
-                    // Create as image first, then add to physics group
-                    const circle = this.add.circle(startX, startY, 12, fighter.characterData.color);
-                    projectile = fighter.projectiles.add(circle);
-                } catch (e) {
-                    console.warn('Error creating projectile fallback:', e);
-                    return;
-                }
-            }
-
-            if (!projectile) return;
-
-            // Setup physics body
-            try {
-                if (!projectile.body) {
-                    this.physics.add.existing(projectile);
-                }
-                if (projectile.body) {
-                    projectile.body.setVelocityX(direction * 400);
-                    projectile.body.setVelocityY(0);
-                    projectile.body.setAllowGravity(false);
-                    projectile.body.setCollideWorldBounds(true);
-                    projectile.body.onWorldBounds = true;
-                }
-            } catch (e) {
-                console.warn('Error setting projectile physics:', e);
-                if (projectile) projectile.destroy();
+            if (!projectile.body) {
+                projectile.destroy();
                 return;
             }
-
-            // Set projectile properties
-            projectile.damage = attack.damage || 10;
-            projectile.knockback = attack.knockback || 1;
             
-            try {
-                projectile.setBlendMode('ADD');
-            } catch (e) {}
-
-            // Add rotation for some projectile types
-            if (attack.type === 'shuriken') {
-                try {
-                    this.tweens.add({
-                        targets: projectile,
-                        angle: direction * 360 * 3,
-                        duration: 1000,
-                        repeat: -1
-                    });
-                } catch (e) {}
-            }
-
-            // Destroy after time
-            try {
-                this.time.delayedCall(2000, () => {
-                    try {
-                        if (projectile && projectile.active) {
-                            projectile.destroy();
-                        }
-                    } catch (e) {}
-                });
-            } catch (e) {}
+            // Set velocity
+            projectile.body.setVelocityX(direction * 350);
+            projectile.body.setAllowGravity(false);
+            projectile.body.setCollideWorldBounds(true);
+            projectile.body.onWorldBounds = true;
+            
+            // Store data
+            projectile.damage = attack.damage || 10;
+            projectile.owner = fighter;
+            projectile.hasHit = false;
+            
+            // Add to fighter's projectiles for tracking
+            fighter.projectiles.add(projectile);
+            
+            // Auto-destroy after 3 seconds
+            this.time.delayedCall(3000, () => {
+                if (projectile && projectile.active) {
+                    projectile.destroy();
+                }
+            });
         } catch (e) {
-            console.error('Error in createProjectile:', e);
+            console.error('Error creating projectile:', e);
         }
     }
 
