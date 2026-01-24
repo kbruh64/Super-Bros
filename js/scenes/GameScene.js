@@ -588,7 +588,6 @@ class GameScene extends Phaser.Scene {
             if (projectile.hasHit) return;
             
             projectile.hasHit = true;
-            console.log('Hit detected on:', fighter.characterData?.name || 'unknown');
             
             // Apply knockback
             const direction = projectile.x < fighter.x ? 1 : -1;
@@ -963,8 +962,6 @@ class GameScene extends Phaser.Scene {
                     projectile.destroy();
                 }
             });
-            
-            console.log('Projectile created');
         } catch (e) {
             console.error('Error creating projectile:', e);
         }
@@ -1082,9 +1079,10 @@ class GameScene extends Phaser.Scene {
 
         fighter.stocks--;
 
-        // KO effect
-        this.cameras.main.flash(300, 255, 100, 100);
-        this.cameras.main.shake(300, 0.02);
+        // KO effect - subtle camera shake instead of bright flash
+        try {
+            this.cameras.main.shake(300, 0.015);
+        } catch (e) {}
 
         // Check game over
         if (fighter.stocks <= 0) {
