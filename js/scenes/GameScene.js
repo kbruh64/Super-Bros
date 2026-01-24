@@ -577,18 +577,26 @@ class GameScene extends Phaser.Scene {
     }
 
     handleProjectileHit(projectile, fighter) {
-        if (fighter.isInvincible) return;
+        // Make sure projectile still exists and hasn't been destroyed
+        if (!projectile || !projectile.active || fighter.isInvincible) return;
 
         const damage = projectile.damage || 10;
         const knockback = projectile.knockback || 1;
+        const direction = projectile.x < fighter.x ? 1 : -1;
 
-        this.applyDamage(fighter, damage, knockback, projectile.x < fighter.x ? 1 : -1);
+        // Apply damage
+        this.applyDamage(fighter, damage, knockback, direction);
 
         // Destroy projectile with effect
-        this.hitEmitter.setPosition(projectile.x, projectile.y);
-        this.hitEmitter.explode(10);
+        if (this.hitEmitter && projectile.x && projectile.y) {
+            this.hitEmitter.setPosition(projectile.x, projectile.y);
+            this.hitEmitter.explode(10);
+        }
 
-        projectile.destroy();
+        // Safely destroy projectile
+        if (projectile.active) {
+            projectile.destroy();
+        }
     }
 
     startCountdown() {
@@ -952,28 +960,48 @@ class GameScene extends Phaser.Scene {
             );
         }
 
-        this.physics.add.existing(projectile);
-        projectile.body.setVelocityX(direction * 400);
-        projectile.body.setAllowGravity(false);
-        projectile.damage = attack.damage;
-        projectile.knockback = attack.knockback;
+        // Add physics body
+        try {
+            this.physics.add.existing(projectile);
+            projectile.body.setVelocityX(direction * 400);
+            projectile.body.setAllowGravity(false);
+            projectile.body.setCollideWorldBounds(true);
+            projectile.body.onWorldBounds = true;
+        } catch (e) {
+            console.warn('Error setting up projectile physics:', e);
+        }
+
+        // Set projectile properties
+        projectile.damage = attack.damage || 10;
+        projectile.knockback = attack.knockback || 1;
         projectile.setBlendMode('ADD');
 
+        // Add to fighter's projectile group
         fighter.projectiles.add(projectile);
 
         // Add rotation for some projectile types
         if (attack.type === 'shuriken') {
-            this.tweens.add({
-                targets: projectile,
-                angle: direction * 360 * 3,
-                duration: 1000,
-                repeat: -1
-            });
+            try {
+                this.tweens.add({
+                    targets: projectile,
+                    angle: direction * 360 * 3,
+                    duration: 1000,
+                    repeat: -1
+                });
+            } catch (e) {
+                console.warn('Error creating rotation tween:', e);
+            }
         }
 
         // Destroy after time
         this.time.delayedCall(2000, () => {
-            if (projectile.active) projectile.destroy();
+            try {
+                if (projectile && projectile.active) {
+                    projectile.destroy();
+                }
+            } catch (e) {
+                console.warn('Error destroying projectile:', e);
+            }
         });
     }
 
@@ -992,43 +1020,65 @@ class GameScene extends Phaser.Scene {
     }
 
     applyDamage(fighter, damage, knockbackMult, direction) {
-        fighter.damage += damage;
+        try {
+            if (!fighter || !fighter.body) return;
 
-        // Calculate knockback based on damage
-        const knockbackForce = BASE_KNOCKBACK + (fighter.damage * KNOCKBACK_GROWTH * 100);
-        const totalKnockback = knockbackForce * knockbackMult;
+            fighter.damage += damage;
 
-        // Apply knockback
-        fighter.body.setVelocityX(direction * totalKnockback);
-        fighter.body.setVelocityY(-totalKnockback * 0.5);
+            // Calculate knockback based on damage
+            const knockbackForce = BASE_KNOCKBACK + (fighter.damage * KNOCKBACK_GROWTH * 100);
+            const totalKnockback = knockbackForce * knockbackMult;
 
-        // Hitstun
-        fighter.hitstun = HITSTUN_BASE + (fighter.damage * HITSTUN_GROWTH);
+            // Apply knockback
+            if (fighter.body) {
+                fighter.body.setVelocityX(direction * totalKnockback);
+                fighter.body.setVelocityY(-totalKnockback * 0.5);
+            }
 
-        // Visual effects
-        this.hitEmitter.setPosition(fighter.x, fighter.y);
-        this.hitEmitter.explode(15);
+            // Hitstun
+            fighter.hitstun = HITSTUN_BASE + (fighter.damage * HITSTUN_GROWTH);
 
-        // Impact effect
-        const impact = this.add.image(fighter.x, fighter.y, 'effect_impact');
-        impact.setBlendMode('ADD');
-        impact.setScale(0.5);
+            // Visual effects
+            if (this.hitEmitter) {
+                this.hitEmitter.setPosition(fighter.x, fighter.y);
+                this.hitEmitter.explode(15);
+            }
 
-        this.tweens.add({
-            targets: impact,
-            alpha: 0,
-            scale: 2,
-            duration: 200,
-            onComplete: () => impact.destroy()
-        });
+            // Impact effect
+            try {
+                const impact = this.add.image(fighter.x, fighter.y, 'effect_impact');
+                if (impact) {
+                    impact.setBlendMode('ADD');
+                    impact.setScale(0.5);
 
-        // Camera shake based on damage
-        const shakeIntensity = Math.min(damage * 0.001, 0.01);
-        this.cameras.main.shake(100, shakeIntensity);
+                    this.tweens.add({
+                        targets: impact,
+                        alpha: 0,
+                        scale: 2,
+                        duration: 200,
+                        onComplete: () => {
+                            try {
+                                if (impact && impact.active) impact.destroy();
+                            } catch (e) {}
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn('Error creating impact effect:', e);
+            }
 
-        // Screen flash for big hits
-        if (damage >= 15) {
-            this.cameras.main.flash(50, 255, 255, 255);
+            // Camera shake based on damage
+            const shakeIntensity = Math.min(damage * 0.001, 0.01);
+            if (this.cameras && this.cameras.main) {
+                this.cameras.main.shake(100, shakeIntensity);
+
+                // Screen flash for big hits
+                if (damage >= 15) {
+                    this.cameras.main.flash(50, 255, 255, 255);
+                }
+            }
+        } catch (e) {
+            console.warn('Error in applyDamage:', e);
         }
     }
 
