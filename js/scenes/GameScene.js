@@ -398,9 +398,9 @@ class GameScene extends Phaser.Scene {
     createFighter(x, y, charData, playerNum) {
         const fighter = this.add.container(x, y);
 
-        // Character sprite
-        const sprite = this.add.image(0, 0, `char_${charData.id}`);
-        sprite.setScale(1.2);
+        // Character sprite - use sprite for animations
+        const sprite = this.add.sprite(0, 0, `char_${charData.id}`, 0);
+        sprite.setScale(1.5);
 
         // Direction indicator (facing)
         fighter.facingRight = playerNum === 1;
@@ -437,6 +437,7 @@ class GameScene extends Phaser.Scene {
         fighter.attackCooldown = 0;
         fighter.specialCooldown = 0;
         fighter.hitstun = 0;
+        fighter.currentAnim = 'idle';
         fighter.inputState = {
             left: false, right: false, up: false, down: false,
             jump: false, attack: false, special: false
@@ -444,6 +445,9 @@ class GameScene extends Phaser.Scene {
 
         // Create projectiles group
         fighter.projectiles = this.physics.add.group();
+
+        // Start idle animation
+        sprite.play(`${charData.id}_idle`);
 
         return fighter;
     }
@@ -692,10 +696,12 @@ class GameScene extends Phaser.Scene {
     updateFighter(fighter, delta) {
         const input = fighter.inputState;
         const char = fighter.characterData;
+        const charId = char.id;
 
         // Skip if in hitstun
         if (fighter.hitstun > 0) {
             fighter.sprite.setTint(0xff0000);
+            this.playAnimation(fighter, 'hurt');
             return;
         } else {
             fighter.sprite.clearTint();
@@ -723,10 +729,12 @@ class GameScene extends Phaser.Scene {
                 fighter.body.setVelocityY(JUMP_VELOCITY * char.jumpPower);
                 fighter.isGrounded = false;
                 this.createJumpEffect(fighter);
+                this.playAnimation(fighter, 'jump');
             } else if (fighter.canDoubleJump) {
                 fighter.body.setVelocityY(DOUBLE_JUMP_VELOCITY * char.jumpPower);
                 fighter.canDoubleJump = false;
                 this.createJumpEffect(fighter);
+                this.playAnimation(fighter, 'jump');
             }
         }
 
@@ -747,11 +755,32 @@ class GameScene extends Phaser.Scene {
         // Check if grounded
         fighter.isGrounded = fighter.body.blocked.down || fighter.body.touching.down;
 
+        // Update animation based on state (if not attacking)
+        if (!fighter.isAttacking) {
+            if (!fighter.isGrounded) {
+                this.playAnimation(fighter, 'jump');
+            } else if (Math.abs(fighter.body.velocity.x) > 20) {
+                this.playAnimation(fighter, 'walk');
+            } else {
+                this.playAnimation(fighter, 'idle');
+            }
+        }
+
         // Movement trail for fast movement
         if (Math.abs(fighter.body.velocity.x) > 200 || Math.abs(fighter.body.velocity.y) > 300) {
             this.trailEmitter.setPosition(fighter.x, fighter.y);
             this.trailEmitter.setParticleTint(fighter.characterData.color);
             this.trailEmitter.emitParticle(1);
+        }
+    }
+
+    playAnimation(fighter, animName) {
+        const charId = fighter.characterData.id;
+        const animKey = `${charId}_${animName}`;
+
+        if (fighter.currentAnim !== animName) {
+            fighter.currentAnim = animName;
+            fighter.sprite.play(animKey, true);
         }
     }
 
@@ -783,15 +812,18 @@ class GameScene extends Phaser.Scene {
 
         if (type === 'normal') {
             fighter.attackCooldown = ATTACK_COOLDOWN;
+            this.playAnimation(fighter, 'attack');
             this.createMeleeAttack(fighter, attack);
         } else {
             fighter.specialCooldown = SPECIAL_COOLDOWN;
+            this.playAnimation(fighter, 'special');
             this.createSpecialAttack(fighter, attack);
         }
 
         // End attack after duration
         this.time.delayedCall(attack.duration * 16, () => {
             fighter.isAttacking = false;
+            fighter.currentAnim = ''; // Force animation update
         });
     }
 
@@ -833,22 +865,56 @@ class GameScene extends Phaser.Scene {
 
     createSpecialAttack(fighter, attack) {
         const direction = fighter.facingRight ? 1 : -1;
+        const charId = fighter.characterData.id;
+
+        // Show special effect
+        const specialEffect = this.add.image(
+            fighter.x + direction * 50,
+            fighter.y,
+            `special_${charId}`
+        );
+        specialEffect.setFlipX(!fighter.facingRight);
+        specialEffect.setBlendMode('ADD');
+        specialEffect.setScale(1.5);
+
+        this.tweens.add({
+            targets: specialEffect,
+            x: specialEffect.x + direction * 30,
+            alpha: 0,
+            scaleX: 2,
+            scaleY: 2,
+            duration: 400,
+            onComplete: () => specialEffect.destroy()
+        });
 
         // Check if it's a projectile-based attack
         if (attack.range > 80) {
             this.createProjectile(fighter, attack, direction);
         } else {
-            // Melee special
-            this.createMeleeAttack(fighter, attack);
+            // Melee special - wider hitbox
+            const hitbox = {
+                x: fighter.x + direction * attack.range / 2,
+                y: fighter.y,
+                width: attack.range * 1.5,
+                height: 70
+            };
+
+            const opponent = fighter.opponent;
+            if (this.checkHitbox(hitbox, opponent) && !opponent.isInvincible) {
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+            }
         }
     }
 
     createProjectile(fighter, attack, direction) {
+        const charId = fighter.characterData.id;
         const projectile = this.add.image(
             fighter.x + direction * 40,
             fighter.y,
-            `attack_${fighter.characterData.id}`
+            `special_${charId}`
         );
+        projectile.setScale(1.2);
+        projectile.setFlipX(!fighter.facingRight);
 
         this.physics.add.existing(projectile);
         projectile.body.setVelocityX(direction * 400);
