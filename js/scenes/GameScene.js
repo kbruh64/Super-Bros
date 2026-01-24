@@ -578,35 +578,38 @@ class GameScene extends Phaser.Scene {
 
     handleProjectileHit(projectile, fighter) {
         try {
-            // Extensive validation
-            if (!projectile) return;
-            if (!projectile.active) return;
-            if (!fighter) return;
-            if (!fighter.body) return;
+            if (!projectile || !projectile.active) return;
+            if (!fighter || !fighter.body) return;
             if (fighter.isInvincible) return;
-            
-            // Prevent same projectile hitting same fighter multiple times
-            if (!projectile.hasHit) {
-                projectile.hasHit = true;
+            if (projectile.hasHit) return;
+
+            projectile.hasHit = true;
+
+            const damage = 10;
+            const knockback = 1;
+            const direction = projectile.x < fighter.x ? 1 : -1;
+
+            try {
+                if (typeof fighter.damage !== 'number') fighter.damage = 0;
+                fighter.damage += damage;
+
+                const kbForce = BASE_KNOCKBACK + (fighter.damage * KNOCKBACK_GROWTH * 100);
+                if (fighter.body) {
+                    fighter.body.setVelocityX(direction * kbForce * knockback);
+                    fighter.body.setVelocityY(-(kbForce * knockback * 0.5));
+                }
                 
-                const damage = typeof projectile.damage === 'number' ? projectile.damage : 10;
-                const knockback = typeof projectile.knockback === 'number' ? projectile.knockback : 1;
-                const direction = projectile.x < fighter.x ? 1 : -1;
-
-                // Apply damage
-                this.applyDamage(fighter, damage, knockback, direction);
-
-                // Destroy projectile after brief delay
-                this.time.delayedCall(50, () => {
-                    try {
-                        if (projectile && projectile.active) {
-                            projectile.destroy();
-                        }
-                    } catch (e) {}
-                });
+                fighter.hitstun = HITSTUN_BASE + (fighter.damage * HITSTUN_GROWTH);
+            } catch (e) {
+                console.warn('Error applying damage:', e);
             }
+
+            // Destroy projectile
+            try {
+                projectile.destroy();
+            } catch (e) {}
         } catch (e) {
-            console.error('Error in handleProjectileHit:', e);
+            console.error('Collision error:', e);
         }
     }
 

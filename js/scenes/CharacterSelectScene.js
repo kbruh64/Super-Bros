@@ -424,6 +424,65 @@ class CharacterSelectScene extends Phaser.Scene {
         this.input.keyboard.on('keydown-ESC', () => {
             this.scene.start('MenuScene');
         });
+
+        // Arrow key navigation for character selection
+        this.input.keyboard.on('keydown-LEFT', () => {
+            if (this.selectedCharIndex === undefined) this.selectedCharIndex = 0;
+            this.selectedCharIndex = Math.max(0, this.selectedCharIndex - 1);
+            this.highlightCharacter(this.selectedCharIndex);
+        });
+
+        this.input.keyboard.on('keydown-RIGHT', () => {
+            if (this.selectedCharIndex === undefined) this.selectedCharIndex = 0;
+            this.selectedCharIndex = Math.min(CHARACTER_LIST.length - 1, this.selectedCharIndex + 1);
+            this.highlightCharacter(this.selectedCharIndex);
+        });
+
+        this.input.keyboard.on('keydown-UP', () => {
+            if (this.selectedCharIndex === undefined) this.selectedCharIndex = 0;
+            const cols = 4;
+            this.selectedCharIndex = Math.max(0, this.selectedCharIndex - cols);
+            this.highlightCharacter(this.selectedCharIndex);
+        });
+
+        this.input.keyboard.on('keydown-DOWN', () => {
+            if (this.selectedCharIndex === undefined) this.selectedCharIndex = 0;
+            const cols = 4;
+            this.selectedCharIndex = Math.min(CHARACTER_LIST.length - 1, this.selectedCharIndex + cols);
+            this.highlightCharacter(this.selectedCharIndex);
+        });
+
+        // Space or Enter to select
+        this.input.keyboard.on('keydown-SPACE', () => {
+            if (this.selectedCharIndex !== undefined) {
+                this.selectCharacter(CHARACTER_LIST[this.selectedCharIndex]);
+            }
+        });
+
+        this.input.keyboard.on('keydown-ENTER', () => {
+            if (this.selectedCharIndex !== undefined) {
+                this.selectCharacter(CHARACTER_LIST[this.selectedCharIndex]);
+            }
+        });
+
+        // F to confirm game start
+        this.input.keyboard.on('keydown-F', () => {
+            this.confirmSelection();
+        });
+    }
+
+    highlightCharacter(index) {
+        // Remove previous highlights
+        if (this.characterBoxes && this.characterBoxes[this.lastHighlightIndex]) {
+            this.characterBoxes[this.lastHighlightIndex].container.setScale(1);
+        }
+
+        // Highlight new character
+        if (this.characterBoxes && this.characterBoxes[index]) {
+            this.characterBoxes[index].container.setScale(1.1);
+            this.showCharacterInfo(this.characterBoxes[index].character);
+            this.lastHighlightIndex = index;
+        }
     }
 
     confirmSelection() {
