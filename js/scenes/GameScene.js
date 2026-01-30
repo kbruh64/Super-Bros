@@ -384,11 +384,11 @@ class GameScene extends Phaser.Scene {
     }
 
     createFighters() {
-        // Create Player 1
-        this.player1 = this.createFighter(400, 300, this.player1Data, 1);
+        // Create Player 1 - spawn closer to main platform (platforms are around y=500-570)
+        this.player1 = this.createFighter(400, 450, this.player1Data, 1);
 
         // Create Player 2
-        this.player2 = this.createFighter(800, 300, this.player2Data, 2);
+        this.player2 = this.createFighter(800, 450, this.player2Data, 2);
 
         // Set up fighter references for combat
         this.player1.opponent = this.player2;
@@ -433,7 +433,7 @@ class GameScene extends Phaser.Scene {
         fighter.isGrounded = false;
         fighter.canDoubleJump = true;
         fighter.isAttacking = false;
-        fighter.isInvincible = false;
+        fighter.isInvincible = true; // Start invincible for spawn protection
         fighter.attackCooldown = 0;
         fighter.specialCooldown = 0;
         fighter.hitstun = 0;
@@ -442,6 +442,11 @@ class GameScene extends Phaser.Scene {
             left: false, right: false, up: false, down: false,
             jump: false, attack: false, special: false
         };
+
+        // Combo tracking
+        fighter.comboCount = 0;
+        fighter.lastHitTime = 0;
+        fighter.comboText = null;
 
         // Create projectiles group
         fighter.projectiles = this.physics.add.group();
@@ -554,11 +559,21 @@ class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.player1, this.platforms, this.handlePlatformCollision, null, this);
         this.physics.add.collider(this.player2, this.platforms, this.handlePlatformCollision, null, this);
 
-        // Projectile collisions - we'll handle these in update loop instead
-        this.projectileCollisions = this.physics.add.overlap(
-            [this.player1.projectiles, this.player2.projectiles],
-            [this.player1, this.player2],
-            this.handleProjectileHit,
+        // Projectile collisions - set up separately to avoid confusion
+        // Player 1's projectiles hit Player 2
+        this.physics.add.overlap(
+            this.player1.projectiles,
+            this.player2,
+            (projectile, fighter) => this.handleProjectileHit(projectile, fighter),
+            null,
+            this
+        );
+
+        // Player 2's projectiles hit Player 1
+        this.physics.add.overlap(
+            this.player2.projectiles,
+            this.player1,
+            (projectile, fighter) => this.handleProjectileHit(projectile, fighter),
             null,
             this
         );
@@ -581,24 +596,49 @@ class GameScene extends Phaser.Scene {
         fighter.canDoubleJump = true;
     }
 
-    handleProjectileHit(projectile, fighter) {
+    handleProjectileHit(obj1, obj2) {
         try {
-            if (!projectile) return;
-            if (!projectile.active) return;
-            if (!fighter) return;
-            if (!fighter.body) return;
-            if (projectile.hasHit) return;
-            
-            projectile.hasHit = true;
-            
-            try {
-                const direction = projectile.x < fighter.x ? 1 : -1;
-                fighter.body.setVelocityX(direction * 300);
-                fighter.body.setVelocityY(-200);
-            } catch (e) {
-                console.warn('Error applying knockback:', e);
+            // Phaser can swap arguments - identify which is which
+            let projectile, fighter;
+
+            if (obj1 && obj1.isProjectile) {
+                projectile = obj1;
+                fighter = obj2;
+            } else if (obj2 && obj2.isProjectile) {
+                projectile = obj2;
+                fighter = obj1;
+            } else {
+                // Neither is a projectile, skip
+                return;
             }
-            
+
+            if (!projectile || !projectile.active) return;
+            if (!fighter || !fighter.body) return;
+            if (projectile.hasHit) return;
+
+            // Don't hit the owner of the projectile
+            if (projectile.owner === fighter) return;
+
+            // Don't hit invincible fighters
+            if (fighter.isInvincible) return;
+
+            // Check fighter has characterData (is actually a fighter)
+            if (!fighter.characterData) return;
+
+            projectile.hasHit = true;
+
+            try {
+                // Get attack data from projectile
+                const damage = projectile.attackDamage || 15;
+                const knockback = projectile.attackKnockback || 1.2;
+                const direction = projectile.x < fighter.x ? 1 : -1;
+
+                // Apply damage properly
+                this.applyDamage(fighter, damage, knockback, direction);
+            } catch (e) {
+                console.warn('Error applying projectile damage:', e);
+            }
+
             try {
                 if (projectile && projectile.active) {
                     projectile.destroy();
@@ -615,6 +655,17 @@ class GameScene extends Phaser.Scene {
         // Freeze players during countdown
         this.player1.body.setImmovable(true);
         this.player2.body.setImmovable(true);
+
+        // Visual spawn protection effect during countdown
+        [this.player1, this.player2].forEach(fighter => {
+            this.tweens.add({
+                targets: fighter.sprite,
+                alpha: { from: 0.5, to: 1 },
+                duration: 150,
+                repeat: 15,
+                yoyo: true
+            });
+        });
 
         const countdownText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, '3', {
             fontSize: '120px',
@@ -647,9 +698,49 @@ class GameScene extends Phaser.Scene {
                     this.countdownActive = false;
                     this.player1.body.setImmovable(false);
                     this.player2.body.setImmovable(false);
+
+                    // Start spawn protection timer after countdown
+                    this.startSpawnProtection(this.player1);
+                    this.startSpawnProtection(this.player2);
                 }
             },
             repeat: 4
+        });
+    }
+
+    startSpawnProtection(fighter) {
+        fighter.isInvincible = true;
+        fighter.sprite.setAlpha(1);
+
+        // Show shield visual during spawn protection
+        if (fighter.shield) {
+            fighter.shield.setAlpha(0.5);
+            fighter.shield.setScale(1.8);
+        }
+
+        // Flashing effect for spawn protection
+        this.tweens.add({
+            targets: fighter.sprite,
+            alpha: { from: 0.4, to: 1 },
+            duration: 150,
+            repeat: Math.floor(RESPAWN_INVINCIBILITY / 150),
+            yoyo: true,
+            onComplete: () => {
+                fighter.isInvincible = false;
+                fighter.sprite.setAlpha(1);
+                if (fighter.shield) {
+                    fighter.shield.setAlpha(0);
+                }
+            }
+        });
+
+        // Backup timer to ensure invincibility ends
+        this.time.delayedCall(RESPAWN_INVINCIBILITY + 100, () => {
+            fighter.isInvincible = false;
+            fighter.sprite.setAlpha(1);
+            if (fighter.shield) {
+                fighter.shield.setAlpha(0);
+            }
         });
     }
 
@@ -682,10 +773,18 @@ class GameScene extends Phaser.Scene {
     }
 
     updateCooldowns(delta) {
+        const currentTime = this.time.now;
+        const COMBO_WINDOW = 2000;
+
         [this.player1, this.player2].forEach(fighter => {
             if (fighter.attackCooldown > 0) fighter.attackCooldown -= delta;
             if (fighter.specialCooldown > 0) fighter.specialCooldown -= delta;
             if (fighter.hitstun > 0) fighter.hitstun -= delta;
+
+            // Reset combo if window expired
+            if (fighter.comboCount > 0 && currentTime - fighter.lastHitTime > COMBO_WINDOW) {
+                fighter.comboCount = 0;
+            }
         });
     }
 
@@ -939,27 +1038,33 @@ class GameScene extends Phaser.Scene {
         try {
             const startX = fighter.x + direction * 40;
             const startY = fighter.y;
-            
+
             // Create simple circle directly with physics
-            const projectile = this.add.circle(startX, startY, 10, fighter.characterData.color);
+            const projectile = this.add.circle(startX, startY, 12, fighter.characterData.color);
             this.physics.add.existing(projectile);
-            
+
             if (!projectile.body) {
                 projectile.destroy();
                 return;
             }
-            
-            // Set physics properties
-            projectile.body.setVelocityX(direction * 350);
-            projectile.body.setAllowGravity(false);
-            
-            // Mark as projectile
+
+            // Mark as projectile with owner and attack data BEFORE adding to group
             projectile.isProjectile = true;
             projectile.hasHit = false;
-            
-            // Add to group for collision detection
+            projectile.owner = fighter;
+            projectile.attackDamage = attack.damage;
+            projectile.attackKnockback = attack.knockback;
+
+            // Add glow effect
+            projectile.setBlendMode('ADD');
+
+            // Add to group for collision detection FIRST
             fighter.projectiles.add(projectile);
-            
+
+            // Set physics properties AFTER adding to group (group can reset them)
+            projectile.body.setAllowGravity(false);
+            projectile.body.setVelocityX(direction * 350);
+
             // Auto-destroy
             this.time.delayedCall(3000, () => {
                 if (projectile && projectile.active) {
@@ -1000,8 +1105,25 @@ class GameScene extends Phaser.Scene {
             if (typeof fighter.damage !== 'number') {
                 fighter.damage = 0;
             }
-            
+
             fighter.damage += damage;
+
+            // Combo tracking - update attacker's combo
+            const attacker = fighter.opponent;
+            if (attacker) {
+                const currentTime = this.time.now;
+                const COMBO_WINDOW = 2000; // 2 seconds to continue combo
+
+                if (currentTime - attacker.lastHitTime < COMBO_WINDOW) {
+                    attacker.comboCount++;
+                } else {
+                    attacker.comboCount = 1;
+                }
+                attacker.lastHitTime = currentTime;
+
+                // Show combo counter
+                this.showComboText(attacker, fighter);
+            }
 
             // Calculate knockback based on damage
             const knockbackForce = BASE_KNOCKBACK + (fighter.damage * KNOCKBACK_GROWTH * 100);
@@ -1069,10 +1191,92 @@ class GameScene extends Phaser.Scene {
         }
     }
 
+    showComboText(attacker, target) {
+        // Only show combo text for combos of 2 or more
+        if (attacker.comboCount < 2) return;
+
+        // Remove old combo text if exists
+        if (attacker.comboText && attacker.comboText.active) {
+            attacker.comboText.destroy();
+        }
+
+        // Determine combo text and color based on combo count
+        let comboLabel = '';
+        let comboColor = '#ffffff';
+
+        if (attacker.comboCount >= 10) {
+            comboLabel = 'UNSTOPPABLE!';
+            comboColor = '#ff0000';
+        } else if (attacker.comboCount >= 7) {
+            comboLabel = 'DOMINATING!';
+            comboColor = '#ff4400';
+        } else if (attacker.comboCount >= 5) {
+            comboLabel = 'BRUTAL!';
+            comboColor = '#ff8800';
+        } else if (attacker.comboCount >= 3) {
+            comboLabel = 'NICE!';
+            comboColor = '#ffff00';
+        }
+
+        // Create combo counter text near the target
+        const comboText = this.add.text(target.x, target.y - 60, `${attacker.comboCount} HIT COMBO!`, {
+            fontSize: '24px',
+            fontFamily: 'Arial Black',
+            color: comboColor
+        }).setOrigin(0.5);
+        comboText.setStroke('#000000', 4);
+
+        // Add label below if earned
+        if (comboLabel) {
+            const labelText = this.add.text(target.x, target.y - 35, comboLabel, {
+                fontSize: '16px',
+                fontFamily: 'Arial Black',
+                color: comboColor
+            }).setOrigin(0.5);
+            labelText.setStroke('#000000', 3);
+
+            this.tweens.add({
+                targets: labelText,
+                y: labelText.y - 30,
+                alpha: 0,
+                scale: 1.3,
+                duration: 800,
+                ease: 'Power2',
+                onComplete: () => labelText.destroy()
+            });
+        }
+
+        attacker.comboText = comboText;
+
+        // Animate and destroy
+        this.tweens.add({
+            targets: comboText,
+            y: comboText.y - 40,
+            alpha: 0,
+            scale: 1.2,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => {
+                if (comboText && comboText.active) {
+                    comboText.destroy();
+                }
+            }
+        });
+
+        // Bonus damage for high combos
+        if (attacker.comboCount >= 5) {
+            // Screen shake for big combos
+            this.cameras.main.shake(150, 0.01 * Math.min(attacker.comboCount, 10));
+        }
+    }
+
     checkBlastZones() {
         const zones = this.currentArena.blastZones;
 
         [this.player1, this.player2].forEach(fighter => {
+            // Skip if fighter is invincible (spawn protection)
+            if (fighter.isInvincible) return;
+
             if (fighter.x < zones.left || fighter.x > zones.right ||
                 fighter.y < zones.top || fighter.y > zones.bottom) {
                 this.handleKO(fighter);
@@ -1101,26 +1305,17 @@ class GameScene extends Phaser.Scene {
     }
 
     respawnFighter(fighter) {
-        // Reset position
+        // Reset position - spawn closer to main platform
         fighter.x = fighter.playerNum === 1 ? 400 : 800;
-        fighter.y = 200;
+        fighter.y = 450;
         fighter.body.setVelocity(0, 0);
         fighter.damage = 0;
 
-        // Invincibility
-        fighter.isInvincible = true;
+        // Reset combo
+        fighter.comboCount = 0;
 
-        // Flashing effect
-        const flashTween = this.tweens.add({
-            targets: fighter.sprite,
-            alpha: { from: 0.3, to: 1 },
-            duration: 100,
-            repeat: RESPAWN_INVINCIBILITY / 100,
-            onComplete: () => {
-                fighter.isInvincible = false;
-                fighter.sprite.setAlpha(1);
-            }
-        });
+        // Use shared spawn protection
+        this.startSpawnProtection(fighter);
     }
 
     checkCombat() {

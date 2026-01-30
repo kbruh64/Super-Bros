@@ -243,6 +243,41 @@ class BootScene extends Phaser.Scene {
 
         // Eyes - vary by body type
         const eyeY = by - headHeight + 2;
+        const browY = eyeY - 1;
+
+        // === EYEBROWS === (draw before eyes)
+        if (bodyType === 'mechanical') {
+            // No eyebrows for mechanical (has visor)
+        } else if (bodyType === 'demonic') {
+            // Angry angled eyebrows
+            graphics.fillStyle(0x442222, 1);
+            this.fillRect(graphics, bx - 2, browY, 1, 1);
+            this.fillRect(graphics, bx - 1, browY + 1, 1, 1);
+            this.fillRect(graphics, bx + 1, browY, 1, 1);
+            this.fillRect(graphics, bx + 2, browY + 1, 1, 1);
+        } else if (bodyType === 'ethereal') {
+            // Thin elegant eyebrows
+            graphics.fillStyle(0x664488, 1);
+            this.fillRect(graphics, bx - 1, browY, 1, 1);
+            this.fillRect(graphics, bx + 1, browY, 1, 1);
+        } else if (bodyType === 'bestial') {
+            // Thick furry eyebrows
+            graphics.fillStyle(0x885533, 1);
+            this.fillRect(graphics, bx - 2, browY, 2, 1);
+            this.fillRect(graphics, bx + 1, browY, 2, 1);
+        } else if (bodyType === 'angelic') {
+            // Delicate light eyebrows
+            graphics.fillStyle(0xddccaa, 1);
+            this.fillRect(graphics, bx - 1, browY, 1, 1);
+            this.fillRect(graphics, bx + 1, browY, 1, 1);
+        } else {
+            // Normal eyebrows - darker skin tone
+            graphics.fillStyle(0x553322, 1);
+            this.fillRect(graphics, bx - 1, browY, 1, 1);
+            this.fillRect(graphics, bx + 1, browY, 1, 1);
+        }
+
+        // === EYES ===
         if (bodyType === 'mechanical') {
             // Visor eyes
             graphics.fillStyle(0x00ffff, 1);
@@ -370,7 +405,7 @@ class BootScene extends Phaser.Scene {
         }
 
         // === CHARACTER-SPECIFIC FEATURES ===
-        this.drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor, accentMain, glowIntensity);
+        this.drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor, accentMain, glowIntensity, headHeight);
     }
 
     fillRect(graphics, x, y, w, h) {
@@ -378,23 +413,27 @@ class BootScene extends Phaser.Scene {
         graphics.fillRect(x * p, y * p, w * p, h * p);
     }
 
-    drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor, accentMain, glowIntensity) {
+    drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor, accentMain, glowIntensity, headHeight) {
         const darkColor = mainColor.clone().darken(25).color;
         const lightColor = mainColor.clone().lighten(50).color;
         const accentColor = accentMain ? accentMain.color : lightColor;
         const accentLight = accentMain ? accentMain.clone().lighten(40).color : lightColor;
 
+        // Head top position (where hats/hair go)
+        const headTop = by - headHeight;
+        const eyeLevel = by - headHeight + 2;
+
         switch (character.id) {
             case 'warrior':
                 // Silver helmet with red plume
                 graphics.fillStyle(0x99aabb, 1);
-                this.fillRect(graphics, bx - 2, by - 6, 4, 2);
+                this.fillRect(graphics, bx - 2, headTop - 1, 4, 2);
                 graphics.fillStyle(0xbbccdd, 1);
-                this.fillRect(graphics, bx - 1, by - 6, 2, 1);
+                this.fillRect(graphics, bx - 1, headTop - 1, 2, 1);
                 // Helmet crest/plume
                 graphics.fillStyle(0xff5555, 1);
-                this.fillRect(graphics, bx, by - 8, 1, 2);
-                this.fillRect(graphics, bx - 1, by - 7, 1, 1);
+                this.fillRect(graphics, bx, headTop - 3, 1, 2);
+                this.fillRect(graphics, bx - 1, headTop - 2, 1, 1);
                 // Sword during attack - brighter
                 if (animation === 'attack' || animation === 'special') {
                     graphics.fillStyle(0xeeeeff, 1);
@@ -410,13 +449,13 @@ class BootScene extends Phaser.Scene {
             case 'speedster':
                 // Bright spiky green hair
                 graphics.fillStyle(0x66ffaa, 1);
-                this.fillRect(graphics, bx - 2, by - 7, 1, 2);
-                this.fillRect(graphics, bx, by - 8, 1, 3);
-                this.fillRect(graphics, bx + 1, by - 7, 1, 2);
+                this.fillRect(graphics, bx - 1, headTop - 2, 1, 2);
+                this.fillRect(graphics, bx, headTop - 3, 1, 3);
+                this.fillRect(graphics, bx + 1, headTop - 2, 1, 2);
                 // Glowing speed goggles
                 graphics.fillStyle(0xffff44, 1);
-                this.fillRect(graphics, bx - 2, by - 4, 1, 1);
-                this.fillRect(graphics, bx + 1, by - 4, 1, 1);
+                this.fillRect(graphics, bx - 1, eyeLevel, 1, 1);
+                this.fillRect(graphics, bx + 1, eyeLevel, 1, 1);
                 // Speed trail - more visible
                 if (animation === 'walk' || animation === 'attack' || animation === 'special') {
                     graphics.fillStyle(0x44ff88, 0.6);
@@ -429,13 +468,13 @@ class BootScene extends Phaser.Scene {
             case 'tank':
                 // Blue military helmet
                 graphics.fillStyle(0x4466aa, 1);
-                this.fillRect(graphics, bx - 2, by - 7, 5, 2);
+                this.fillRect(graphics, bx - 2, headTop - 2, 5, 2);
                 graphics.fillStyle(0x88aadd, 1);
-                this.fillRect(graphics, bx - 1, by - 7, 3, 1);
+                this.fillRect(graphics, bx - 1, headTop - 2, 3, 1);
                 // Heavy shoulder armor
                 graphics.fillStyle(0x5588ff, 1);
                 this.fillRect(graphics, bx - 4, by, 2, 2);
-                this.fillRect(graphics, bx + 2, by, 2, 2);
+                this.fillRect(graphics, bx + 3, by, 2, 2);
                 // Armor glow on attack
                 if (animation === 'special') {
                     graphics.fillStyle(0x88ddff, glowIntensity * 0.5);
@@ -446,14 +485,14 @@ class BootScene extends Phaser.Scene {
             case 'ninja':
                 // Black mask with glowing eyes
                 graphics.fillStyle(0x222233, 1);
-                this.fillRect(graphics, bx - 2, by - 3, 4, 2);
+                this.fillRect(graphics, bx - 1, eyeLevel - 1, 3, 2);
                 graphics.fillStyle(0xff4488, 1);
-                this.fillRect(graphics, bx - 1, by - 3, 1, 1);
-                this.fillRect(graphics, bx, by - 3, 1, 1);
+                this.fillRect(graphics, bx - 1, eyeLevel, 1, 1);
+                this.fillRect(graphics, bx + 1, eyeLevel, 1, 1);
                 // Red headband tails
                 graphics.fillStyle(0xff4444, 1);
-                this.fillRect(graphics, bx + 2, by - 5, 2, 1);
-                this.fillRect(graphics, bx + 3, by - 4, 1, 1);
+                this.fillRect(graphics, bx + 2, headTop, 2, 1);
+                this.fillRect(graphics, bx + 3, headTop + 1, 1, 1);
                 // Shuriken during special - brighter
                 if (animation === 'special' && frame >= 1) {
                     graphics.fillStyle(0xeeeeff, 1);
@@ -467,10 +506,10 @@ class BootScene extends Phaser.Scene {
             case 'brawler':
                 // Bright orange mohawk with flames
                 graphics.fillStyle(0xffaa44, 1);
-                this.fillRect(graphics, bx - 1, by - 7, 2, 2);
+                this.fillRect(graphics, bx - 1, headTop - 2, 2, 2);
                 graphics.fillStyle(0xff6622, 1);
-                this.fillRect(graphics, bx, by - 8, 1, 1);
-                this.fillRect(graphics, bx - 1, by - 8, 1, 1);
+                this.fillRect(graphics, bx, headTop - 3, 1, 1);
+                this.fillRect(graphics, bx - 1, headTop - 3, 1, 1);
                 // Flame effect during special
                 if (animation === 'special' || animation === 'attack') {
                     graphics.fillStyle(0xff5500, 0.8);
@@ -485,11 +524,11 @@ class BootScene extends Phaser.Scene {
             case 'mage':
                 // Purple wizard hat with star
                 graphics.fillStyle(0x8844cc, 1);
-                this.fillRect(graphics, bx - 2, by - 7, 4, 2);
-                this.fillRect(graphics, bx - 1, by - 8, 2, 1);
-                this.fillRect(graphics, bx, by - 9, 1, 1);
+                this.fillRect(graphics, bx - 2, headTop - 2, 4, 2);
+                this.fillRect(graphics, bx - 1, headTop - 3, 2, 1);
+                this.fillRect(graphics, bx, headTop - 4, 1, 1);
                 graphics.fillStyle(0xffff44, 1);
-                this.fillRect(graphics, bx, by - 7, 1, 1);
+                this.fillRect(graphics, bx, headTop - 2, 1, 1);
                 // Glowing staff
                 graphics.fillStyle(0x664422, 1);
                 this.fillRect(graphics, bx - 4, by, 1, 5);
@@ -512,12 +551,10 @@ class BootScene extends Phaser.Scene {
             case 'robot':
                 // Antenna with blinking light
                 graphics.fillStyle(0x99aabb, 1);
-                this.fillRect(graphics, bx, by - 7, 1, 2);
+                this.fillRect(graphics, bx, headTop - 3, 1, 2);
                 graphics.fillStyle(frame % 2 === 0 ? 0xff0000 : 0xff4444, 1);
-                this.fillRect(graphics, bx, by - 8, 1, 1);
-                // Visor glow
-                graphics.fillStyle(0x00ffff, 0.4);
-                this.fillRect(graphics, bx - 2, by - 4, 4, 1);
+                this.fillRect(graphics, bx, headTop - 4, 1, 1);
+                // Visor glow already in body
                 // Laser during special - brighter
                 if (animation === 'special' && frame >= 1) {
                     graphics.fillStyle(0x00ffff, 0.9);
@@ -534,13 +571,13 @@ class BootScene extends Phaser.Scene {
             case 'pirate':
                 // Red bandana with gold trim
                 graphics.fillStyle(0xff3333, 1);
-                this.fillRect(graphics, bx - 2, by - 6, 4, 1);
+                this.fillRect(graphics, bx - 2, headTop - 1, 4, 1);
                 graphics.fillStyle(0xffdd44, 1);
-                this.fillRect(graphics, bx - 2, by - 7, 4, 1);
-                this.fillRect(graphics, bx + 2, by - 5, 2, 1);
+                this.fillRect(graphics, bx - 2, headTop - 2, 4, 1);
+                this.fillRect(graphics, bx + 2, headTop, 2, 1);
                 // Eyepatch
                 graphics.fillStyle(0x111111, 1);
-                this.fillRect(graphics, bx + 1, by - 3, 1, 1);
+                this.fillRect(graphics, bx + 1, eyeLevel, 1, 1);
                 // Cutlass with gold handle
                 if (animation === 'attack' || animation === 'special') {
                     graphics.fillStyle(0xffcc44, 1);
@@ -556,13 +593,13 @@ class BootScene extends Phaser.Scene {
             case 'frostmage':
                 // Ice crown/tiara
                 graphics.fillStyle(0xaaffff, 1);
-                this.fillRect(graphics, bx - 2, by - 7, 4, 1);
-                this.fillRect(graphics, bx - 1, by - 8, 1, 1);
-                this.fillRect(graphics, bx + 1, by - 8, 1, 1);
-                this.fillRect(graphics, bx, by - 9, 1, 1);
+                this.fillRect(graphics, bx - 2, headTop - 2, 4, 1);
+                this.fillRect(graphics, bx - 1, headTop - 3, 1, 1);
+                this.fillRect(graphics, bx + 1, headTop - 3, 1, 1);
+                this.fillRect(graphics, bx, headTop - 4, 1, 1);
                 // Ice crystal
                 graphics.fillStyle(0xffffff, 1);
-                this.fillRect(graphics, bx, by - 8, 1, 1);
+                this.fillRect(graphics, bx, headTop - 3, 1, 1);
                 // Ice staff
                 graphics.fillStyle(0x88ccff, 1);
                 this.fillRect(graphics, bx - 4, by, 1, 5);
@@ -587,11 +624,10 @@ class BootScene extends Phaser.Scene {
             case 'demon':
                 // Curved horns
                 graphics.fillStyle(0x442222, 1);
-                this.fillRect(graphics, bx - 2, by - 7, 1, 2);
-                this.fillRect(graphics, bx + 2, by - 7, 1, 2);
-                this.fillRect(graphics, bx - 3, by - 8, 1, 1);
-                this.fillRect(graphics, bx + 3, by - 8, 1, 1);
-                // Glowing eyes already handled in body
+                this.fillRect(graphics, bx - 2, headTop - 2, 1, 2);
+                this.fillRect(graphics, bx + 2, headTop - 2, 1, 2);
+                this.fillRect(graphics, bx - 3, headTop - 3, 1, 1);
+                this.fillRect(graphics, bx + 3, headTop - 3, 1, 1);
                 // Fire aura
                 if (animation === 'idle' || animation === 'special' || animation === 'attack') {
                     graphics.fillStyle(0xff4400, glowIntensity * 0.5);
@@ -612,9 +648,9 @@ class BootScene extends Phaser.Scene {
             case 'angel':
                 // Halo
                 graphics.fillStyle(0xffff88, 1);
-                this.fillRect(graphics, bx - 2, by - 8, 4, 1);
+                this.fillRect(graphics, bx - 2, headTop - 3, 4, 1);
                 graphics.fillStyle(0xffffaa, 0.8);
-                this.fillRect(graphics, bx - 1, by - 9, 2, 1);
+                this.fillRect(graphics, bx - 1, headTop - 4, 2, 1);
                 // Wings
                 graphics.fillStyle(0xffffff, 1);
                 this.fillRect(graphics, bx - 4, by - 1, 1, 3);
@@ -637,10 +673,9 @@ class BootScene extends Phaser.Scene {
             case 'shadow':
                 // Dark hood
                 graphics.fillStyle(0x331144, 1);
-                this.fillRect(graphics, bx - 2, by - 6, 4, 2);
-                this.fillRect(graphics, bx - 2, by - 5, 1, 2);
-                this.fillRect(graphics, bx + 2, by - 5, 1, 2);
-                // Glowing purple eyes already in body
+                this.fillRect(graphics, bx - 1, headTop - 1, 3, 2);
+                this.fillRect(graphics, bx - 2, headTop, 1, 2);
+                this.fillRect(graphics, bx + 2, headTop, 1, 2);
                 // Shadow wisps
                 if (animation === 'idle' || animation === 'walk') {
                     graphics.fillStyle(0x9944cc, glowIntensity * 0.4);
@@ -661,13 +696,13 @@ class BootScene extends Phaser.Scene {
             case 'beast':
                 // Pointy ears
                 graphics.fillStyle(0xcc8844, 1);
-                this.fillRect(graphics, bx - 3, by - 6, 1, 2);
-                this.fillRect(graphics, bx + 3, by - 6, 1, 2);
-                this.fillRect(graphics, bx - 3, by - 7, 1, 1);
-                this.fillRect(graphics, bx + 3, by - 7, 1, 1);
+                this.fillRect(graphics, bx - 3, headTop, 1, 2);
+                this.fillRect(graphics, bx + 3, headTop, 1, 2);
+                this.fillRect(graphics, bx - 3, headTop - 1, 1, 1);
+                this.fillRect(graphics, bx + 3, headTop - 1, 1, 1);
                 // Fur tuft
                 graphics.fillStyle(0xffcc66, 1);
-                this.fillRect(graphics, bx - 1, by - 6, 2, 1);
+                this.fillRect(graphics, bx - 1, headTop, 2, 1);
                 // Muzzle/snout
                 graphics.fillStyle(0xaa7744, 1);
                 this.fillRect(graphics, bx - 1, by - 2, 2, 1);
@@ -690,12 +725,12 @@ class BootScene extends Phaser.Scene {
             case 'druid':
                 // Leafy crown
                 graphics.fillStyle(0x44aa44, 1);
-                this.fillRect(graphics, bx - 2, by - 7, 4, 1);
+                this.fillRect(graphics, bx - 2, headTop - 2, 4, 1);
                 graphics.fillStyle(0x88ff44, 1);
-                this.fillRect(graphics, bx - 1, by - 8, 1, 1);
-                this.fillRect(graphics, bx + 1, by - 8, 1, 1);
+                this.fillRect(graphics, bx - 1, headTop - 3, 1, 1);
+                this.fillRect(graphics, bx + 1, headTop - 3, 1, 1);
                 graphics.fillStyle(0x66dd44, 1);
-                this.fillRect(graphics, bx, by - 7, 1, 1);
+                this.fillRect(graphics, bx, headTop - 2, 1, 1);
                 // Nature staff
                 graphics.fillStyle(0x665533, 1);
                 this.fillRect(graphics, bx - 4, by, 1, 5);
@@ -721,16 +756,16 @@ class BootScene extends Phaser.Scene {
             case 'knight':
                 // Full helmet with visor
                 graphics.fillStyle(0xbbaa77, 1);
-                this.fillRect(graphics, bx - 2, by - 7, 4, 3);
+                this.fillRect(graphics, bx - 2, headTop - 2, 4, 3);
                 graphics.fillStyle(0xddcc88, 1);
-                this.fillRect(graphics, bx - 1, by - 7, 2, 1);
+                this.fillRect(graphics, bx - 1, headTop - 2, 2, 1);
                 // Visor slit
                 graphics.fillStyle(0x222222, 1);
-                this.fillRect(graphics, bx - 1, by - 5, 2, 1);
+                this.fillRect(graphics, bx - 1, headTop, 2, 1);
                 // Plume
                 graphics.fillStyle(0xcccccc, 1);
-                this.fillRect(graphics, bx, by - 8, 1, 1);
-                this.fillRect(graphics, bx + 1, by - 8, 1, 1);
+                this.fillRect(graphics, bx, headTop - 3, 1, 1);
+                this.fillRect(graphics, bx + 1, headTop - 3, 1, 1);
                 // Shield
                 graphics.fillStyle(0xccaa44, 1);
                 this.fillRect(graphics, bx - 4, by, 1, 3);

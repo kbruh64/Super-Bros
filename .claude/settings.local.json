@@ -5,7 +5,8 @@
       "mcp__ct-devmcp__do_pla",
       "mcp__ct-devmcp__do_bld",
       "mcp__ct-devmcp__do_fas",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(npx serve -l 3000)"
     ]
   }
 }
