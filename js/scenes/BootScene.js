@@ -92,13 +92,37 @@ class BootScene extends Phaser.Scene {
 
     drawCharacterFrame(graphics, offsetX, offsetY, character, animation, bounce, frame) {
         const color = character.color;
+        const accentColor = character.accentColor || color;
+        const bodyType = character.bodyType || 'normal';
         const mainColor = Phaser.Display.Color.IntegerToColor(color);
-        const darkColor = mainColor.clone().darken(30).color;
-        const lightColor = mainColor.clone().lighten(40).color;
-        const skinColor = 0xffd4b3;
-        const darkSkin = 0xe6b89c;
-        const outlineColor = 0x222233;
+        const accentMain = Phaser.Display.Color.IntegerToColor(accentColor);
+        const darkColor = mainColor.clone().darken(25).color;
+        const lightColor = mainColor.clone().lighten(50).color;
+        const accentLight = accentMain.clone().lighten(40).color;
+        const outlineColor = 0x111122;
         const p = this.pixelSize;
+
+        // Body type specific colors
+        let skinColor = 0xffd4b3;
+        let darkSkin = 0xe6b89c;
+
+        // Special skin colors for non-human characters
+        if (bodyType === 'demonic') {
+            skinColor = 0xcc4444;
+            darkSkin = 0x992222;
+        } else if (bodyType === 'mechanical') {
+            skinColor = 0x889999;
+            darkSkin = 0x667777;
+        } else if (bodyType === 'ethereal') {
+            skinColor = 0xccaadd;
+            darkSkin = 0xaa88bb;
+        } else if (bodyType === 'bestial') {
+            skinColor = 0xcc9966;
+            darkSkin = 0xaa7744;
+        } else if (bodyType === 'angelic') {
+            skinColor = 0xffeedd;
+            darkSkin = 0xeeddcc;
+        }
 
         // Center position in the frame
         const cx = offsetX + 24;
@@ -106,10 +130,12 @@ class BootScene extends Phaser.Scene {
 
         // Animation modifiers
         let armSwing = 0, legSwing = 0, attackPunch = 0, squash = 0, shake = 0;
+        let glowIntensity = 0;
 
         switch (animation) {
             case 'idle':
                 squash = Math.sin(frame * Math.PI / 3) * 0.5;
+                glowIntensity = Math.sin(frame * Math.PI / 3) * 0.3 + 0.3;
                 break;
             case 'walk':
                 legSwing = Math.sin(frame * Math.PI / 3) * 2;
@@ -117,12 +143,15 @@ class BootScene extends Phaser.Scene {
                 break;
             case 'jump':
                 squash = frame === 0 ? 1 : -1;
+                glowIntensity = 0.5;
                 break;
             case 'attack':
                 attackPunch = [0, 3, 5, 2][frame];
+                glowIntensity = [0.2, 0.6, 1.0, 0.4][frame];
                 break;
             case 'special':
                 attackPunch = [1, 3, 4, 2][frame];
+                glowIntensity = [0.4, 0.8, 1.0, 0.6][frame];
                 break;
             case 'hurt':
                 shake = frame === 0 ? -1 : 1;
@@ -132,80 +161,175 @@ class BootScene extends Phaser.Scene {
         const bx = Math.floor(cx / p) + shake;
         const by = Math.floor(cy / p);
 
-        // === OUTLINE & BODY FILL ===
-        // Draw outline first for cleaner look
+        // === BODY TYPE VARIATIONS ===
+        let headWidth = 4, headHeight = 5;
+        let torsoWidth = 4, torsoHeight = 4;
+        let shoulderWidth = 0;
+
+        switch (bodyType) {
+            case 'slim':
+                torsoWidth = 3;
+                headWidth = 3;
+                break;
+            case 'bulky':
+                torsoWidth = 5;
+                torsoHeight = 5;
+                shoulderWidth = 1;
+                break;
+            case 'muscular':
+                torsoWidth = 4;
+                shoulderWidth = 1;
+                break;
+            case 'robed':
+                torsoWidth = 5;
+                torsoHeight = 5;
+                break;
+            case 'mechanical':
+                torsoWidth = 5;
+                headWidth = 4;
+                headHeight = 4;
+                break;
+            case 'demonic':
+                torsoWidth = 5;
+                headHeight = 5;
+                shoulderWidth = 1;
+                break;
+            case 'angelic':
+                headWidth = 4;
+                break;
+            case 'ethereal':
+                torsoWidth = 3;
+                headWidth = 3;
+                break;
+            case 'bestial':
+                torsoWidth = 5;
+                headWidth = 5;
+                headHeight = 4;
+                shoulderWidth = 1;
+                break;
+            case 'armored':
+                torsoWidth = 5;
+                torsoHeight = 5;
+                shoulderWidth = 1;
+                break;
+        }
+
+        const halfHead = Math.floor(headWidth / 2);
+        const halfTorso = Math.floor(torsoWidth / 2);
+
+        // === GLOW EFFECT FOR SPECIAL CHARACTERS ===
+        if (glowIntensity > 0.3 && (animation === 'special' || animation === 'attack')) {
+            graphics.fillStyle(accentColor, glowIntensity * 0.3);
+            this.fillRect(graphics, bx - halfTorso - 1, by - 1, torsoWidth + 2, torsoHeight + 2);
+        }
+
+        // === OUTLINE ===
         graphics.fillStyle(outlineColor, 1);
-
         // Head outline
-        this.fillRect(graphics, bx - 3, by - 6, 6, 1);
-        this.fillRect(graphics, bx - 3, by - 5, 1, 5);
-        this.fillRect(graphics, bx + 2, by - 5, 1, 5);
-
+        this.fillRect(graphics, bx - halfHead - 1, by - headHeight - 1, headWidth + 2, 1);
+        this.fillRect(graphics, bx - halfHead - 1, by - headHeight, 1, headHeight);
+        this.fillRect(graphics, bx + halfHead, by - headHeight, 1, headHeight);
         // Body outline
-        this.fillRect(graphics, bx - 3, by, 1, 5);
-        this.fillRect(graphics, bx + 2, by, 1, 5);
-        this.fillRect(graphics, bx - 3, by + 5, 6, 1);
+        this.fillRect(graphics, bx - halfTorso - 1 - shoulderWidth, by, 1, torsoHeight + 1);
+        this.fillRect(graphics, bx + halfTorso + shoulderWidth, by, 1, torsoHeight + 1);
 
         // === HEAD ===
         graphics.fillStyle(skinColor, 1);
-        this.fillRect(graphics, bx - 2, by - 5, 4, 5);
+        this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
 
         // Face highlight
-        graphics.fillStyle(0xffe4c9, 1);
-        this.fillRect(graphics, bx - 1, by - 4, 2, 2);
+        graphics.fillStyle(bodyType === 'mechanical' ? 0x99aaaa : 0xffe4c9, 1);
+        this.fillRect(graphics, bx - 1, by - headHeight + 1, 2, 2);
 
-        // Eyes
-        graphics.fillStyle(0xffffff, 1);
-        this.fillRect(graphics, bx - 2, by - 3, 1, 1);
-        this.fillRect(graphics, bx + 1, by - 3, 1, 1);
-
-        const blinking = frame === 3 && animation === 'idle';
-        if (!blinking) {
-            graphics.fillStyle(0x111122, 1);
-            this.fillRect(graphics, bx - 2, by - 3, 1, 1);
-            this.fillRect(graphics, bx + 1, by - 3, 1, 1);
-            // Pupils/shine
+        // Eyes - vary by body type
+        const eyeY = by - headHeight + 2;
+        if (bodyType === 'mechanical') {
+            // Visor eyes
+            graphics.fillStyle(0x00ffff, 1);
+            this.fillRect(graphics, bx - halfHead + 1, eyeY, headWidth - 2, 1);
+        } else if (bodyType === 'demonic') {
+            // Glowing red eyes
+            graphics.fillStyle(0xff0000, 1);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx, eyeY, 1, 1);
+        } else if (bodyType === 'ethereal') {
+            // Purple glowing eyes
+            graphics.fillStyle(0xcc66ff, 1);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx, eyeY, 1, 1);
+        } else if (bodyType === 'bestial') {
+            // Yellow beast eyes
+            graphics.fillStyle(0xffcc00, 1);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+        } else {
+            // Normal eyes
+            const blinking = frame === 3 && animation === 'idle';
             graphics.fillStyle(0xffffff, 1);
-            graphics.fillRect((bx - 2) * p, (by - 3) * p, 2, 2);
-            graphics.fillRect((bx + 1) * p, (by - 3) * p, 2, 2);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+            if (!blinking) {
+                graphics.fillStyle(0x111122, 1);
+                this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+                this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+                graphics.fillStyle(0xffffff, 1);
+                graphics.fillRect((bx - 1) * p, eyeY * p, 2, 2);
+                graphics.fillRect((bx + 1) * p, eyeY * p, 2, 2);
+            }
         }
 
-        // Mouth
-        graphics.fillStyle(darkSkin, 1);
-        this.fillRect(graphics, bx - 1, by - 1, 2, 1);
+        // Mouth (skip for mechanical/bestial)
+        if (bodyType !== 'mechanical' && bodyType !== 'bestial') {
+            graphics.fillStyle(darkSkin, 1);
+            this.fillRect(graphics, bx - 1, by - 1, 2, 1);
+        }
 
         // === TORSO ===
         graphics.fillStyle(color, 1);
-        this.fillRect(graphics, bx - 2, by, 4, 4);
+        this.fillRect(graphics, bx - halfTorso, by, torsoWidth, torsoHeight);
+
+        // Shoulder pads for bulky/armored types
+        if (shoulderWidth > 0) {
+            graphics.fillStyle(bodyType === 'armored' ? accentColor : darkColor, 1);
+            this.fillRect(graphics, bx - halfTorso - shoulderWidth, by, shoulderWidth, 2);
+            this.fillRect(graphics, bx + halfTorso, by, shoulderWidth, 2);
+        }
 
         // Torso highlight
         graphics.fillStyle(lightColor, 1);
         this.fillRect(graphics, bx - 1, by, 2, 1);
 
+        // Accent stripe/detail
+        graphics.fillStyle(accentColor, 1);
+        if (bodyType === 'robed') {
+            this.fillRect(graphics, bx, by, 1, torsoHeight);
+        } else {
+            this.fillRect(graphics, bx - 1, by + 1, 2, 1);
+        }
+
         // Torso shading
         graphics.fillStyle(darkColor, 1);
-        this.fillRect(graphics, bx - 2, by + 3, 4, 1);
+        this.fillRect(graphics, bx - halfTorso, by + torsoHeight - 1, torsoWidth, 1);
 
         // === ARMS ===
-        const leftArmX = bx - 3;
-        const rightArmX = bx + 2;
-        const armLen = 3;
+        const leftArmX = bx - halfTorso - 1 - shoulderWidth;
+        const rightArmX = bx + halfTorso + shoulderWidth;
 
         if (animation === 'attack' || animation === 'special') {
-            // Punching arm
+            // Punching arm with glow
+            if (glowIntensity > 0.5) {
+                graphics.fillStyle(accentColor, glowIntensity * 0.5);
+                this.fillRect(graphics, rightArmX + attackPunch - 1, by, 3, 3);
+            }
             graphics.fillStyle(skinColor, 1);
             for (let i = 0; i <= attackPunch; i++) {
                 this.fillRect(graphics, rightArmX + i, by + 1, 1, 2);
             }
-            // Fist
             graphics.fillStyle(skinColor, 1);
             this.fillRect(graphics, rightArmX + attackPunch, by, 1, 3);
-
-            // Other arm
             graphics.fillStyle(skinColor, 1);
             this.fillRect(graphics, leftArmX, by + 1, 1, 2);
         } else {
-            // Normal arms with swing
             graphics.fillStyle(skinColor, 1);
             const lArmY = by + 1 + Math.round(armSwing / 2);
             const rArmY = by + 1 - Math.round(armSwing / 2);
@@ -214,35 +338,39 @@ class BootScene extends Phaser.Scene {
         }
 
         // === LEGS ===
-        const legY = by + 4;
-        graphics.fillStyle(color, 1);
+        const legY = by + torsoHeight;
 
-        if (animation === 'walk') {
-            const lLegX = bx - 1 + Math.round(legSwing / 2);
-            const rLegX = bx + Math.round(-legSwing / 2);
-            this.fillRect(graphics, lLegX, legY, 1, 3);
-            this.fillRect(graphics, rLegX, legY, 1, 3);
-            // Feet
+        if (bodyType === 'robed') {
+            // Robe bottom
+            graphics.fillStyle(color, 1);
+            this.fillRect(graphics, bx - halfTorso, legY, torsoWidth, 3);
             graphics.fillStyle(darkColor, 1);
-            this.fillRect(graphics, lLegX - 1, legY + 3, 2, 1);
-            this.fillRect(graphics, rLegX, legY + 3, 2, 1);
-        } else if (animation === 'jump') {
-            // Tucked legs
-            const spread = frame === 0 ? 0 : 1;
-            this.fillRect(graphics, bx - 1 - spread, legY - (frame === 0 ? 1 : 0), 1, 2);
-            this.fillRect(graphics, bx + spread, legY - (frame === 0 ? 1 : 0), 1, 2);
+            this.fillRect(graphics, bx - halfTorso, legY + 2, torsoWidth, 1);
         } else {
-            // Standing legs
-            this.fillRect(graphics, bx - 1, legY, 1, 3);
-            this.fillRect(graphics, bx, legY, 1, 3);
-            // Feet
-            graphics.fillStyle(darkColor, 1);
-            this.fillRect(graphics, bx - 2, legY + 3, 2, 1);
-            this.fillRect(graphics, bx, legY + 3, 2, 1);
+            graphics.fillStyle(color, 1);
+            if (animation === 'walk') {
+                const lLegX = bx - 1 + Math.round(legSwing / 2);
+                const rLegX = bx + Math.round(-legSwing / 2);
+                this.fillRect(graphics, lLegX, legY, 1, 3);
+                this.fillRect(graphics, rLegX, legY, 1, 3);
+                graphics.fillStyle(darkColor, 1);
+                this.fillRect(graphics, lLegX - 1, legY + 3, 2, 1);
+                this.fillRect(graphics, rLegX, legY + 3, 2, 1);
+            } else if (animation === 'jump') {
+                const spread = frame === 0 ? 0 : 1;
+                this.fillRect(graphics, bx - 1 - spread, legY - (frame === 0 ? 1 : 0), 1, 2);
+                this.fillRect(graphics, bx + spread, legY - (frame === 0 ? 1 : 0), 1, 2);
+            } else {
+                this.fillRect(graphics, bx - 1, legY, 1, 3);
+                this.fillRect(graphics, bx, legY, 1, 3);
+                graphics.fillStyle(darkColor, 1);
+                this.fillRect(graphics, bx - 2, legY + 3, 2, 1);
+                this.fillRect(graphics, bx, legY + 3, 2, 1);
+            }
         }
 
         // === CHARACTER-SPECIFIC FEATURES ===
-        this.drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor);
+        this.drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor, accentMain, glowIntensity);
     }
 
     fillRect(graphics, x, y, w, h) {
@@ -250,144 +378,378 @@ class BootScene extends Phaser.Scene {
         graphics.fillRect(x * p, y * p, w * p, h * p);
     }
 
-    drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor) {
-        const darkColor = mainColor.clone().darken(30).color;
-        const lightColor = mainColor.clone().lighten(40).color;
+    drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor, accentMain, glowIntensity) {
+        const darkColor = mainColor.clone().darken(25).color;
+        const lightColor = mainColor.clone().lighten(50).color;
+        const accentColor = accentMain ? accentMain.color : lightColor;
+        const accentLight = accentMain ? accentMain.clone().lighten(40).color : lightColor;
 
         switch (character.id) {
             case 'warrior':
-                // Silver helmet
-                graphics.fillStyle(0x8899aa, 1);
+                // Silver helmet with red plume
+                graphics.fillStyle(0x99aabb, 1);
                 this.fillRect(graphics, bx - 2, by - 6, 4, 2);
-                graphics.fillStyle(0xaabbcc, 1);
+                graphics.fillStyle(0xbbccdd, 1);
                 this.fillRect(graphics, bx - 1, by - 6, 2, 1);
-                // Helmet crest
-                graphics.fillStyle(0xff4444, 1);
-                this.fillRect(graphics, bx, by - 7, 1, 1);
-                // Sword during attack
+                // Helmet crest/plume
+                graphics.fillStyle(0xff5555, 1);
+                this.fillRect(graphics, bx, by - 8, 1, 2);
+                this.fillRect(graphics, bx - 1, by - 7, 1, 1);
+                // Sword during attack - brighter
                 if (animation === 'attack' || animation === 'special') {
-                    graphics.fillStyle(0xcccccc, 1);
+                    graphics.fillStyle(0xeeeeff, 1);
                     this.fillRect(graphics, bx + 3 + attackPunch, by - 1, 1, 4);
                     graphics.fillStyle(0xffffff, 1);
                     this.fillRect(graphics, bx + 3 + attackPunch, by - 2, 1, 1);
+                    // Sword glow
+                    graphics.fillStyle(0xffaa00, glowIntensity * 0.6);
+                    this.fillRect(graphics, bx + 2 + attackPunch, by - 1, 1, 3);
                 }
                 break;
 
             case 'speedster':
-                // Spiky green hair
-                graphics.fillStyle(0x44ff44, 1);
+                // Bright spiky green hair
+                graphics.fillStyle(0x66ffaa, 1);
                 this.fillRect(graphics, bx - 2, by - 7, 1, 2);
                 this.fillRect(graphics, bx, by - 8, 1, 3);
                 this.fillRect(graphics, bx + 1, by - 7, 1, 2);
-                // Speed goggles
-                graphics.fillStyle(0xffff00, 1);
+                // Glowing speed goggles
+                graphics.fillStyle(0xffff44, 1);
                 this.fillRect(graphics, bx - 2, by - 4, 1, 1);
                 this.fillRect(graphics, bx + 1, by - 4, 1, 1);
-                // Speed trail
-                if (animation === 'walk' || animation === 'attack') {
-                    graphics.fillStyle(0x44ff44, 0.4);
+                // Speed trail - more visible
+                if (animation === 'walk' || animation === 'attack' || animation === 'special') {
+                    graphics.fillStyle(0x44ff88, 0.6);
                     this.fillRect(graphics, bx - 4, by, 1, 3);
+                    graphics.fillStyle(0x44ff88, 0.4);
+                    this.fillRect(graphics, bx - 5, by + 1, 1, 2);
                 }
                 break;
 
             case 'tank':
-                // Blue flat top
-                graphics.fillStyle(0x334466, 1);
-                this.fillRect(graphics, bx - 2, by - 6, 4, 1);
-                // Shoulder pads
-                graphics.fillStyle(0x4455ff, 1);
-                this.fillRect(graphics, bx - 3, by, 1, 2);
-                this.fillRect(graphics, bx + 2, by, 1, 2);
+                // Blue military helmet
+                graphics.fillStyle(0x4466aa, 1);
+                this.fillRect(graphics, bx - 2, by - 7, 5, 2);
+                graphics.fillStyle(0x88aadd, 1);
+                this.fillRect(graphics, bx - 1, by - 7, 3, 1);
+                // Heavy shoulder armor
+                graphics.fillStyle(0x5588ff, 1);
+                this.fillRect(graphics, bx - 4, by, 2, 2);
+                this.fillRect(graphics, bx + 2, by, 2, 2);
+                // Armor glow on attack
+                if (animation === 'special') {
+                    graphics.fillStyle(0x88ddff, glowIntensity * 0.5);
+                    this.fillRect(graphics, bx - 3, by - 1, 6, 2);
+                }
                 break;
 
             case 'ninja':
-                // Black mask
+                // Black mask with glowing eyes
                 graphics.fillStyle(0x222233, 1);
                 this.fillRect(graphics, bx - 2, by - 3, 4, 2);
-                // Eyes through mask
-                graphics.fillStyle(0xffffff, 1);
+                graphics.fillStyle(0xff4488, 1);
                 this.fillRect(graphics, bx - 1, by - 3, 1, 1);
                 this.fillRect(graphics, bx, by - 3, 1, 1);
-                // Headband tails
-                graphics.fillStyle(0x882222, 1);
+                // Red headband tails
+                graphics.fillStyle(0xff4444, 1);
                 this.fillRect(graphics, bx + 2, by - 5, 2, 1);
-                // Shuriken during special
-                if (animation === 'special' && frame >= 2) {
-                    graphics.fillStyle(0xcccccc, 1);
-                    this.fillRect(graphics, bx + 5 + frame, by + 1, 1, 1);
+                this.fillRect(graphics, bx + 3, by - 4, 1, 1);
+                // Shuriken during special - brighter
+                if (animation === 'special' && frame >= 1) {
+                    graphics.fillStyle(0xeeeeff, 1);
+                    this.fillRect(graphics, bx + 4 + frame * 2, by + 1, 1, 1);
+                    graphics.fillStyle(0xaa66ff, 0.7);
+                    this.fillRect(graphics, bx + 3 + frame * 2, by, 1, 1);
+                    this.fillRect(graphics, bx + 5 + frame * 2, by + 2, 1, 1);
                 }
                 break;
 
             case 'brawler':
-                // Orange mohawk
-                graphics.fillStyle(0xff6622, 1);
+                // Bright orange mohawk with flames
+                graphics.fillStyle(0xffaa44, 1);
                 this.fillRect(graphics, bx - 1, by - 7, 2, 2);
+                graphics.fillStyle(0xff6622, 1);
                 this.fillRect(graphics, bx, by - 8, 1, 1);
-                // Fire effect during special
-                if (animation === 'special') {
-                    graphics.fillStyle(0xff4400, 0.7);
+                this.fillRect(graphics, bx - 1, by - 8, 1, 1);
+                // Flame effect during special
+                if (animation === 'special' || animation === 'attack') {
+                    graphics.fillStyle(0xff5500, 0.8);
                     this.fillRect(graphics, bx + 3 + attackPunch, by - 1, 1, 2);
-                    graphics.fillStyle(0xffff00, 0.8);
+                    graphics.fillStyle(0xffff00, 0.9);
                     this.fillRect(graphics, bx + 3 + attackPunch, by, 1, 1);
+                    graphics.fillStyle(0xffaa00, 0.6);
+                    this.fillRect(graphics, bx + 4 + attackPunch, by - 1, 1, 1);
                 }
                 break;
 
             case 'mage':
-                // Purple wizard hat
-                graphics.fillStyle(0x6622aa, 1);
+                // Purple wizard hat with star
+                graphics.fillStyle(0x8844cc, 1);
                 this.fillRect(graphics, bx - 2, by - 7, 4, 2);
                 this.fillRect(graphics, bx - 1, by - 8, 2, 1);
                 this.fillRect(graphics, bx, by - 9, 1, 1);
-                // Hat star
-                graphics.fillStyle(0xffff00, 1);
+                graphics.fillStyle(0xffff44, 1);
                 this.fillRect(graphics, bx, by - 7, 1, 1);
-                // Staff
+                // Glowing staff
                 graphics.fillStyle(0x664422, 1);
                 this.fillRect(graphics, bx - 4, by, 1, 5);
-                graphics.fillStyle(0xff44ff, 1);
+                graphics.fillStyle(0xff66ff, 1);
                 this.fillRect(graphics, bx - 4, by - 1, 1, 1);
-                // Magic particles
+                // Magic aura
+                if (animation === 'idle' || animation === 'special') {
+                    graphics.fillStyle(0xff88ff, glowIntensity * 0.5);
+                    this.fillRect(graphics, bx - 5, by - 2, 2, 2);
+                }
+                // Magic burst during special
                 if (animation === 'special') {
-                    graphics.fillStyle(0xff88ff, 0.8);
+                    graphics.fillStyle(0xff66ff, 0.9);
                     this.fillRect(graphics, bx + 3 + attackPunch, by, 1, 1);
+                    graphics.fillStyle(0xaa44ff, 0.7);
+                    this.fillRect(graphics, bx + 4 + attackPunch, by - 1, 1, 1);
                 }
                 break;
 
             case 'robot':
-                // Metal head
-                graphics.fillStyle(0x666677, 1);
-                this.fillRect(graphics, bx - 2, by - 5, 4, 4);
-                // Visor
-                graphics.fillStyle(0x00ffff, 1);
-                this.fillRect(graphics, bx - 1, by - 4, 2, 1);
-                // Antenna
-                graphics.fillStyle(0x888899, 1);
+                // Antenna with blinking light
+                graphics.fillStyle(0x99aabb, 1);
                 this.fillRect(graphics, bx, by - 7, 1, 2);
-                graphics.fillStyle(0xff0000, 1);
+                graphics.fillStyle(frame % 2 === 0 ? 0xff0000 : 0xff4444, 1);
                 this.fillRect(graphics, bx, by - 8, 1, 1);
-                // Laser during special
+                // Visor glow
+                graphics.fillStyle(0x00ffff, 0.4);
+                this.fillRect(graphics, bx - 2, by - 4, 4, 1);
+                // Laser during special - brighter
                 if (animation === 'special' && frame >= 1) {
-                    graphics.fillStyle(0x00ffff, 0.8);
-                    for (let i = 0; i < 3 + frame; i++) {
+                    graphics.fillStyle(0x00ffff, 0.9);
+                    for (let i = 0; i < 4 + frame; i++) {
                         this.fillRect(graphics, bx + 3 + i, by + 1, 1, 1);
+                    }
+                    graphics.fillStyle(0xffffff, 0.8);
+                    for (let i = 0; i < 2 + frame; i++) {
+                        this.fillRect(graphics, bx + 4 + i, by + 1, 1, 1);
                     }
                 }
                 break;
 
             case 'pirate':
-                // Red bandana
-                graphics.fillStyle(0xcc2222, 1);
+                // Red bandana with gold trim
+                graphics.fillStyle(0xff3333, 1);
                 this.fillRect(graphics, bx - 2, by - 6, 4, 1);
-                this.fillRect(graphics, bx + 2, by - 5, 1, 1);
+                graphics.fillStyle(0xffdd44, 1);
+                this.fillRect(graphics, bx - 2, by - 7, 4, 1);
+                this.fillRect(graphics, bx + 2, by - 5, 2, 1);
                 // Eyepatch
                 graphics.fillStyle(0x111111, 1);
                 this.fillRect(graphics, bx + 1, by - 3, 1, 1);
-                // Cutlass during attack
+                // Cutlass with gold handle
                 if (animation === 'attack' || animation === 'special') {
-                    graphics.fillStyle(0xccaa77, 1);
+                    graphics.fillStyle(0xffcc44, 1);
                     this.fillRect(graphics, bx + 3 + attackPunch, by + 1, 1, 1);
-                    graphics.fillStyle(0xcccccc, 1);
+                    graphics.fillStyle(0xeeeeff, 1);
                     this.fillRect(graphics, bx + 3 + attackPunch, by - 1, 1, 2);
+                    // Blade glint
+                    graphics.fillStyle(0xffffff, 0.8);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 2, 1, 1);
+                }
+                break;
+
+            case 'frostmage':
+                // Ice crown/tiara
+                graphics.fillStyle(0xaaffff, 1);
+                this.fillRect(graphics, bx - 2, by - 7, 4, 1);
+                this.fillRect(graphics, bx - 1, by - 8, 1, 1);
+                this.fillRect(graphics, bx + 1, by - 8, 1, 1);
+                this.fillRect(graphics, bx, by - 9, 1, 1);
+                // Ice crystal
+                graphics.fillStyle(0xffffff, 1);
+                this.fillRect(graphics, bx, by - 8, 1, 1);
+                // Ice staff
+                graphics.fillStyle(0x88ccff, 1);
+                this.fillRect(graphics, bx - 4, by, 1, 5);
+                graphics.fillStyle(0xaaffff, 1);
+                this.fillRect(graphics, bx - 4, by - 1, 1, 1);
+                // Frost aura
+                if (animation === 'idle' || animation === 'special') {
+                    graphics.fillStyle(0x88ddff, glowIntensity * 0.4);
+                    this.fillRect(graphics, bx - 5, by - 1, 2, 2);
+                }
+                // Ice blast during special
+                if (animation === 'special') {
+                    graphics.fillStyle(0xaaffff, 0.9);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by, 1, 1);
+                    graphics.fillStyle(0x66ddff, 0.7);
+                    this.fillRect(graphics, bx + 4 + attackPunch, by - 1, 1, 2);
+                    graphics.fillStyle(0xffffff, 0.5);
+                    this.fillRect(graphics, bx + 5 + attackPunch, by, 1, 1);
+                }
+                break;
+
+            case 'demon':
+                // Curved horns
+                graphics.fillStyle(0x442222, 1);
+                this.fillRect(graphics, bx - 2, by - 7, 1, 2);
+                this.fillRect(graphics, bx + 2, by - 7, 1, 2);
+                this.fillRect(graphics, bx - 3, by - 8, 1, 1);
+                this.fillRect(graphics, bx + 3, by - 8, 1, 1);
+                // Glowing eyes already handled in body
+                // Fire aura
+                if (animation === 'idle' || animation === 'special' || animation === 'attack') {
+                    graphics.fillStyle(0xff4400, glowIntensity * 0.5);
+                    this.fillRect(graphics, bx - 3, by - 1, 1, 2);
+                    this.fillRect(graphics, bx + 3, by - 1, 1, 2);
+                }
+                // Hellfire during special
+                if (animation === 'special') {
+                    graphics.fillStyle(0xff6600, 0.9);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 1, 1, 2);
+                    graphics.fillStyle(0xffaa00, 0.8);
+                    this.fillRect(graphics, bx + 4 + attackPunch, by, 1, 1);
+                    graphics.fillStyle(0xffff00, 0.7);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 2, 1, 1);
+                }
+                break;
+
+            case 'angel':
+                // Halo
+                graphics.fillStyle(0xffff88, 1);
+                this.fillRect(graphics, bx - 2, by - 8, 4, 1);
+                graphics.fillStyle(0xffffaa, 0.8);
+                this.fillRect(graphics, bx - 1, by - 9, 2, 1);
+                // Wings
+                graphics.fillStyle(0xffffff, 1);
+                this.fillRect(graphics, bx - 4, by - 1, 1, 3);
+                this.fillRect(graphics, bx - 5, by, 1, 2);
+                this.fillRect(graphics, bx + 3, by - 1, 1, 3);
+                this.fillRect(graphics, bx + 4, by, 1, 2);
+                // Wing glow
+                graphics.fillStyle(0xffffaa, glowIntensity * 0.4);
+                this.fillRect(graphics, bx - 5, by - 1, 2, 3);
+                this.fillRect(graphics, bx + 3, by - 1, 2, 3);
+                // Holy light during special
+                if (animation === 'special') {
+                    graphics.fillStyle(0xffff88, 0.9);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by, 1, 1);
+                    graphics.fillStyle(0xffffff, 0.8);
+                    this.fillRect(graphics, bx + 4 + attackPunch, by - 1, 1, 2);
+                }
+                break;
+
+            case 'shadow':
+                // Dark hood
+                graphics.fillStyle(0x331144, 1);
+                this.fillRect(graphics, bx - 2, by - 6, 4, 2);
+                this.fillRect(graphics, bx - 2, by - 5, 1, 2);
+                this.fillRect(graphics, bx + 2, by - 5, 1, 2);
+                // Glowing purple eyes already in body
+                // Shadow wisps
+                if (animation === 'idle' || animation === 'walk') {
+                    graphics.fillStyle(0x9944cc, glowIntensity * 0.4);
+                    this.fillRect(graphics, bx - 3, by + 2, 1, 2);
+                    this.fillRect(graphics, bx + 3, by + 2, 1, 2);
+                }
+                // Shadow attack
+                if (animation === 'special') {
+                    graphics.fillStyle(0xaa44ff, 0.8);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by, 1, 1);
+                    graphics.fillStyle(0x6622aa, 0.6);
+                    this.fillRect(graphics, bx + 4 + attackPunch, by - 1, 1, 2);
+                    graphics.fillStyle(0x220044, 0.4);
+                    this.fillRect(graphics, bx + 5 + attackPunch, by, 1, 1);
+                }
+                break;
+
+            case 'beast':
+                // Pointy ears
+                graphics.fillStyle(0xcc8844, 1);
+                this.fillRect(graphics, bx - 3, by - 6, 1, 2);
+                this.fillRect(graphics, bx + 3, by - 6, 1, 2);
+                this.fillRect(graphics, bx - 3, by - 7, 1, 1);
+                this.fillRect(graphics, bx + 3, by - 7, 1, 1);
+                // Fur tuft
+                graphics.fillStyle(0xffcc66, 1);
+                this.fillRect(graphics, bx - 1, by - 6, 2, 1);
+                // Muzzle/snout
+                graphics.fillStyle(0xaa7744, 1);
+                this.fillRect(graphics, bx - 1, by - 2, 2, 1);
+                // Claw swipe during attack
+                if (animation === 'attack' || animation === 'special') {
+                    graphics.fillStyle(0xffffcc, 0.9);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by, 1, 1);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 1, 1, 1);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by + 1, 1, 1);
+                }
+                // Roar effect during special
+                if (animation === 'special' && frame >= 2) {
+                    graphics.fillStyle(0xffaa44, 0.6);
+                    this.fillRect(graphics, bx + 4, by - 1, 2, 3);
+                    graphics.fillStyle(0xffcc66, 0.4);
+                    this.fillRect(graphics, bx + 5, by, 2, 2);
+                }
+                break;
+
+            case 'druid':
+                // Leafy crown
+                graphics.fillStyle(0x44aa44, 1);
+                this.fillRect(graphics, bx - 2, by - 7, 4, 1);
+                graphics.fillStyle(0x88ff44, 1);
+                this.fillRect(graphics, bx - 1, by - 8, 1, 1);
+                this.fillRect(graphics, bx + 1, by - 8, 1, 1);
+                graphics.fillStyle(0x66dd44, 1);
+                this.fillRect(graphics, bx, by - 7, 1, 1);
+                // Nature staff
+                graphics.fillStyle(0x665533, 1);
+                this.fillRect(graphics, bx - 4, by, 1, 5);
+                graphics.fillStyle(0x88ff44, 1);
+                this.fillRect(graphics, bx - 4, by - 1, 1, 1);
+                this.fillRect(graphics, bx - 5, by - 1, 1, 1);
+                // Nature aura
+                if (animation === 'idle') {
+                    graphics.fillStyle(0x88ff44, glowIntensity * 0.3);
+                    this.fillRect(graphics, bx - 5, by - 2, 2, 2);
+                }
+                // Vine attack during special
+                if (animation === 'special') {
+                    graphics.fillStyle(0x44dd66, 0.9);
+                    for (let i = 0; i < 2 + frame; i++) {
+                        this.fillRect(graphics, bx + 3 + i, by + (i % 2), 1, 1);
+                    }
+                    graphics.fillStyle(0x88ff44, 0.7);
+                    this.fillRect(graphics, bx + 3 + frame, by - 1, 1, 1);
+                }
+                break;
+
+            case 'knight':
+                // Full helmet with visor
+                graphics.fillStyle(0xbbaa77, 1);
+                this.fillRect(graphics, bx - 2, by - 7, 4, 3);
+                graphics.fillStyle(0xddcc88, 1);
+                this.fillRect(graphics, bx - 1, by - 7, 2, 1);
+                // Visor slit
+                graphics.fillStyle(0x222222, 1);
+                this.fillRect(graphics, bx - 1, by - 5, 2, 1);
+                // Plume
+                graphics.fillStyle(0xcccccc, 1);
+                this.fillRect(graphics, bx, by - 8, 1, 1);
+                this.fillRect(graphics, bx + 1, by - 8, 1, 1);
+                // Shield
+                graphics.fillStyle(0xccaa44, 1);
+                this.fillRect(graphics, bx - 4, by, 1, 3);
+                this.fillRect(graphics, bx - 5, by + 1, 1, 2);
+                graphics.fillStyle(0xddbb55, 1);
+                this.fillRect(graphics, bx - 4, by + 1, 1, 1);
+                // Shield bash during special
+                if (animation === 'special') {
+                    graphics.fillStyle(0xffdd44, glowIntensity * 0.7);
+                    this.fillRect(graphics, bx + 2 + attackPunch, by, 2, 3);
+                    graphics.fillStyle(0xffffff, 0.5);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by + 1, 1, 1);
+                }
+                // Sword during attack
+                if (animation === 'attack') {
+                    graphics.fillStyle(0xeeeeff, 1);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 1, 1, 3);
+                    graphics.fillStyle(0xffffff, 0.8);
+                    this.fillRect(graphics, bx + 3 + attackPunch, by - 2, 1, 1);
                 }
                 break;
         }

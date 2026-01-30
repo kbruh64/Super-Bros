@@ -92,7 +92,7 @@ class AIController {
             };
         }
 
-        if (shouldSpecial && !this.fighter.specialOnCooldown) {
+        if (shouldSpecial && this.fighter.specialCooldown <= 0) {
             return {
                 type: 'attack',
                 attackType: 'special',
@@ -118,7 +118,7 @@ class AIController {
         const shouldApproach = Math.random() < this.difficulty.aggressiveness;
         const hasRangedAttack = this.fighter.characterData.attacks.special.range > 100;
 
-        if (hasRangedAttack && Math.random() < this.difficulty.accuracy * 0.7) {
+        if (hasRangedAttack && this.fighter.specialCooldown <= 0 && Math.random() < this.difficulty.accuracy * 0.7) {
             return {
                 type: 'attack',
                 attackType: 'special',
