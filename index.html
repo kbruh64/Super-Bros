@@ -58,65 +58,6 @@
 <body>
     <div id="game-container"></div>
     <div id="loading">Loading Super Bros...</div>
-    <script>
-        // Fallback: if the game fails to initialize, hide the loading text
-        // and show an error message so the page doesn't stay stuck.
-        (function(){
-            const loadingEl = document.getElementById('loading');
-            function showError(msg){
-                if(!loadingEl) return;
-                loadingEl.style.display = 'block';
-                loadingEl.style.color = '#ff6b6b';
-                loadingEl.textContent = msg || 'Failed to start the game — check console.';
-            }
-
-            window.addEventListener('error', function(ev){
-                showError('Error initializing game — check browser console.');
-            });
-            window.addEventListener('unhandledrejection', function(ev){
-                showError('Unhandled promise rejection — check browser console.');
-            });
-
-            // If BootScene doesn't hide the loading element within 8s, show guidance.
-            setTimeout(function(){
-                if(loadingEl && loadingEl.style.display !== 'none'){
-                        showError('Game still loading — open dev tools console for errors.');
-                        // Also capture console errors and show them to help debugging
-                        const details = document.createElement('pre');
-                        details.id = 'error-details';
-                        details.style.position = 'absolute';
-                        details.style.bottom = '40px';
-                        details.style.left = '50%';
-                        details.style.transform = 'translateX(-50%)';
-                        details.style.maxWidth = '80%';
-                        details.style.maxHeight = '30%';
-                        details.style.overflow = 'auto';
-                        details.style.background = 'rgba(0,0,0,0.4)';
-                        details.style.color = '#fff';
-                        details.style.padding = '12px';
-                        details.style.borderRadius = '6px';
-                        details.style.fontSize = '12px';
-                        details.style.whiteSpace = 'pre-wrap';
-                        document.body.appendChild(details);
-                        const appendDetails = (msg) => {
-                            if(!details) return;
-                            details.textContent += '\n' + msg;
-                        };
-                        const origConsoleError = console.error.bind(console);
-                        console.error = function(...args){
-                            appendDetails(args.map(a=>typeof a==='object'?JSON.stringify(a,null,2):String(a)).join(' '));
-                            origConsoleError(...args);
-                        };
-                        window.addEventListener('error', function(ev){
-                            appendDetails((ev && ev.message) ? ev.message + '\n' + (ev.error && ev.error.stack ? ev.error.stack : '') : String(ev));
-                        });
-                        window.addEventListener('unhandledrejection', function(ev){
-                            appendDetails('UnhandledRejection: ' + (ev && ev.reason ? (ev.reason.stack || ev.reason) : String(ev)));
-                        });
-                }
-            }, 8000);
-        })();
-    </script>
     <div class="controls-info">
         P1: WASD + F/Shift(attack) + E/RightCtrl(special) | P2: Arrows + F/Shift(attack) + E/RightCtrl(special) | ESC: Pause
     </div>

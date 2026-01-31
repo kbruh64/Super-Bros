@@ -18,10 +18,6 @@ class GameScene extends Phaser.Scene {
         this.isPaused = false;
         this.countdownActive = true; // Set IMMEDIATELY to prevent any update logic before countdown starts
 
-        // Calculate ground level from arena's main platform
-        const mainPlatform = this.currentArena.platforms.find(p => p.type === 'main');
-        this.groundY = mainPlatform ? mainPlatform.y - (mainPlatform.height / 2) : 530;
-
         // Create arena
         this.createArenaBackground();
         this.createPlatforms();
@@ -389,23 +385,11 @@ class GameScene extends Phaser.Scene {
     }
 
     createFighters() {
-        // Find the main platform to determine spawn height
-        const mainPlatform = this.currentArena.platforms.find(p => p.type === 'main');
-        const platformY = mainPlatform ? mainPlatform.y : 550;
-        const platformHeight = mainPlatform ? mainPlatform.height : 40;
-        const spawnY = platformY - (platformHeight / 2) - 50; // Spawn above platform surface
-
-        // Spawn positions based on platform width
-        const platformX = mainPlatform ? mainPlatform.x : 600;
-        const platformWidth = mainPlatform ? mainPlatform.width : 600;
-        const spawnX1 = platformX - platformWidth / 4; // Left side of platform
-        const spawnX2 = platformX + platformWidth / 4; // Right side of platform
-
-        // Create Player 1
-        this.player1 = this.createFighter(spawnX1, spawnY, this.player1Data, 1);
+        // Create Player 1 - spawn just above main platform (platform top is ~y=530)
+        this.player1 = this.createFighter(400, 500, this.player1Data, 1);
 
         // Create Player 2
-        this.player2 = this.createFighter(spawnX2, spawnY, this.player2Data, 2);
+        this.player2 = this.createFighter(800, 500, this.player2Data, 2);
 
         // Set up fighter references for combat
         this.player1.opponent = this.player2;
@@ -633,16 +617,16 @@ class GameScene extends Phaser.Scene {
             specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
         };
 
-        // Player 2 controls (Arrows + Numpad 1/4, Numpad 2/5)
+        // Player 2 controls (Arrows + F/Shift, E/Right Ctrl)
         this.p2Keys = {
             up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
             down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
             left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
             right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
-            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_ONE),
-            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_FOUR),
-            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_TWO),
-            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_FIVE)
+            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F),
+            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
+            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
+            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
         };
 
         // Pause
@@ -1337,10 +1321,6 @@ class GameScene extends Phaser.Scene {
                 shuriken.attackKnockback = attack.knockback * 0.7;
                 shuriken.setBlendMode('ADD');
 
-                // Set proper body size for collision
-                shuriken.body.setSize(24, 24);
-                shuriken.body.setOffset(-12, -12);
-
                 fighter.projectiles.add(shuriken);
 
                 const rad = Phaser.Math.DegToRad(angle);
@@ -1377,8 +1357,9 @@ class GameScene extends Phaser.Scene {
         fireball.attackKnockback = attack.knockback;
         fireball.setBlendMode('ADD');
 
-        // Set circular physics body for proper collision
-        fireball.body.setCircle(20);
+        // Inner glow
+        const inner = this.add.circle(0, 0, 12, 0xffffff);
+        inner.setBlendMode('ADD');
 
         fighter.projectiles.add(fireball);
         fireball.body.setAllowGravity(false);
@@ -1523,9 +1504,6 @@ class GameScene extends Phaser.Scene {
                 bullet.attackKnockback = attack.knockback * 0.3;
                 bullet.setBlendMode('ADD');
 
-                // Set proper body size for collision
-                bullet.body.setSize(12, 4);
-
                 fighter.projectiles.add(bullet);
                 bullet.body.setAllowGravity(false);
                 bullet.body.setVelocityX(direction * 600);
@@ -1563,10 +1541,6 @@ class GameScene extends Phaser.Scene {
         iceSpike.attackKnockback = attack.knockback;
         iceSpike.isIce = true;
         iceSpike.setBlendMode('ADD');
-
-        // Set proper body size for collision
-        iceSpike.body.setSize(30, 20);
-        iceSpike.body.setOffset(-15, -10);
 
         fighter.projectiles.add(iceSpike);
         iceSpike.body.setAllowGravity(false);
@@ -1816,12 +1790,11 @@ class GameScene extends Phaser.Scene {
         });
 
         // Check for ground contact
-        const groundY = this.groundY;
         const groundCheck = this.time.addEvent({
             delay: 50,
             repeat: 20,
             callback: () => {
-                if (seed.y > groundY - 10) {
+                if (seed.y > 520) {
                     groundCheck.remove();
                     seed.destroy();
 
@@ -1829,7 +1802,7 @@ class GameScene extends Phaser.Scene {
                     for (let i = 0; i < 5; i++) {
                         const vine = this.add.rectangle(
                             seed.x + (i - 2) * 15,
-                            groundY,
+                            520,
                             6, 0, 0x00ff44
                         );
                         vine.setOrigin(0.5, 1);
@@ -1859,7 +1832,7 @@ class GameScene extends Phaser.Scene {
                         callback: () => {
                             const opponent = fighter.opponent;
                             if (!opponent.isInvincible && !opponent.vineHit) {
-                                if (Math.abs(opponent.x - seed.x) < 50 && opponent.y > groundY - 50) {
+                                if (Math.abs(opponent.x - seed.x) < 50 && opponent.y > 480) {
                                     opponent.vineHit = true;
                                     this.applyDamage(opponent, attack.damage, attack.knockback * 0.5, direction);
                                     opponent.body.setVelocityX(0);
@@ -1963,7 +1936,6 @@ class GameScene extends Phaser.Scene {
     // HACK - Deploy trap
     createHackAttack(fighter, attack, direction) {
         const trapX = fighter.x + direction * 80;
-        const groundY = this.groundY;
 
         // Deploy animation
         const deployEffect = this.add.circle(fighter.x, fighter.y, 10, 0x00ff00);
@@ -1972,14 +1944,14 @@ class GameScene extends Phaser.Scene {
         this.tweens.add({
             targets: deployEffect,
             x: trapX,
-            y: groundY,
+            y: 520,
             duration: 300,
             onComplete: () => {
                 deployEffect.destroy();
 
                 // Trap visual - glitchy square
-                const trap = this.add.rectangle(trapX, groundY, 40, 10, 0x00ff00, 0.6);
-                const trapGlow = this.add.rectangle(trapX, groundY, 50, 15, 0x00ff00, 0.2);
+                const trap = this.add.rectangle(trapX, 520, 40, 10, 0x00ff00, 0.6);
+                const trapGlow = this.add.rectangle(trapX, 520, 50, 15, 0x00ff00, 0.2);
                 trapGlow.setBlendMode('ADD');
 
                 // Glitch effect
@@ -1998,7 +1970,7 @@ class GameScene extends Phaser.Scene {
                     callback: () => {
                         const opponent = fighter.opponent;
                         if (!opponent.isInvincible && !opponent.hacked) {
-                            if (Math.abs(opponent.x - trapX) < 40 && opponent.y > groundY - 50) {
+                            if (Math.abs(opponent.x - trapX) < 40 && opponent.y > 480) {
                                 opponent.hacked = true;
 
                                 // Hack effect - glitch on opponent
@@ -2299,8 +2271,6 @@ class GameScene extends Phaser.Scene {
 
     // EARTHQUAKE - Ground shockwave
     createEarthquakeAttack(fighter, attack, direction) {
-        const groundY = this.groundY;
-
         // Big stomp
         fighter.body.setVelocityY(400);
 
@@ -2311,7 +2281,7 @@ class GameScene extends Phaser.Scene {
                     this.time.delayedCall(i * 60, () => {
                         const pillar = this.add.rectangle(
                             fighter.x + dir * (50 + i * 40),
-                            groundY,
+                            520,
                             30, 0, 0x888888
                         );
                         pillar.setOrigin(0.5, 1);
@@ -2332,7 +2302,7 @@ class GameScene extends Phaser.Scene {
             for (let i = 0; i < 10; i++) {
                 const dust = this.add.circle(
                     fighter.x + (Math.random() - 0.5) * 200,
-                    groundY + 10,
+                    530,
                     15 + Math.random() * 15,
                     0x888888, 0.6
                 );
@@ -2700,21 +2670,9 @@ class GameScene extends Phaser.Scene {
     }
 
     respawnFighter(fighter) {
-        // Calculate spawn position based on arena's main platform
-        const mainPlatform = this.currentArena.platforms.find(p => p.type === 'main');
-        const platformY = mainPlatform ? mainPlatform.y : 550;
-        const platformHeight = mainPlatform ? mainPlatform.height : 40;
-        const spawnY = platformY - (platformHeight / 2) - 50;
-
-        const platformX = mainPlatform ? mainPlatform.x : 600;
-        const platformWidth = mainPlatform ? mainPlatform.width : 600;
-        const spawnX = fighter.playerNum === 1
-            ? platformX - platformWidth / 4
-            : platformX + platformWidth / 4;
-
-        // Reset position
-        fighter.x = spawnX;
-        fighter.y = spawnY;
+        // Reset position - spawn just above main platform
+        fighter.x = fighter.playerNum === 1 ? 400 : 800;
+        fighter.y = 500;
         fighter.body.setVelocity(0, 0);
         fighter.damage = 0;
 
