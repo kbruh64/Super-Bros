@@ -384,11 +384,11 @@ class GameScene extends Phaser.Scene {
     }
 
     createFighters() {
-        // Create Player 1 - spawn above main platform (platform top is ~y=530)
-        this.player1 = this.createFighter(400, 480, this.player1Data, 1);
+        // Create Player 1 - spawn just above main platform (platform top is ~y=530)
+        this.player1 = this.createFighter(400, 500, this.player1Data, 1);
 
         // Create Player 2
-        this.player2 = this.createFighter(800, 480, this.player2Data, 2);
+        this.player2 = this.createFighter(800, 500, this.player2Data, 2);
 
         // Set up fighter references for combat
         this.player1.opponent = this.player2;
@@ -730,12 +730,13 @@ class GameScene extends Phaser.Scene {
     startCountdown() {
         this.countdownActive = true;
 
-        // Freeze players during countdown
-        this.player1.body.setImmovable(true);
-        this.player2.body.setImmovable(true);
-
-        // Visual spawn protection effect during countdown
+        // Completely freeze players during countdown - disable gravity and movement
         [this.player1, this.player2].forEach(fighter => {
+            fighter.body.setAllowGravity(false);
+            fighter.body.setVelocity(0, 0);
+            fighter.body.setImmovable(true);
+
+            // Visual spawn protection effect during countdown
             this.tweens.add({
                 targets: fighter.sprite,
                 alpha: { from: 0.5, to: 1 },
@@ -774,8 +775,13 @@ class GameScene extends Phaser.Scene {
                 } else {
                     countdownText.destroy();
                     this.countdownActive = false;
-                    this.player1.body.setImmovable(false);
-                    this.player2.body.setImmovable(false);
+
+                    // Re-enable physics for both players
+                    [this.player1, this.player2].forEach(fighter => {
+                        fighter.body.setImmovable(false);
+                        fighter.body.setAllowGravity(true);
+                        fighter.body.setVelocity(0, 0);
+                    });
 
                     // Start spawn protection timer after countdown
                     this.startSpawnProtection(this.player1);
@@ -1385,9 +1391,9 @@ class GameScene extends Phaser.Scene {
     }
 
     respawnFighter(fighter) {
-        // Reset position - spawn above main platform
+        // Reset position - spawn just above main platform
         fighter.x = fighter.playerNum === 1 ? 400 : 800;
-        fighter.y = 480;
+        fighter.y = 500;
         fighter.body.setVelocity(0, 0);
         fighter.damage = 0;
 
@@ -1396,6 +1402,7 @@ class GameScene extends Phaser.Scene {
 
         // Ensure fighter is active and physics body works
         fighter.body.enable = true;
+        fighter.body.setAllowGravity(true);
 
         // Use shared spawn protection
         this.startSpawnProtection(fighter);

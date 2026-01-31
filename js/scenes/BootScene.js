@@ -243,90 +243,191 @@ class BootScene extends Phaser.Scene {
         this.fillRect(graphics, bx - halfTorso - 1 - shoulderWidth, by, 1, torsoHeight + 1);
         this.fillRect(graphics, bx + halfTorso + shoulderWidth, by, 1, torsoHeight + 1);
 
-        // === HEAD ===
-        graphics.fillStyle(skinColor, 1);
-        this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-
-        // Face highlight
-        graphics.fillStyle(bodyType === 'mechanical' ? 0x99aaaa : 0xffe4c9, 1);
-        this.fillRect(graphics, bx - 1, by - headHeight + 1, 2, 2);
-
-        // Eyes - vary by body type
+        // === HEAD === (unique per body type)
         const eyeY = by - headHeight + 2;
         const browY = eyeY - 1;
 
-        // === EYEBROWS === (draw before eyes)
+        // Different head styles per body type
         if (bodyType === 'mechanical') {
-            // No eyebrows for mechanical (has visor)
-        } else if (bodyType === 'demonic') {
-            // Angry angled eyebrows
-            graphics.fillStyle(0x442222, 1);
-            this.fillRect(graphics, bx - 2, browY, 1, 1);
-            this.fillRect(graphics, bx - 1, browY + 1, 1, 1);
-            this.fillRect(graphics, bx + 1, browY, 1, 1);
-            this.fillRect(graphics, bx + 2, browY + 1, 1, 1);
-        } else if (bodyType === 'ethereal') {
-            // Thin elegant eyebrows
-            graphics.fillStyle(0x664488, 1);
-            this.fillRect(graphics, bx - 1, browY, 1, 1);
-            this.fillRect(graphics, bx + 1, browY, 1, 1);
-        } else if (bodyType === 'bestial') {
-            // Thick furry eyebrows
-            graphics.fillStyle(0x885533, 1);
-            this.fillRect(graphics, bx - 2, browY, 2, 1);
-            this.fillRect(graphics, bx + 1, browY, 2, 1);
-        } else if (bodyType === 'angelic') {
-            // Delicate light eyebrows
-            graphics.fillStyle(0xddccaa, 1);
-            this.fillRect(graphics, bx - 1, browY, 1, 1);
-            this.fillRect(graphics, bx + 1, browY, 1, 1);
-        } else {
-            // Normal eyebrows - darker skin tone
-            graphics.fillStyle(0x553322, 1);
-            this.fillRect(graphics, bx - 1, browY, 1, 1);
-            this.fillRect(graphics, bx + 1, browY, 1, 1);
-        }
-
-        // === EYES ===
-        if (bodyType === 'mechanical') {
-            // Visor eyes
+            // Robot head with helmet
+            graphics.fillStyle(0x556677, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Helmet top
+            graphics.fillStyle(0x334455, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, 2);
+            // Visor
             graphics.fillStyle(0x00ffff, 1);
-            this.fillRect(graphics, bx - halfHead + 1, eyeY, headWidth - 2, 1);
-        } else if (bodyType === 'demonic') {
-            // Glowing red eyes
-            graphics.fillStyle(0xff0000, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx, eyeY, 1, 1);
-        } else if (bodyType === 'ethereal') {
-            // Purple glowing eyes
-            graphics.fillStyle(0xcc66ff, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx, eyeY, 1, 1);
-        } else if (bodyType === 'bestial') {
-            // Yellow beast eyes
-            graphics.fillStyle(0xffcc00, 1);
+            this.fillRect(graphics, bx - halfHead + 1, eyeY, headWidth - 2, 2);
+            // Antenna
+            graphics.fillStyle(0x00ffff, 1);
+            this.fillRect(graphics, bx, by - headHeight - 2, 1, 2);
+        } else if (bodyType === 'slim') {
+            // Sleek cyber head with hair
+            graphics.fillStyle(skinColor, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Spiky hair
+            graphics.fillStyle(color, 1);
+            this.fillRect(graphics, bx - 1, by - headHeight - 2, 1, 2);
+            this.fillRect(graphics, bx, by - headHeight - 1, 1, 1);
+            this.fillRect(graphics, bx + 1, by - headHeight - 2, 1, 2);
+            // Eyes
+            graphics.fillStyle(0x00ffff, 1);
             this.fillRect(graphics, bx - 1, eyeY, 1, 1);
             this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-        } else {
-            // Normal eyes
-            const blinking = frame === 3 && animation === 'idle';
+            // Mouth
+            graphics.fillStyle(darkSkin, 1);
+            this.fillRect(graphics, bx, by - 1, 1, 1);
+        } else if (bodyType === 'bulky') {
+            // Big square head with mohawk
+            graphics.fillStyle(skinColor, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Mohawk
+            graphics.fillStyle(accentColor, 1);
+            this.fillRect(graphics, bx, by - headHeight - 3, 1, 3);
+            this.fillRect(graphics, bx - 1, by - headHeight - 2, 1, 2);
+            this.fillRect(graphics, bx + 1, by - headHeight - 2, 1, 2);
+            // Angry eyes
+            graphics.fillStyle(0xffffff, 1);
+            this.fillRect(graphics, bx - 2, eyeY, 2, 1);
+            this.fillRect(graphics, bx + 1, eyeY, 2, 1);
+            graphics.fillStyle(0x111122, 1);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+            // Scar
+            graphics.fillStyle(0xaa6666, 1);
+            this.fillRect(graphics, bx + 2, by - headHeight + 1, 1, 3);
+        } else if (bodyType === 'muscular') {
+            // Strong jaw, short hair
+            graphics.fillStyle(skinColor, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Flat top hair
+            graphics.fillStyle(0x332211, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight - 1, headWidth, 2);
+            // Strong brow
+            graphics.fillStyle(darkSkin, 1);
+            this.fillRect(graphics, bx - 1, browY, 3, 1);
+            // Eyes
             graphics.fillStyle(0xffffff, 1);
             this.fillRect(graphics, bx - 1, eyeY, 1, 1);
             this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+            // Determined mouth
+            graphics.fillStyle(darkSkin, 1);
+            this.fillRect(graphics, bx - 1, by - 1, 3, 1);
+        } else if (bodyType === 'robed') {
+            // Hooded head
+            graphics.fillStyle(color, 1);
+            this.fillRect(graphics, bx - halfHead - 1, by - headHeight - 1, headWidth + 2, headHeight + 1);
+            // Face in shadow
+            graphics.fillStyle(0x222233, 1);
+            this.fillRect(graphics, bx - halfHead + 1, by - headHeight + 2, headWidth - 2, headHeight - 3);
+            // Glowing eyes
+            graphics.fillStyle(accentColor, 1);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+        } else if (bodyType === 'demonic') {
+            // Red demon head with horns
+            graphics.fillStyle(0xcc4444, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Horns
+            graphics.fillStyle(0x442222, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight - 3, 1, 3);
+            this.fillRect(graphics, bx + halfHead - 1, by - headHeight - 3, 1, 3);
+            this.fillRect(graphics, bx - halfHead - 1, by - headHeight - 2, 1, 2);
+            this.fillRect(graphics, bx + halfHead, by - headHeight - 2, 1, 2);
+            // Glowing red eyes
+            graphics.fillStyle(0xff0000, 1);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+            // Fanged mouth
+            graphics.fillStyle(0x220000, 1);
+            this.fillRect(graphics, bx - 1, by - 1, 3, 1);
+            graphics.fillStyle(0xffffff, 1);
+            this.fillRect(graphics, bx - 1, by - 1, 1, 1);
+            this.fillRect(graphics, bx + 1, by - 1, 1, 1);
+        } else if (bodyType === 'angelic') {
+            // Glowing halo head
+            graphics.fillStyle(skinColor, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Halo
+            graphics.fillStyle(0xffff88, 1);
+            this.fillRect(graphics, bx - 2, by - headHeight - 2, 5, 1);
+            this.fillRect(graphics, bx - 3, by - headHeight - 1, 1, 1);
+            this.fillRect(graphics, bx + 3, by - headHeight - 1, 1, 1);
+            // Serene eyes
+            graphics.fillStyle(0x88ccff, 1);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+            // Slight smile
+            graphics.fillStyle(0xffaaaa, 1);
+            this.fillRect(graphics, bx, by - 1, 1, 1);
+        } else if (bodyType === 'ethereal') {
+            // Ghost-like translucent head
+            graphics.fillStyle(0x8866cc, 0.8);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Wispy top
+            graphics.fillStyle(0xaa88ff, 0.6);
+            this.fillRect(graphics, bx - 1, by - headHeight - 2, 1, 2);
+            this.fillRect(graphics, bx + 1, by - headHeight - 1, 1, 1);
+            // Glowing purple eyes
+            graphics.fillStyle(0xff00ff, 1);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+        } else if (bodyType === 'bestial') {
+            // Wolf/beast snout head
+            graphics.fillStyle(0x886644, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Ears
+            graphics.fillStyle(0x664422, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight - 2, 2, 2);
+            this.fillRect(graphics, bx + halfHead - 2, by - headHeight - 2, 2, 2);
+            // Snout
+            graphics.fillStyle(0xaa8866, 1);
+            this.fillRect(graphics, bx - 1, by - 2, 3, 2);
+            // Yellow beast eyes
+            graphics.fillStyle(0xffcc00, 1);
+            this.fillRect(graphics, bx - 2, eyeY, 1, 1);
+            this.fillRect(graphics, bx + 2, eyeY, 1, 1);
+            // Nose
+            graphics.fillStyle(0x332211, 1);
+            this.fillRect(graphics, bx, by - 1, 1, 1);
+        } else if (bodyType === 'armored') {
+            // Knight helmet
+            graphics.fillStyle(0x888899, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Helmet crest
+            graphics.fillStyle(accentColor, 1);
+            this.fillRect(graphics, bx, by - headHeight - 2, 1, 2);
+            // Visor slit
+            graphics.fillStyle(0x222233, 1);
+            this.fillRect(graphics, bx - halfHead + 1, eyeY, headWidth - 2, 1);
+            // Eyes behind visor
+            graphics.fillStyle(0x88aaff, 1);
+            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
+            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+        } else {
+            // Default human head with hair color based on character
+            graphics.fillStyle(skinColor, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
+            // Hair (use accent color)
+            graphics.fillStyle(accentColor, 1);
+            this.fillRect(graphics, bx - halfHead, by - headHeight - 1, headWidth, 2);
+            // Normal eyebrows
+            graphics.fillStyle(0x553322, 1);
+            this.fillRect(graphics, bx - 1, browY, 1, 1);
+            this.fillRect(graphics, bx + 1, browY, 1, 1);
+            // Normal eyes
+            const blinking = frame === 3 && animation === 'idle';
             if (!blinking) {
-                graphics.fillStyle(0x111122, 1);
+                graphics.fillStyle(0xffffff, 1);
                 this.fillRect(graphics, bx - 1, eyeY, 1, 1);
                 this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-                graphics.fillStyle(0xffffff, 1);
+                graphics.fillStyle(0x111122, 1);
                 graphics.fillRect((bx - 1) * p, eyeY * p, 2, 2);
                 graphics.fillRect((bx + 1) * p, eyeY * p, 2, 2);
             }
-        }
-
-        // Mouth (skip for mechanical/bestial)
-        if (bodyType !== 'mechanical' && bodyType !== 'bestial') {
+            // Mouth
             graphics.fillStyle(darkSkin, 1);
-            this.fillRect(graphics, bx - 1, by - 1, 2, 1);
+            this.fillRect(graphics, bx, by - 1, 1, 1);
         }
 
         // === TORSO ===
