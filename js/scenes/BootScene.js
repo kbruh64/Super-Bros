@@ -93,48 +93,24 @@ class BootScene extends Phaser.Scene {
     drawCharacterFrame(graphics, offsetX, offsetY, character, animation, bounce, frame) {
         const color = character.color;
         const accentColor = character.accentColor || color;
-        const bodyType = character.bodyType || 'normal';
         const mainColor = Phaser.Display.Color.IntegerToColor(color);
         const accentMain = Phaser.Display.Color.IntegerToColor(accentColor);
-        const darkColor = mainColor.clone().darken(25).color;
-        const lightColor = mainColor.clone().lighten(50).color;
-        const accentLight = accentMain.clone().lighten(40).color;
+        const darkColor = mainColor.clone().darken(30).color;
+        const lightColor = mainColor.clone().lighten(40).color;
         const outlineColor = 0x111122;
         const p = this.pixelSize;
-
-        // Body type specific colors
-        let skinColor = 0xffd4b3;
-        let darkSkin = 0xe6b89c;
-
-        // Special skin colors for non-human characters
-        if (bodyType === 'demonic') {
-            skinColor = 0xcc4444;
-            darkSkin = 0x992222;
-        } else if (bodyType === 'mechanical') {
-            skinColor = 0x889999;
-            darkSkin = 0x667777;
-        } else if (bodyType === 'ethereal') {
-            skinColor = 0xccaadd;
-            darkSkin = 0xaa88bb;
-        } else if (bodyType === 'bestial') {
-            skinColor = 0xcc9966;
-            darkSkin = 0xaa7744;
-        } else if (bodyType === 'angelic') {
-            skinColor = 0xffeedd;
-            darkSkin = 0xeeddcc;
-        }
 
         // Center position in the frame
         const cx = offsetX + 24;
         const cy = offsetY + 36 + Math.floor(bounce);
+        const bx = Math.floor(cx / p);
+        const by = Math.floor(cy / p);
 
         // Animation modifiers
-        let armSwing = 0, legSwing = 0, attackPunch = 0, squash = 0, shake = 0;
-        let glowIntensity = 0;
+        let armSwing = 0, legSwing = 0, attackPunch = 0, glowIntensity = 0, shake = 0;
 
         switch (animation) {
             case 'idle':
-                squash = Math.sin(frame * Math.PI / 3) * 0.5;
                 glowIntensity = Math.sin(frame * Math.PI / 3) * 0.3 + 0.3;
                 break;
             case 'walk':
@@ -142,7 +118,6 @@ class BootScene extends Phaser.Scene {
                 armSwing = -legSwing;
                 break;
             case 'jump':
-                squash = frame === 0 ? 1 : -1;
                 glowIntensity = 0.5;
                 break;
             case 'attack':
@@ -158,365 +133,927 @@ class BootScene extends Phaser.Scene {
                 break;
         }
 
-        const bx = Math.floor(cx / p) + shake;
-        const by = Math.floor(cy / p);
+        const x = bx + shake;
+        const y = by;
 
-        // === BODY TYPE VARIATIONS ===
-        let headWidth = 4, headHeight = 5;
-        let torsoWidth = 4, torsoHeight = 4;
-        let shoulderWidth = 0;
-
-        switch (bodyType) {
-            case 'slim':
-                torsoWidth = 2;
-                headWidth = 3;
-                torsoHeight = 5;
+        // Draw unique character based on ID
+        switch (character.id) {
+            case 'warrior':
+                this.drawWarrior(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
-            case 'bulky':
-                torsoWidth = 6;
-                torsoHeight = 6;
-                headWidth = 5;
-                shoulderWidth = 2;
+            case 'speedster':
+                this.drawSpeedster(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
-            case 'muscular':
-                torsoWidth = 5;
-                headWidth = 4;
-                shoulderWidth = 2;
+            case 'tank':
+                this.drawTank(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
-            case 'robed':
-                torsoWidth = 6;
-                torsoHeight = 6;
-                headWidth = 4;
+            case 'ninja':
+                this.drawNinja(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
-            case 'mechanical':
-                torsoWidth = 6;
-                headWidth = 5;
-                headHeight = 5;
-                shoulderWidth = 1;
+            case 'brawler':
+                this.drawBrawler(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
-            case 'demonic':
-                torsoWidth = 6;
-                headHeight = 6;
-                headWidth = 5;
-                shoulderWidth = 2;
+            case 'mage':
+                this.drawMage(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
-            case 'angelic':
-                headWidth = 4;
-                torsoWidth = 3;
-                torsoHeight = 5;
+            case 'robot':
+                this.drawRobot(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
-            case 'ethereal':
-                torsoWidth = 2;
-                headWidth = 3;
-                torsoHeight = 5;
+            case 'pirate':
+                this.drawPirate(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
-            case 'bestial':
-                torsoWidth = 7;
-                headWidth = 6;
-                headHeight = 5;
-                shoulderWidth = 2;
+            case 'frostmage':
+                this.drawFrostmage(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
-            case 'armored':
-                torsoWidth = 6;
-                torsoHeight = 6;
-                headWidth = 5;
-                shoulderWidth = 2;
+            case 'demon':
+                this.drawDemon(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
+            case 'angel':
+                this.drawAngel(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'shadow':
+                this.drawShadow(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'beast':
+                this.drawBeast(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'druid':
+                this.drawDruid(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'knight':
+                this.drawKnight(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'hacker':
+                this.drawHacker(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'sniper':
+                this.drawSniper(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'bomber':
+                this.drawBomber(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'striker':
+                this.drawStriker(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'golem':
+                this.drawGolem(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            default:
+                this.drawDefaultChar(graphics, x, y, color, accentColor, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
         }
+    }
 
-        const halfHead = Math.floor(headWidth / 2);
-        const halfTorso = Math.floor(torsoWidth / 2);
+    // WARRIOR - Cyber samurai with plasma blade
+    drawWarrior(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Helmet - samurai style
+        g.fillStyle(0x556677, 1);
+        this.fillRect(g, x - 3, y - 7, 6, 5);
+        g.fillStyle(0xff00ff, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 2); // Visor
+        g.fillStyle(0x334455, 1);
+        this.fillRect(g, x - 4, y - 6, 2, 3); // Side plates
+        this.fillRect(g, x + 2, y - 6, 2, 3);
+        g.fillStyle(0xff00ff, 0.8);
+        this.fillRect(g, x - 1, y - 8, 2, 1); // Crest
 
-        // === GLOW EFFECT FOR SPECIAL CHARACTERS ===
-        if (glowIntensity > 0.3 && (animation === 'special' || animation === 'attack')) {
-            graphics.fillStyle(accentColor, glowIntensity * 0.3);
-            this.fillRect(graphics, bx - halfTorso - 1, by - 1, torsoWidth + 2, torsoHeight + 2);
-        }
+        // Armored body
+        g.fillStyle(0x556677, 1);
+        this.fillRect(g, x - 3, y - 2, 6, 5);
+        g.fillStyle(0xff00ff, 1);
+        this.fillRect(g, x - 1, y - 1, 2, 1); // Chest light
+        g.fillStyle(0x00ffff, 0.5);
+        this.fillRect(g, x - 2, y, 4, 2); // Core glow
 
-        // === OUTLINE ===
-        graphics.fillStyle(outlineColor, 1);
-        // Head outline
-        this.fillRect(graphics, bx - halfHead - 1, by - headHeight - 1, headWidth + 2, 1);
-        this.fillRect(graphics, bx - halfHead - 1, by - headHeight, 1, headHeight);
-        this.fillRect(graphics, bx + halfHead, by - headHeight, 1, headHeight);
-        // Body outline
-        this.fillRect(graphics, bx - halfTorso - 1 - shoulderWidth, by, 1, torsoHeight + 1);
-        this.fillRect(graphics, bx + halfTorso + shoulderWidth, by, 1, torsoHeight + 1);
+        // Arms with blade
+        g.fillStyle(0x445566, 1);
+        this.fillRect(g, x - 4, y - 1, 1, 3);
+        this.fillRect(g, x + 3, y - 1, 1, 3);
 
-        // === HEAD === (unique per body type)
-        const eyeY = by - headHeight + 2;
-        const browY = eyeY - 1;
-
-        // Different head styles per body type
-        if (bodyType === 'mechanical') {
-            // Robot head with helmet
-            graphics.fillStyle(0x556677, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Helmet top
-            graphics.fillStyle(0x334455, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, 2);
-            // Visor
-            graphics.fillStyle(0x00ffff, 1);
-            this.fillRect(graphics, bx - halfHead + 1, eyeY, headWidth - 2, 2);
-            // Antenna
-            graphics.fillStyle(0x00ffff, 1);
-            this.fillRect(graphics, bx, by - headHeight - 2, 1, 2);
-        } else if (bodyType === 'slim') {
-            // Sleek cyber head with hair
-            graphics.fillStyle(skinColor, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Spiky hair
-            graphics.fillStyle(color, 1);
-            this.fillRect(graphics, bx - 1, by - headHeight - 2, 1, 2);
-            this.fillRect(graphics, bx, by - headHeight - 1, 1, 1);
-            this.fillRect(graphics, bx + 1, by - headHeight - 2, 1, 2);
-            // Eyes
-            graphics.fillStyle(0x00ffff, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-            // Mouth
-            graphics.fillStyle(darkSkin, 1);
-            this.fillRect(graphics, bx, by - 1, 1, 1);
-        } else if (bodyType === 'bulky') {
-            // Big square head with mohawk
-            graphics.fillStyle(skinColor, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Mohawk
-            graphics.fillStyle(accentColor, 1);
-            this.fillRect(graphics, bx, by - headHeight - 3, 1, 3);
-            this.fillRect(graphics, bx - 1, by - headHeight - 2, 1, 2);
-            this.fillRect(graphics, bx + 1, by - headHeight - 2, 1, 2);
-            // Angry eyes
-            graphics.fillStyle(0xffffff, 1);
-            this.fillRect(graphics, bx - 2, eyeY, 2, 1);
-            this.fillRect(graphics, bx + 1, eyeY, 2, 1);
-            graphics.fillStyle(0x111122, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-            // Scar
-            graphics.fillStyle(0xaa6666, 1);
-            this.fillRect(graphics, bx + 2, by - headHeight + 1, 1, 3);
-        } else if (bodyType === 'muscular') {
-            // Strong jaw, short hair
-            graphics.fillStyle(skinColor, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Flat top hair
-            graphics.fillStyle(0x332211, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight - 1, headWidth, 2);
-            // Strong brow
-            graphics.fillStyle(darkSkin, 1);
-            this.fillRect(graphics, bx - 1, browY, 3, 1);
-            // Eyes
-            graphics.fillStyle(0xffffff, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-            // Determined mouth
-            graphics.fillStyle(darkSkin, 1);
-            this.fillRect(graphics, bx - 1, by - 1, 3, 1);
-        } else if (bodyType === 'robed') {
-            // Hooded head
-            graphics.fillStyle(color, 1);
-            this.fillRect(graphics, bx - halfHead - 1, by - headHeight - 1, headWidth + 2, headHeight + 1);
-            // Face in shadow
-            graphics.fillStyle(0x222233, 1);
-            this.fillRect(graphics, bx - halfHead + 1, by - headHeight + 2, headWidth - 2, headHeight - 3);
-            // Glowing eyes
-            graphics.fillStyle(accentColor, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-        } else if (bodyType === 'demonic') {
-            // Red demon head with horns
-            graphics.fillStyle(0xcc4444, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Horns
-            graphics.fillStyle(0x442222, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight - 3, 1, 3);
-            this.fillRect(graphics, bx + halfHead - 1, by - headHeight - 3, 1, 3);
-            this.fillRect(graphics, bx - halfHead - 1, by - headHeight - 2, 1, 2);
-            this.fillRect(graphics, bx + halfHead, by - headHeight - 2, 1, 2);
-            // Glowing red eyes
-            graphics.fillStyle(0xff0000, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-            // Fanged mouth
-            graphics.fillStyle(0x220000, 1);
-            this.fillRect(graphics, bx - 1, by - 1, 3, 1);
-            graphics.fillStyle(0xffffff, 1);
-            this.fillRect(graphics, bx - 1, by - 1, 1, 1);
-            this.fillRect(graphics, bx + 1, by - 1, 1, 1);
-        } else if (bodyType === 'angelic') {
-            // Glowing halo head
-            graphics.fillStyle(skinColor, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Halo
-            graphics.fillStyle(0xffff88, 1);
-            this.fillRect(graphics, bx - 2, by - headHeight - 2, 5, 1);
-            this.fillRect(graphics, bx - 3, by - headHeight - 1, 1, 1);
-            this.fillRect(graphics, bx + 3, by - headHeight - 1, 1, 1);
-            // Serene eyes
-            graphics.fillStyle(0x88ccff, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-            // Slight smile
-            graphics.fillStyle(0xffaaaa, 1);
-            this.fillRect(graphics, bx, by - 1, 1, 1);
-        } else if (bodyType === 'ethereal') {
-            // Ghost-like translucent head
-            graphics.fillStyle(0x8866cc, 0.8);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Wispy top
-            graphics.fillStyle(0xaa88ff, 0.6);
-            this.fillRect(graphics, bx - 1, by - headHeight - 2, 1, 2);
-            this.fillRect(graphics, bx + 1, by - headHeight - 1, 1, 1);
-            // Glowing purple eyes
-            graphics.fillStyle(0xff00ff, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-        } else if (bodyType === 'bestial') {
-            // Wolf/beast snout head
-            graphics.fillStyle(0x886644, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Ears
-            graphics.fillStyle(0x664422, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight - 2, 2, 2);
-            this.fillRect(graphics, bx + halfHead - 2, by - headHeight - 2, 2, 2);
-            // Snout
-            graphics.fillStyle(0xaa8866, 1);
-            this.fillRect(graphics, bx - 1, by - 2, 3, 2);
-            // Yellow beast eyes
-            graphics.fillStyle(0xffcc00, 1);
-            this.fillRect(graphics, bx - 2, eyeY, 1, 1);
-            this.fillRect(graphics, bx + 2, eyeY, 1, 1);
-            // Nose
-            graphics.fillStyle(0x332211, 1);
-            this.fillRect(graphics, bx, by - 1, 1, 1);
-        } else if (bodyType === 'armored') {
-            // Knight helmet
-            graphics.fillStyle(0x888899, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Helmet crest
-            graphics.fillStyle(accentColor, 1);
-            this.fillRect(graphics, bx, by - headHeight - 2, 1, 2);
-            // Visor slit
-            graphics.fillStyle(0x222233, 1);
-            this.fillRect(graphics, bx - halfHead + 1, eyeY, headWidth - 2, 1);
-            // Eyes behind visor
-            graphics.fillStyle(0x88aaff, 1);
-            this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-            this.fillRect(graphics, bx + 1, eyeY, 1, 1);
+        // Plasma blade (always visible)
+        if (anim === 'attack' || anim === 'special') {
+            g.fillStyle(0xff00ff, 0.9);
+            this.fillRect(g, x + 4 + punch, y - 3, 1, 6);
+            g.fillStyle(0xffffff, 1);
+            this.fillRect(g, x + 4 + punch, y - 2, 1, 4);
+            g.fillStyle(0xff00ff, 0.5);
+            this.fillRect(g, x + 5 + punch, y - 2, 1, 4);
         } else {
-            // Default human head with hair color based on character
-            graphics.fillStyle(skinColor, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight, headWidth, headHeight);
-            // Hair (use accent color)
-            graphics.fillStyle(accentColor, 1);
-            this.fillRect(graphics, bx - halfHead, by - headHeight - 1, headWidth, 2);
-            // Normal eyebrows
-            graphics.fillStyle(0x553322, 1);
-            this.fillRect(graphics, bx - 1, browY, 1, 1);
-            this.fillRect(graphics, bx + 1, browY, 1, 1);
-            // Normal eyes
-            const blinking = frame === 3 && animation === 'idle';
-            if (!blinking) {
-                graphics.fillStyle(0xffffff, 1);
-                this.fillRect(graphics, bx - 1, eyeY, 1, 1);
-                this.fillRect(graphics, bx + 1, eyeY, 1, 1);
-                graphics.fillStyle(0x111122, 1);
-                graphics.fillRect((bx - 1) * p, eyeY * p, 2, 2);
-                graphics.fillRect((bx + 1) * p, eyeY * p, 2, 2);
-            }
-            // Mouth
-            graphics.fillStyle(darkSkin, 1);
-            this.fillRect(graphics, bx, by - 1, 1, 1);
+            g.fillStyle(0xff00ff, 0.6);
+            this.fillRect(g, x + 3, y - 4, 1, 3);
         }
 
-        // === TORSO ===
-        graphics.fillStyle(color, 1);
-        this.fillRect(graphics, bx - halfTorso, by, torsoWidth, torsoHeight);
+        // Legs
+        g.fillStyle(0x445566, 1);
+        const lx = Math.round(legSwing / 2);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + lx, y + 3, 2, 4);
+        g.fillStyle(0xff00ff, 0.6);
+        this.fillRect(g, x - 2 + lx, y + 6, 2, 1);
+        this.fillRect(g, x + lx, y + 6, 2, 1);
+    }
 
-        // Shoulder pads for bulky/armored types
-        if (shoulderWidth > 0) {
-            graphics.fillStyle(bodyType === 'armored' ? accentColor : darkColor, 1);
-            this.fillRect(graphics, bx - halfTorso - shoulderWidth, by, shoulderWidth, 2);
-            this.fillRect(graphics, bx + halfTorso, by, shoulderWidth, 2);
+    // SPEEDSTER - Sleek runner with visor
+    drawSpeedster(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Aerodynamic helmet
+        g.fillStyle(0x00ff88, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0x88ffff, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 1); // Visor
+        g.fillStyle(0x00ff88, 1);
+        this.fillRect(g, x + 1, y - 7, 2, 1); // Fin
+
+        // Slim body
+        g.fillStyle(0x00aa66, 1);
+        this.fillRect(g, x - 1, y - 2, 3, 4);
+        g.fillStyle(0x88ffff, 1);
+        this.fillRect(g, x, y - 1, 1, 2); // Stripe
+
+        // Speed lines when moving
+        if (anim === 'walk' || anim === 'special') {
+            g.fillStyle(0x88ffff, 0.6);
+            this.fillRect(g, x - 5, y - 1, 2, 1);
+            this.fillRect(g, x - 6, y, 2, 1);
+            this.fillRect(g, x - 5, y + 1, 2, 1);
         }
 
-        // Torso highlight
-        graphics.fillStyle(lightColor, 1);
-        this.fillRect(graphics, bx - 1, by, 2, 1);
+        // Arms
+        g.fillStyle(0x00aa66, 1);
+        this.fillRect(g, x - 2, y - 1 + Math.round(armSwing/2), 1, 2);
+        this.fillRect(g, x + 2, y - 1 - Math.round(armSwing/2), 1, 2);
 
-        // Accent stripe/detail
-        graphics.fillStyle(accentColor, 1);
-        if (bodyType === 'robed') {
-            this.fillRect(graphics, bx, by, 1, torsoHeight);
+        // Long legs for running
+        const lx = Math.round(legSwing / 2);
+        g.fillStyle(0x00aa66, 1);
+        this.fillRect(g, x - 1 + lx, y + 2, 1, 5);
+        this.fillRect(g, x + 1 - lx, y + 2, 1, 5);
+        g.fillStyle(0x88ffff, 1);
+        this.fillRect(g, x - 1 + lx, y + 6, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 6, 2, 1);
+    }
+
+    // TANK - Massive mech with cannons
+    drawTank(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Big square head
+        g.fillStyle(0x3366aa, 1);
+        this.fillRect(g, x - 3, y - 8, 7, 6);
+        g.fillStyle(0x00ffff, 1);
+        this.fillRect(g, x - 2, y - 6, 5, 2); // Visor
+        g.fillStyle(0x224488, 1);
+        this.fillRect(g, x - 4, y - 7, 2, 4); // Side armor
+        this.fillRect(g, x + 3, y - 7, 2, 4);
+
+        // Massive body
+        g.fillStyle(0x4488ff, 1);
+        this.fillRect(g, x - 4, y - 2, 9, 7);
+        g.fillStyle(0x00ffff, 1);
+        this.fillRect(g, x - 2, y - 1, 5, 1); // Chest plate
+        g.fillStyle(0x224488, 1);
+        this.fillRect(g, x - 3, y + 2, 7, 2); // Belt
+
+        // Shoulder cannons
+        g.fillStyle(0x224488, 1);
+        this.fillRect(g, x - 6, y - 3, 3, 3);
+        this.fillRect(g, x + 4, y - 3, 3, 3);
+        g.fillStyle(0x00ffff, 0.8);
+        this.fillRect(g, x - 5, y - 2, 1, 1);
+        this.fillRect(g, x + 5, y - 2, 1, 1);
+
+        // Thick legs
+        g.fillStyle(0x3366aa, 1);
+        this.fillRect(g, x - 3, y + 5, 3, 4);
+        this.fillRect(g, x + 1, y + 5, 3, 4);
+        g.fillStyle(0x00ffff, 0.6);
+        this.fillRect(g, x - 2, y + 7, 2, 1);
+        this.fillRect(g, x + 1, y + 7, 2, 1);
+    }
+
+    // NINJA - Shadowy figure with mask
+    drawNinja(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Masked head
+        g.fillStyle(0x331144, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0xff00aa, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+        g.fillStyle(0xaa00ff, 1);
+        this.fillRect(g, x + 2, y - 5, 2, 1); // Headband tail
+        this.fillRect(g, x + 3, y - 4, 1, 1);
+
+        // Slim body
+        g.fillStyle(0x220033, 1);
+        this.fillRect(g, x - 2, y - 2, 4, 4);
+        g.fillStyle(0xaa00ff, 0.6);
+        this.fillRect(g, x - 1, y - 1, 2, 1); // Sash
+
+        // Arms (one holds shuriken)
+        g.fillStyle(0x331144, 1);
+        this.fillRect(g, x - 3, y - 1, 1, 2);
+        this.fillRect(g, x + 2, y - 1, 1, 2);
+
+        // Shuriken during attack
+        if (anim === 'special' && frame >= 1) {
+            g.fillStyle(0xcccccc, 1);
+            this.fillRect(g, x + 4 + frame * 2, y, 1, 1);
+            g.fillStyle(0xff00aa, 0.7);
+            this.fillRect(g, x + 3 + frame * 2, y - 1, 1, 1);
+            this.fillRect(g, x + 5 + frame * 2, y + 1, 1, 1);
+        }
+
+        // Legs
+        const lx = Math.round(legSwing / 2);
+        g.fillStyle(0x220033, 1);
+        this.fillRect(g, x - 1 + lx, y + 2, 1, 4);
+        this.fillRect(g, x + 1 - lx, y + 2, 1, 4);
+        g.fillStyle(0x331144, 1);
+        this.fillRect(g, x - 1 + lx, y + 5, 2, 1);
+        this.fillRect(g, x - lx, y + 5, 2, 1);
+    }
+
+    // BRAWLER - Muscular fighter with chrome fists
+    drawBrawler(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Muscular head
+        g.fillStyle(0xffaa66, 1);
+        this.fillRect(g, x - 2, y - 6, 5, 4);
+        g.fillStyle(0xff8800, 1);
+        this.fillRect(g, x - 1, y - 8, 3, 2); // Mohawk
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+        g.fillStyle(0xcc8844, 1);
+        this.fillRect(g, x - 1, y - 3, 3, 1); // Mouth
+
+        // Muscular body
+        g.fillStyle(0xff6600, 1);
+        this.fillRect(g, x - 3, y - 2, 7, 5);
+        g.fillStyle(0xffff00, 1);
+        this.fillRect(g, x - 2, y - 1, 5, 1); // Chest stripe
+        g.fillStyle(0xcc5500, 1);
+        this.fillRect(g, x - 2, y + 1, 5, 1); // Belt
+
+        // Chrome fists
+        g.fillStyle(0xcccccc, 1);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x + 3 + punch, y - 1, 2, 3);
+            g.fillStyle(0xffff00, 0.8);
+            this.fillRect(g, x + 3 + punch, y, 2, 1);
         } else {
-            this.fillRect(graphics, bx - 1, by + 1, 2, 1);
+            this.fillRect(g, x - 4, y, 2, 2);
+            this.fillRect(g, x + 3, y, 2, 2);
         }
 
-        // Torso shading
-        graphics.fillStyle(darkColor, 1);
-        this.fillRect(graphics, bx - halfTorso, by + torsoHeight - 1, torsoWidth, 1);
+        // Legs
+        g.fillStyle(0xff6600, 1);
+        this.fillRect(g, x - 2, y + 3, 2, 4);
+        this.fillRect(g, x + 1, y + 3, 2, 4);
+        g.fillStyle(0xcccccc, 1);
+        this.fillRect(g, x - 2, y + 6, 2, 1);
+        this.fillRect(g, x + 1, y + 6, 2, 1);
+    }
 
-        // === ARMS ===
-        const leftArmX = bx - halfTorso - 1 - shoulderWidth;
-        const rightArmX = bx + halfTorso + shoulderWidth;
+    // MAGE - Robed spellcaster with glowing orb
+    drawMage(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Hooded head
+        g.fillStyle(0x8800aa, 1);
+        this.fillRect(g, x - 3, y - 7, 6, 5);
+        g.fillStyle(0x220033, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 3); // Face shadow
+        g.fillStyle(0xff00ff, 1);
+        this.fillRect(g, x - 1, y - 4, 1, 1); // Glowing eyes
+        this.fillRect(g, x + 1, y - 4, 1, 1);
 
-        if (animation === 'attack' || animation === 'special') {
-            // Punching arm with glow
-            if (glowIntensity > 0.5) {
-                graphics.fillStyle(accentColor, glowIntensity * 0.5);
-                this.fillRect(graphics, rightArmX + attackPunch - 1, by, 3, 3);
-            }
-            graphics.fillStyle(skinColor, 1);
-            for (let i = 0; i <= attackPunch; i++) {
-                this.fillRect(graphics, rightArmX + i, by + 1, 1, 2);
-            }
-            graphics.fillStyle(skinColor, 1);
-            this.fillRect(graphics, rightArmX + attackPunch, by, 1, 3);
-            graphics.fillStyle(skinColor, 1);
-            this.fillRect(graphics, leftArmX, by + 1, 1, 2);
-        } else {
-            graphics.fillStyle(skinColor, 1);
-            const lArmY = by + 1 + Math.round(armSwing / 2);
-            const rArmY = by + 1 - Math.round(armSwing / 2);
-            this.fillRect(graphics, leftArmX, lArmY, 1, 2);
-            this.fillRect(graphics, rightArmX, rArmY, 1, 2);
+        // Flowing robe
+        g.fillStyle(0x8800aa, 1);
+        this.fillRect(g, x - 3, y - 2, 6, 4);
+        this.fillRect(g, x - 4, y + 2, 8, 5);
+        g.fillStyle(0xaa22cc, 1);
+        this.fillRect(g, x - 1, y - 1, 2, 5); // Robe stripe
+
+        // Staff
+        g.fillStyle(0x664422, 1);
+        this.fillRect(g, x - 5, y - 3, 1, 8);
+
+        // Magic orb
+        g.fillStyle(0xff00ff, glow * 0.8 + 0.2);
+        this.fillRect(g, x - 5, y - 5, 2, 2);
+        g.fillStyle(0xffffff, glow * 0.5);
+        this.fillRect(g, x - 5, y - 5, 1, 1);
+
+        // Spell effect during special
+        if (anim === 'special') {
+            g.fillStyle(0xff00ff, 0.8);
+            this.fillRect(g, x + 3 + punch, y - 1, 2, 2);
+            g.fillStyle(0xffffff, 0.6);
+            this.fillRect(g, x + 4 + punch, y, 1, 1);
         }
+    }
 
-        // === LEGS ===
-        const legY = by + torsoHeight;
+    // ROBOT - Full android body
+    drawRobot(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Dome head
+        g.fillStyle(0x556677, 1);
+        this.fillRect(g, x - 3, y - 7, 6, 5);
+        g.fillStyle(0x00ffff, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 2); // Visor
+        g.fillStyle(0x334455, 1);
+        this.fillRect(g, x - 1, y - 8, 2, 1); // Top
+        // Antenna
+        g.fillStyle(0x00ffff, frame % 2 === 0 ? 1 : 0.5);
+        this.fillRect(g, x, y - 9, 1, 1);
 
-        if (bodyType === 'robed') {
-            // Robe bottom
-            graphics.fillStyle(color, 1);
-            this.fillRect(graphics, bx - halfTorso, legY, torsoWidth, 3);
-            graphics.fillStyle(darkColor, 1);
-            this.fillRect(graphics, bx - halfTorso, legY + 2, torsoWidth, 1);
-        } else {
-            graphics.fillStyle(color, 1);
-            if (animation === 'walk') {
-                const lLegX = bx - 1 + Math.round(legSwing / 2);
-                const rLegX = bx + Math.round(-legSwing / 2);
-                this.fillRect(graphics, lLegX, legY, 1, 3);
-                this.fillRect(graphics, rLegX, legY, 1, 3);
-                graphics.fillStyle(darkColor, 1);
-                this.fillRect(graphics, lLegX - 1, legY + 3, 2, 1);
-                this.fillRect(graphics, rLegX, legY + 3, 2, 1);
-            } else if (animation === 'jump') {
-                const spread = frame === 0 ? 0 : 1;
-                this.fillRect(graphics, bx - 1 - spread, legY - (frame === 0 ? 1 : 0), 1, 2);
-                this.fillRect(graphics, bx + spread, legY - (frame === 0 ? 1 : 0), 1, 2);
-            } else {
-                this.fillRect(graphics, bx - 1, legY, 1, 3);
-                this.fillRect(graphics, bx, legY, 1, 3);
-                graphics.fillStyle(darkColor, 1);
-                this.fillRect(graphics, bx - 2, legY + 3, 2, 1);
-                this.fillRect(graphics, bx, legY + 3, 2, 1);
+        // Boxy torso
+        g.fillStyle(0x667788, 1);
+        this.fillRect(g, x - 3, y - 2, 7, 5);
+        g.fillStyle(0x00ffff, 1);
+        this.fillRect(g, x - 1, y - 1, 3, 1); // Chest light
+        g.fillStyle(0xff00ff, 0.6);
+        this.fillRect(g, x, y + 1, 1, 1); // Core
+
+        // Mechanical arms
+        g.fillStyle(0x556677, 1);
+        this.fillRect(g, x - 4, y - 1, 1, 3);
+        this.fillRect(g, x + 4, y - 1, 1, 3);
+        g.fillStyle(0x00ffff, 0.6);
+        this.fillRect(g, x - 4, y + 1, 1, 1);
+        this.fillRect(g, x + 4, y + 1, 1, 1);
+
+        // Laser during special
+        if (anim === 'special' && frame >= 1) {
+            g.fillStyle(0x00ffff, 0.9);
+            for (let i = 0; i < 4 + frame; i++) {
+                this.fillRect(g, x + 5 + i, y, 1, 1);
             }
         }
 
-        // === CHARACTER-SPECIFIC FEATURES ===
-        this.drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor, accentMain, glowIntensity, headHeight);
+        // Mechanical legs
+        g.fillStyle(0x556677, 1);
+        this.fillRect(g, x - 2, y + 3, 2, 4);
+        this.fillRect(g, x + 1, y + 3, 2, 4);
+        g.fillStyle(0x00ffff, 0.5);
+        this.fillRect(g, x - 2, y + 5, 1, 1);
+        this.fillRect(g, x + 2, y + 5, 1, 1);
+    }
+
+    // PIRATE - Net runner with visor and gun
+    drawPirate(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Head with visor
+        g.fillStyle(0xffcc88, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0xffff00, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 1); // Visor
+        g.fillStyle(0x00ff00, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eye behind visor
+        g.fillStyle(0xffff00, 0.8);
+        this.fillRect(g, x - 2, y - 7, 4, 1); // Bandana
+
+        // Jacket body
+        g.fillStyle(0xcccc00, 1);
+        this.fillRect(g, x - 2, y - 2, 5, 4);
+        g.fillStyle(0x00ff00, 1);
+        this.fillRect(g, x - 1, y - 1, 3, 1); // Stripe
+        g.fillStyle(0x888800, 1);
+        this.fillRect(g, x - 2, y + 1, 5, 1); // Belt
+
+        // Gun arm
+        g.fillStyle(0xffcc88, 1);
+        this.fillRect(g, x - 3, y - 1, 1, 2);
+        g.fillStyle(0x444444, 1);
+        this.fillRect(g, x + 3, y - 1, 2, 2);
+        if (anim === 'special' && frame >= 2) {
+            g.fillStyle(0xffff00, 1);
+            this.fillRect(g, x + 5, y - 1, 2, 1);
+        }
+
+        // Legs
+        const lx = Math.round(legSwing / 2);
+        g.fillStyle(0x666600, 1);
+        this.fillRect(g, x - 1 + lx, y + 2, 2, 4);
+        this.fillRect(g, x + lx, y + 2, 2, 4);
+        g.fillStyle(0x444400, 1);
+        this.fillRect(g, x - 1 + lx, y + 5, 2, 1);
+        this.fillRect(g, x + lx, y + 5, 2, 1);
+    }
+
+    // FROSTMAGE - Ice queen with crystal crown
+    drawFrostmage(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Ice crown head
+        g.fillStyle(0xaaddff, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0x00ddff, 1);
+        this.fillRect(g, x - 3, y - 8, 1, 2); // Crown crystals
+        this.fillRect(g, x, y - 9, 1, 3);
+        this.fillRect(g, x + 2, y - 8, 1, 2);
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+
+        // Icy robe
+        g.fillStyle(0x00aadd, 1);
+        this.fillRect(g, x - 3, y - 2, 6, 4);
+        this.fillRect(g, x - 4, y + 2, 8, 5);
+        g.fillStyle(0xaaffff, 0.7);
+        this.fillRect(g, x - 1, y - 1, 2, 5);
+
+        // Ice staff
+        g.fillStyle(0x88ccff, 1);
+        this.fillRect(g, x - 5, y - 4, 1, 8);
+        g.fillStyle(0xffffff, glow * 0.5 + 0.5);
+        this.fillRect(g, x - 6, y - 5, 2, 2);
+
+        // Ice blast during special
+        if (anim === 'special') {
+            g.fillStyle(0xaaffff, 0.9);
+            this.fillRect(g, x + 3 + punch, y - 1, 2, 2);
+            g.fillStyle(0xffffff, 0.7);
+            this.fillRect(g, x + 4 + punch, y, 1, 1);
+        }
+    }
+
+    // DEMON - Horned virus with wings
+    drawDemon(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Demonic head with horns
+        g.fillStyle(0xcc2222, 1);
+        this.fillRect(g, x - 3, y - 6, 6, 5);
+        g.fillStyle(0x660000, 1);
+        this.fillRect(g, x - 4, y - 9, 1, 3); // Horns
+        this.fillRect(g, x + 3, y - 9, 1, 3);
+        this.fillRect(g, x - 5, y - 8, 1, 2);
+        this.fillRect(g, x + 4, y - 8, 1, 2);
+        g.fillStyle(0xff0000, 1);
+        this.fillRect(g, x - 1, y - 4, 1, 1); // Glowing eyes
+        this.fillRect(g, x + 1, y - 4, 1, 1);
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 2, 1, 1); // Fangs
+        this.fillRect(g, x + 1, y - 2, 1, 1);
+
+        // Muscular demon body
+        g.fillStyle(0xaa0000, 1);
+        this.fillRect(g, x - 3, y - 1, 7, 5);
+        g.fillStyle(0xff4400, 0.6);
+        this.fillRect(g, x - 1, y, 3, 2); // Inner glow
+
+        // Bat wings
+        g.fillStyle(0x660000, 1);
+        this.fillRect(g, x - 5, y - 2, 2, 4);
+        this.fillRect(g, x + 4, y - 2, 2, 4);
+        this.fillRect(g, x - 6, y - 1, 1, 3);
+        this.fillRect(g, x + 6, y - 1, 1, 3);
+
+        // Fire during special
+        if (anim === 'special' || anim === 'attack') {
+            g.fillStyle(0xff4400, 0.9);
+            this.fillRect(g, x + 3 + punch, y - 1, 2, 2);
+            g.fillStyle(0xffff00, 0.7);
+            this.fillRect(g, x + 4 + punch, y, 1, 1);
+        }
+
+        // Legs
+        g.fillStyle(0x880000, 1);
+        this.fillRect(g, x - 2, y + 4, 2, 4);
+        this.fillRect(g, x + 1, y + 4, 2, 4);
+        g.fillStyle(0x660000, 1);
+        this.fillRect(g, x - 2, y + 7, 2, 1);
+        this.fillRect(g, x + 1, y + 7, 2, 1);
+    }
+
+    // ANGEL - Winged AI with halo
+    drawAngel(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Glowing halo
+        g.fillStyle(0xffff88, glow * 0.4 + 0.6);
+        this.fillRect(g, x - 2, y - 9, 4, 1);
+        this.fillRect(g, x - 3, y - 8, 1, 1);
+        this.fillRect(g, x + 2, y - 8, 1, 1);
+
+        // Serene face
+        g.fillStyle(0xffeedd, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0x88ccff, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+        g.fillStyle(0xffaaaa, 1);
+        this.fillRect(g, x, y - 3, 1, 1);
+
+        // Flowing robes
+        g.fillStyle(0xaaffff, 1);
+        this.fillRect(g, x - 2, y - 2, 5, 4);
+        this.fillRect(g, x - 3, y + 2, 7, 4);
+        g.fillStyle(0xffffff, 0.8);
+        this.fillRect(g, x - 1, y - 1, 3, 1);
+
+        // Large wings
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 5, y - 3, 2, 5);
+        this.fillRect(g, x + 4, y - 3, 2, 5);
+        this.fillRect(g, x - 6, y - 2, 1, 3);
+        this.fillRect(g, x + 6, y - 2, 1, 3);
+        g.fillStyle(0xffffaa, glow * 0.5);
+        this.fillRect(g, x - 5, y - 2, 2, 3);
+        this.fillRect(g, x + 4, y - 2, 2, 3);
+
+        // Holy light during special
+        if (anim === 'special') {
+            g.fillStyle(0xffff88, 0.9);
+            this.fillRect(g, x + 3 + punch, y - 2, 2, 4);
+        }
+    }
+
+    // SHADOW - Ghostly teleporter
+    drawShadow(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Hooded ghost head
+        g.fillStyle(0x440066, 0.9);
+        this.fillRect(g, x - 2, y - 6, 5, 4);
+        g.fillStyle(0x220033, 1);
+        this.fillRect(g, x - 1, y - 5, 3, 2);
+        g.fillStyle(0xff00ff, 1);
+        this.fillRect(g, x - 1, y - 4, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 4, 1, 1);
+
+        // Wispy body (fades at bottom)
+        g.fillStyle(0x440066, 0.9);
+        this.fillRect(g, x - 2, y - 2, 5, 3);
+        g.fillStyle(0x330055, 0.7);
+        this.fillRect(g, x - 2, y + 1, 5, 2);
+        g.fillStyle(0x220044, 0.5);
+        this.fillRect(g, x - 2, y + 3, 5, 2);
+        g.fillStyle(0x110022, 0.3);
+        this.fillRect(g, x - 1, y + 5, 3, 2);
+
+        // Shadow wisps
+        if (anim === 'idle' || anim === 'walk') {
+            g.fillStyle(0x8800ff, glow * 0.4);
+            this.fillRect(g, x - 4, y + 2 + frame % 2, 2, 2);
+            this.fillRect(g, x + 3, y + 1 + frame % 2, 2, 2);
+        }
+
+        // Shadow strike during special
+        if (anim === 'special') {
+            g.fillStyle(0xaa00ff, 0.8);
+            this.fillRect(g, x + 3 + punch, y - 1, 2, 2);
+            g.fillStyle(0x220044, 0.5);
+            this.fillRect(g, x + 5 + punch, y, 2, 2);
+        }
+    }
+
+    // BEAST - Cyber wolf on all fours
+    drawBeast(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Wolf head
+        g.fillStyle(0x00cc44, 1);
+        this.fillRect(g, x, y - 5, 5, 4);
+        g.fillStyle(0x008833, 1);
+        this.fillRect(g, x + 4, y - 4, 2, 2); // Snout
+        g.fillStyle(0x88ff00, 1);
+        this.fillRect(g, x + 1, y - 4, 1, 1); // Eyes
+        this.fillRect(g, x + 3, y - 4, 1, 1);
+        // Ears
+        g.fillStyle(0x00aa33, 1);
+        this.fillRect(g, x, y - 7, 2, 2);
+        this.fillRect(g, x + 3, y - 7, 2, 2);
+
+        // Long body (horizontal beast)
+        g.fillStyle(0x00cc44, 1);
+        this.fillRect(g, x - 4, y - 2, 8, 4);
+        g.fillStyle(0x88ff00, 0.6);
+        this.fillRect(g, x - 2, y - 1, 4, 2);
+
+        // Four legs
+        const lx = Math.round(legSwing / 2);
+        g.fillStyle(0x008833, 1);
+        this.fillRect(g, x - 4 + lx, y + 2, 2, 4); // Front legs
+        this.fillRect(g, x - 1 - lx, y + 2, 2, 4);
+        this.fillRect(g, x + 2 + lx, y + 2, 2, 4); // Back legs
+        this.fillRect(g, x + 5 - lx, y + 2, 2, 4);
+
+        // Tail
+        g.fillStyle(0x00aa33, 1);
+        this.fillRect(g, x - 6, y - 2, 2, 2);
+        this.fillRect(g, x - 7, y - 3, 1, 2);
+
+        // Roar/claw attack
+        if (anim === 'special' || anim === 'attack') {
+            g.fillStyle(0x88ff00, 0.8);
+            this.fillRect(g, x + 6, y - 3, 2, 2);
+            this.fillRect(g, x + 7, y - 2, 1, 2);
+        }
+    }
+
+    // DRUID - Plant creature with vines
+    drawDruid(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Leafy head
+        g.fillStyle(0x00aa44, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0x88ff44, 1);
+        this.fillRect(g, x - 3, y - 8, 2, 2); // Leaf crown
+        this.fillRect(g, x, y - 9, 1, 3);
+        this.fillRect(g, x + 1, y - 8, 2, 2);
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+
+        // Wooden body
+        g.fillStyle(0x664422, 1);
+        this.fillRect(g, x - 2, y - 2, 5, 5);
+        g.fillStyle(0x44ff88, 0.6);
+        this.fillRect(g, x - 1, y - 1, 3, 3); // Moss
+
+        // Vine arms
+        g.fillStyle(0x00aa44, 1);
+        this.fillRect(g, x - 4, y - 2, 2, 1);
+        this.fillRect(g, x - 5, y - 1, 1, 2);
+        this.fillRect(g, x + 3, y - 2, 2, 1);
+        this.fillRect(g, x + 5, y - 1, 1, 2);
+
+        // Vine attack during special
+        if (anim === 'special') {
+            g.fillStyle(0x44ff88, 0.9);
+            for (let i = 0; i < 3 + frame; i++) {
+                this.fillRect(g, x + 5 + i, y - 1 + (i % 2), 1, 1);
+            }
+        }
+
+        // Root legs
+        g.fillStyle(0x553311, 1);
+        this.fillRect(g, x - 2, y + 3, 2, 4);
+        this.fillRect(g, x + 1, y + 3, 2, 4);
+        g.fillStyle(0x442200, 1);
+        this.fillRect(g, x - 3, y + 6, 2, 1);
+        this.fillRect(g, x + 2, y + 6, 2, 1);
+    }
+
+    // KNIGHT - Heavy exosuit
+    drawKnight(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Full helmet
+        g.fillStyle(0xbb9944, 1);
+        this.fillRect(g, x - 3, y - 7, 6, 6);
+        g.fillStyle(0x222233, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 2); // Visor slit
+        g.fillStyle(0x88aaff, 1);
+        this.fillRect(g, x - 1, y - 4, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 4, 1, 1);
+        g.fillStyle(0xddbb66, 1);
+        this.fillRect(g, x, y - 9, 1, 2); // Plume
+
+        // Plate armor body
+        g.fillStyle(0xaa8833, 1);
+        this.fillRect(g, x - 4, y - 1, 8, 6);
+        g.fillStyle(0x777788, 1);
+        this.fillRect(g, x - 2, y, 5, 2); // Chest plate
+        g.fillStyle(0x666677, 1);
+        this.fillRect(g, x - 3, y + 3, 7, 1); // Belt
+
+        // Shield
+        g.fillStyle(0xddbb55, 1);
+        this.fillRect(g, x - 6, y - 1, 2, 4);
+        g.fillStyle(0xaa8833, 1);
+        this.fillRect(g, x - 5, y, 1, 2);
+
+        // Sword arm
+        if (anim === 'attack' || anim === 'special') {
+            g.fillStyle(0xeeeeff, 1);
+            this.fillRect(g, x + 4 + punch, y - 2, 1, 5);
+            g.fillStyle(0xffffff, 0.8);
+            this.fillRect(g, x + 4 + punch, y - 3, 1, 1);
+        }
+
+        // Armored legs
+        g.fillStyle(0x998844, 1);
+        this.fillRect(g, x - 3, y + 5, 3, 4);
+        this.fillRect(g, x + 1, y + 5, 3, 4);
+        g.fillStyle(0x777788, 1);
+        this.fillRect(g, x - 2, y + 7, 2, 1);
+        this.fillRect(g, x + 1, y + 7, 2, 1);
+    }
+
+    // HACKER - Hoodie figure with laptop
+    drawHacker(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Hooded head
+        g.fillStyle(0x003300, 1);
+        this.fillRect(g, x - 2, y - 6, 5, 4);
+        g.fillStyle(0x001100, 1);
+        this.fillRect(g, x - 1, y - 5, 3, 2);
+        g.fillStyle(0x00ff00, 1);
+        this.fillRect(g, x - 1, y - 4, 1, 1); // Matrix eyes
+        this.fillRect(g, x + 1, y - 4, 1, 1);
+
+        // Hoodie body
+        g.fillStyle(0x004400, 1);
+        this.fillRect(g, x - 3, y - 2, 6, 5);
+        g.fillStyle(0x00ff00, 0.5);
+        this.fillRect(g, x - 1, y - 1, 2, 1); // Chest logo
+
+        // Laptop/device
+        g.fillStyle(0x222222, 1);
+        this.fillRect(g, x + 3, y, 3, 2);
+        g.fillStyle(0x00ff00, frame % 2 === 0 ? 0.8 : 0.5);
+        this.fillRect(g, x + 4, y, 1, 1);
+
+        // Data stream during special
+        if (anim === 'special') {
+            g.fillStyle(0x00ff00, 0.8);
+            for (let i = 0; i < 3 + frame; i++) {
+                this.fillRect(g, x + 6 + i, y - 1 + (i % 3), 1, 1);
+            }
+        }
+
+        // Legs
+        const lx = Math.round(legSwing / 2);
+        g.fillStyle(0x222222, 1);
+        this.fillRect(g, x - 1 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + lx, y + 3, 2, 4);
+        g.fillStyle(0x00ff00, 0.4);
+        this.fillRect(g, x - 1 + lx, y + 6, 2, 1);
+    }
+
+    // SNIPER - Long coat with rifle
+    drawSniper(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Helmet/goggles head
+        g.fillStyle(0xffaa66, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0xff4400, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 2); // Goggles
+        g.fillStyle(0xffaa00, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Lens glow
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+
+        // Long coat
+        g.fillStyle(0xaa3300, 1);
+        this.fillRect(g, x - 3, y - 2, 6, 4);
+        this.fillRect(g, x - 4, y + 2, 8, 4);
+        g.fillStyle(0xffaa00, 0.6);
+        this.fillRect(g, x - 1, y - 1, 2, 1);
+
+        // Long rifle
+        g.fillStyle(0x444444, 1);
+        this.fillRect(g, x + 3, y - 2, 5, 1);
+        this.fillRect(g, x + 2, y - 1, 2, 2);
+        if (anim === 'special') {
+            g.fillStyle(0xff4400, 0.9);
+            this.fillRect(g, x + 8, y - 2, 2, 1);
+            g.fillStyle(0xffff00, 0.7);
+            this.fillRect(g, x + 9, y - 2, 1, 1);
+        }
+
+        // Coat continues as legs
+        g.fillStyle(0x882200, 1);
+        this.fillRect(g, x - 2, y + 6, 2, 2);
+        this.fillRect(g, x + 1, y + 6, 2, 2);
+    }
+
+    // BOMBER - Round body with bombs
+    drawBomber(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Round head with fuse
+        g.fillStyle(0xff6600, 1);
+        this.fillRect(g, x - 3, y - 7, 6, 5);
+        g.fillStyle(0xffff00, frame % 2 === 0 ? 1 : 0.6);
+        this.fillRect(g, x, y - 9, 1, 2); // Fuse spark
+        g.fillStyle(0x884400, 1);
+        this.fillRect(g, x, y - 8, 1, 1); // Fuse
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+        g.fillStyle(0x222222, 1);
+        this.fillRect(g, x - 1, y - 3, 3, 1); // Grin
+
+        // Round bomb body
+        g.fillStyle(0xff8800, 1);
+        this.fillRect(g, x - 4, y - 2, 8, 6);
+        g.fillStyle(0xffff00, 1);
+        this.fillRect(g, x - 2, y - 1, 4, 1); // Warning stripe
+        g.fillStyle(0x222222, 1);
+        this.fillRect(g, x - 1, y + 1, 2, 2); // Skull symbol
+
+        // Bomb in hand during special
+        if (anim === 'special') {
+            g.fillStyle(0x444444, 1);
+            this.fillRect(g, x + 4 + punch, y - 2, 3, 3);
+            g.fillStyle(0xffff00, frame % 2 === 0 ? 1 : 0.5);
+            this.fillRect(g, x + 5 + punch, y - 3, 1, 1);
+        }
+
+        // Short legs
+        g.fillStyle(0xcc5500, 1);
+        this.fillRect(g, x - 2, y + 4, 2, 3);
+        this.fillRect(g, x + 1, y + 4, 2, 3);
+        g.fillStyle(0x884400, 1);
+        this.fillRect(g, x - 2, y + 6, 2, 1);
+        this.fillRect(g, x + 1, y + 6, 2, 1);
+    }
+
+    // STRIKER - Electric speedster
+    drawStriker(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Spiky electric hair
+        g.fillStyle(0xffff00, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0xffff88, 1);
+        this.fillRect(g, x - 2, y - 9, 1, 3);
+        this.fillRect(g, x, y - 10, 1, 4);
+        this.fillRect(g, x + 2, y - 9, 1, 3);
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+
+        // Sleek body
+        g.fillStyle(0xdddd00, 1);
+        this.fillRect(g, x - 2, y - 2, 5, 4);
+        g.fillStyle(0xff8800, 1);
+        this.fillRect(g, x - 1, y - 1, 3, 1); // Lightning bolt
+        g.fillStyle(0xffffff, 0.6);
+        this.fillRect(g, x, y, 1, 2);
+
+        // Electric trail
+        if (anim === 'walk' || anim === 'special') {
+            g.fillStyle(0xffff00, 0.7);
+            this.fillRect(g, x - 5, y - 1, 2, 1);
+            this.fillRect(g, x - 4, y, 1, 1);
+            this.fillRect(g, x - 6, y + 1, 2, 1);
+        }
+
+        // Lightning during special
+        if (anim === 'special') {
+            g.fillStyle(0xffff00, 0.9);
+            this.fillRect(g, x + 3 + punch, y - 2, 1, 1);
+            this.fillRect(g, x + 4 + punch, y - 1, 1, 2);
+            this.fillRect(g, x + 5 + punch, y, 1, 2);
+            g.fillStyle(0xffffff, 0.8);
+            this.fillRect(g, x + 4 + punch, y, 1, 1);
+        }
+
+        // Fast legs
+        const lx = Math.round(legSwing / 2);
+        g.fillStyle(0xcccc00, 1);
+        this.fillRect(g, x - 1 + lx, y + 2, 1, 5);
+        this.fillRect(g, x + 1 - lx, y + 2, 1, 5);
+        g.fillStyle(0xffff00, 0.7);
+        this.fillRect(g, x - 1 + lx, y + 6, 2, 1);
+    }
+
+    // GOLEM - Massive stone creature
+    drawGolem(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        // Massive stone head
+        g.fillStyle(0x666666, 1);
+        this.fillRect(g, x - 4, y - 8, 8, 6);
+        g.fillStyle(0x888888, 1);
+        this.fillRect(g, x - 3, y - 7, 6, 4);
+        g.fillStyle(0x00ffff, 1);
+        this.fillRect(g, x - 2, y - 5, 2, 2); // Glowing eyes
+        this.fillRect(g, x + 1, y - 5, 2, 2);
+        g.fillStyle(0x444444, 1);
+        this.fillRect(g, x - 1, y - 3, 3, 1); // Mouth crack
+
+        // Huge rocky body
+        g.fillStyle(0x555555, 1);
+        this.fillRect(g, x - 5, y - 2, 10, 8);
+        g.fillStyle(0x777777, 1);
+        this.fillRect(g, x - 3, y - 1, 6, 4);
+        g.fillStyle(0x00ffff, 0.5);
+        this.fillRect(g, x - 1, y, 2, 2); // Core glow
+
+        // Massive arms
+        g.fillStyle(0x666666, 1);
+        this.fillRect(g, x - 7, y - 2, 2, 6);
+        this.fillRect(g, x + 5, y - 2, 2, 6);
+        g.fillStyle(0x444444, 1);
+        this.fillRect(g, x - 7, y + 3, 2, 2); // Fists
+        this.fillRect(g, x + 5, y + 3, 2, 2);
+
+        // Earthquake during special
+        if (anim === 'special') {
+            g.fillStyle(0x888888, 0.8);
+            this.fillRect(g, x - 6, y + 8, 3, 2);
+            this.fillRect(g, x - 2, y + 9, 2, 2);
+            this.fillRect(g, x + 2, y + 8, 3, 2);
+        }
+
+        // Thick legs
+        g.fillStyle(0x555555, 1);
+        this.fillRect(g, x - 4, y + 6, 4, 4);
+        this.fillRect(g, x + 1, y + 6, 4, 4);
+        g.fillStyle(0x444444, 1);
+        this.fillRect(g, x - 4, y + 9, 4, 1);
+        this.fillRect(g, x + 1, y + 9, 4, 1);
+    }
+
+    // Default character drawing
+    drawDefaultChar(g, x, y, color, accentColor, anim, frame, punch, glow, legSwing, armSwing) {
+        // Simple head
+        g.fillStyle(color, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1);
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+
+        // Body
+        g.fillStyle(color, 1);
+        this.fillRect(g, x - 2, y - 2, 5, 5);
+        g.fillStyle(accentColor, 1);
+        this.fillRect(g, x - 1, y - 1, 3, 1);
+
+        // Arms
+        g.fillStyle(color, 1);
+        this.fillRect(g, x - 3, y - 1, 1, 3);
+        this.fillRect(g, x + 3, y - 1, 1, 3);
+
+        // Legs
+        this.fillRect(g, x - 1, y + 3, 1, 4);
+        this.fillRect(g, x + 1, y + 3, 1, 4);
     }
 
     fillRect(graphics, x, y, w, h) {
@@ -524,7 +1061,10 @@ class BootScene extends Phaser.Scene {
         graphics.fillRect(x * p, y * p, w * p, h * p);
     }
 
+    // Legacy function - kept for compatibility
     drawCharacterFeatures(graphics, bx, by, character, animation, frame, attackPunch, mainColor, accentMain, glowIntensity, headHeight) {
+        // No longer used - each character has unique drawing function
+        return;
         const darkColor = mainColor.clone().darken(25).color;
         const lightColor = mainColor.clone().lighten(50).color;
         const accentColor = accentMain ? accentMain.color : lightColor;
