@@ -25,6 +25,9 @@ class GameScene extends Phaser.Scene {
         // Create fighters
         this.createFighters();
 
+        // Setup collisions IMMEDIATELY after fighters (before they fall)
+        this.setupCollisions();
+
         // Create UI
         this.createHUD();
 
@@ -40,9 +43,6 @@ class GameScene extends Phaser.Scene {
                 this.aiDifficulty
             );
         }
-
-        // Setup collisions
-        this.setupCollisions();
 
         // Start game with countdown
         this.startCountdown();
@@ -384,11 +384,11 @@ class GameScene extends Phaser.Scene {
     }
 
     createFighters() {
-        // Create Player 1 - spawn closer to main platform (platforms are around y=500-570)
-        this.player1 = this.createFighter(400, 450, this.player1Data, 1);
+        // Create Player 1 - spawn above main platform (platform top is ~y=530)
+        this.player1 = this.createFighter(400, 480, this.player1Data, 1);
 
         // Create Player 2
-        this.player2 = this.createFighter(800, 450, this.player2Data, 2);
+        this.player2 = this.createFighter(800, 480, this.player2Data, 2);
 
         // Set up fighter references for combat
         this.player1.opponent = this.player2;
@@ -528,32 +528,39 @@ class GameScene extends Phaser.Scene {
     }
 
     drawMinecraftHUDPanel(graphics, x, y, width, height) {
-        // Minecraft inventory style panel
-        const bgColor = 0xc6c6c6;
-        const borderDark = 0x373737;
-        const borderLight = 0xffffff;
+        // Cyber-Minecraft style panel
+        const bgColor = 0x0a0a15;
+        const borderColor = 0x00ffff;
 
-        // Outer dark border
-        graphics.fillStyle(borderDark, 0.9);
+        // Outer glow
+        graphics.fillStyle(borderColor, 0.15);
+        graphics.fillRect(x - 2, y - 2, width + 4, height + 4);
+
+        // Dark background
+        graphics.fillStyle(0x000000, 0.9);
         graphics.fillRect(x, y, width, height);
 
-        // Inner light area
+        // Inner area
         graphics.fillStyle(bgColor, 0.9);
-        graphics.fillRect(x + 3, y + 3, width - 6, height - 6);
+        graphics.fillRect(x + 2, y + 2, width - 4, height - 4);
 
-        // Top/left white highlight
-        graphics.fillStyle(borderLight, 0.7);
-        graphics.fillRect(x + 3, y + 3, width - 6, 2);
-        graphics.fillRect(x + 3, y + 3, 2, height - 6);
+        // Neon border
+        graphics.fillStyle(borderColor, 0.8);
+        graphics.fillRect(x + 2, y + 2, width - 4, 2);
+        graphics.fillRect(x + 2, y + height - 4, width - 4, 2);
+        graphics.fillRect(x + 2, y + 2, 2, height - 4);
+        graphics.fillRect(x + width - 4, y + 2, 2, height - 4);
 
-        // Bottom/right dark shadow
-        graphics.fillStyle(borderDark, 0.5);
-        graphics.fillRect(x + 3, y + height - 5, width - 6, 2);
-        graphics.fillRect(x + width - 5, y + 3, 2, height - 6);
+        // Corner accents
+        graphics.fillStyle(0xff00ff, 1);
+        graphics.fillRect(x, y, 4, 4);
+        graphics.fillRect(x + width - 4, y, 4, 4);
+        graphics.fillRect(x, y + height - 4, 4, 4);
+        graphics.fillRect(x + width - 4, y + height - 4, 4, 4);
     }
 
     drawPixelHeart(graphics, x, y, color) {
-        // 8x8 pixel heart
+        // 8x8 pixel heart - cyber neon style
         const pixels = [
             [0,1,1,0,0,1,1,0],
             [1,1,1,1,1,1,1,1],
@@ -566,7 +573,19 @@ class GameScene extends Phaser.Scene {
         ];
 
         const size = 2;
-        graphics.fillStyle(color, 1);
+
+        // Glow effect
+        graphics.fillStyle(0xff00ff, 0.3);
+        for (let py = 0; py < pixels.length; py++) {
+            for (let px = 0; px < pixels[py].length; px++) {
+                if (pixels[py][px] === 1) {
+                    graphics.fillRect(x + px * size - 1, y + py * size - 1, size + 2, size + 2);
+                }
+            }
+        }
+
+        // Main heart
+        graphics.fillStyle(0xff00ff, 1);
         for (let py = 0; py < pixels.length; py++) {
             for (let px = 0; px < pixels[py].length; px++) {
                 if (pixels[py][px] === 1) {
@@ -575,9 +594,9 @@ class GameScene extends Phaser.Scene {
             }
         }
 
-        // Dark outline
-        graphics.fillStyle(0x550000, 1);
-        graphics.fillRect(x + 2, y + 14, 12, 2);
+        // Highlight
+        graphics.fillStyle(0xffffff, 0.5);
+        graphics.fillRect(x + 2, y + 2, 2, 2);
     }
 
     setupInput() {
@@ -1366,14 +1385,17 @@ class GameScene extends Phaser.Scene {
     }
 
     respawnFighter(fighter) {
-        // Reset position - spawn closer to main platform
+        // Reset position - spawn above main platform
         fighter.x = fighter.playerNum === 1 ? 400 : 800;
-        fighter.y = 450;
+        fighter.y = 480;
         fighter.body.setVelocity(0, 0);
         fighter.damage = 0;
 
         // Reset combo
         fighter.comboCount = 0;
+
+        // Ensure fighter is active and physics body works
+        fighter.body.enable = true;
 
         // Use shared spawn protection
         this.startSpawnProtection(fighter);
