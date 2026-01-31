@@ -205,6 +205,9 @@ class BootScene extends Phaser.Scene {
 
     // WARRIOR - Cyber samurai with plasma blade
     drawWarrior(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
         // Helmet - samurai style
         g.fillStyle(0x556677, 1);
         this.fillRect(g, x - 3, y - 7, 6, 5);
@@ -224,13 +227,12 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0x00ffff, 0.5);
         this.fillRect(g, x - 2, y, 4, 2); // Core glow
 
-        // Arms with blade
+        // Arms - animated during walk, extended during attack
         g.fillStyle(0x445566, 1);
-        this.fillRect(g, x - 4, y - 1, 1, 3);
-        this.fillRect(g, x + 3, y - 1, 1, 3);
-
-        // Plasma blade (always visible)
         if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 4, y - 1, 1, 3);
+            this.fillRect(g, x + 3 + punch, y - 1, 1, 3);
+            // Plasma blade extended
             g.fillStyle(0xff00ff, 0.9);
             this.fillRect(g, x + 4 + punch, y - 3, 1, 6);
             g.fillStyle(0xffffff, 1);
@@ -238,18 +240,21 @@ class BootScene extends Phaser.Scene {
             g.fillStyle(0xff00ff, 0.5);
             this.fillRect(g, x + 5 + punch, y - 2, 1, 4);
         } else {
+            // Swinging arms during walk
+            this.fillRect(g, x - 4, y - 1 + ax, 1, 3);
+            this.fillRect(g, x + 3, y - 1 - ax, 1, 3);
+            // Blade at rest
             g.fillStyle(0xff00ff, 0.6);
             this.fillRect(g, x + 3, y - 4, 1, 3);
         }
 
-        // Legs
+        // Legs - opposite directions for natural walk
         g.fillStyle(0x445566, 1);
-        const lx = Math.round(legSwing / 2);
         this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
-        this.fillRect(g, x + lx, y + 3, 2, 4);
+        this.fillRect(g, x - lx, y + 3, 2, 4);
         g.fillStyle(0xff00ff, 0.6);
         this.fillRect(g, x - 2 + lx, y + 6, 2, 1);
-        this.fillRect(g, x + lx, y + 6, 2, 1);
+        this.fillRect(g, x - lx, y + 6, 2, 1);
     }
 
     // SPEEDSTER - Sleek runner with visor
@@ -293,6 +298,9 @@ class BootScene extends Phaser.Scene {
 
     // TANK - Massive mech with cannons
     drawTank(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 3); // Heavy = slower movement
+        const ax = Math.round(armSwing / 3);
+
         // Big square head
         g.fillStyle(0x3366aa, 1);
         this.fillRect(g, x - 3, y - 8, 7, 6);
@@ -310,25 +318,36 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0x224488, 1);
         this.fillRect(g, x - 3, y + 2, 7, 2); // Belt
 
-        // Shoulder cannons
+        // Shoulder cannons - animate during attack
         g.fillStyle(0x224488, 1);
-        this.fillRect(g, x - 6, y - 3, 3, 3);
-        this.fillRect(g, x + 4, y - 3, 3, 3);
-        g.fillStyle(0x00ffff, 0.8);
-        this.fillRect(g, x - 5, y - 2, 1, 1);
-        this.fillRect(g, x + 5, y - 2, 1, 1);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 6, y - 3 - punch, 3, 3);
+            this.fillRect(g, x + 4, y - 3 - punch, 3, 3);
+            g.fillStyle(0xffff00, 0.9);
+            this.fillRect(g, x - 5, y - 4 - punch, 1, 2); // Muzzle flash
+            this.fillRect(g, x + 5, y - 4 - punch, 1, 2);
+        } else {
+            this.fillRect(g, x - 6, y - 3, 3, 3);
+            this.fillRect(g, x + 4, y - 3, 3, 3);
+            g.fillStyle(0x00ffff, 0.8);
+            this.fillRect(g, x - 5, y - 2, 1, 1);
+            this.fillRect(g, x + 5, y - 2, 1, 1);
+        }
 
-        // Thick legs
+        // Thick legs - slow heavy walk
         g.fillStyle(0x3366aa, 1);
-        this.fillRect(g, x - 3, y + 5, 3, 4);
-        this.fillRect(g, x + 1, y + 5, 3, 4);
+        this.fillRect(g, x - 3 + lx, y + 5, 3, 4);
+        this.fillRect(g, x + 1 - lx, y + 5, 3, 4);
         g.fillStyle(0x00ffff, 0.6);
-        this.fillRect(g, x - 2, y + 7, 2, 1);
-        this.fillRect(g, x + 1, y + 7, 2, 1);
+        this.fillRect(g, x - 2 + lx, y + 7, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 7, 2, 1);
     }
 
     // NINJA - Shadowy figure with mask
     drawNinja(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
         // Masked head
         g.fillStyle(0x331144, 1);
         this.fillRect(g, x - 2, y - 6, 4, 4);
@@ -345,22 +364,26 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0xaa00ff, 0.6);
         this.fillRect(g, x - 1, y - 1, 2, 1); // Sash
 
-        // Arms (one holds shuriken)
+        // Arms - animated during walk, throwing during attack
         g.fillStyle(0x331144, 1);
-        this.fillRect(g, x - 3, y - 1, 1, 2);
-        this.fillRect(g, x + 2, y - 1, 1, 2);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 3, y - 1, 1, 2);
+            this.fillRect(g, x + 2 + punch, y - 2, 1, 2); // Throwing arm
+        } else {
+            this.fillRect(g, x - 3, y - 1 + ax, 1, 2);
+            this.fillRect(g, x + 2, y - 1 - ax, 1, 2);
+        }
 
         // Shuriken during attack
         if (anim === 'special' && frame >= 1) {
             g.fillStyle(0xcccccc, 1);
-            this.fillRect(g, x + 4 + frame * 2, y, 1, 1);
+            this.fillRect(g, x + 4 + frame * 2, y - 1, 1, 1);
             g.fillStyle(0xff00aa, 0.7);
-            this.fillRect(g, x + 3 + frame * 2, y - 1, 1, 1);
-            this.fillRect(g, x + 5 + frame * 2, y + 1, 1, 1);
+            this.fillRect(g, x + 3 + frame * 2, y - 2, 1, 1);
+            this.fillRect(g, x + 5 + frame * 2, y, 1, 1);
         }
 
-        // Legs
-        const lx = Math.round(legSwing / 2);
+        // Legs - quick ninja steps
         g.fillStyle(0x220033, 1);
         this.fillRect(g, x - 1 + lx, y + 2, 1, 4);
         this.fillRect(g, x + 1 - lx, y + 2, 1, 4);
@@ -371,6 +394,9 @@ class BootScene extends Phaser.Scene {
 
     // BRAWLER - Muscular fighter with chrome fists
     drawBrawler(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
         // Muscular head
         g.fillStyle(0xffaa66, 1);
         this.fillRect(g, x - 2, y - 6, 5, 4);
@@ -390,28 +416,31 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0xcc5500, 1);
         this.fillRect(g, x - 2, y + 1, 5, 1); // Belt
 
-        // Chrome fists
+        // Chrome fists - punching or swinging
         g.fillStyle(0xcccccc, 1);
         if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 4, y, 2, 2);
             this.fillRect(g, x + 3 + punch, y - 1, 2, 3);
             g.fillStyle(0xffff00, 0.8);
             this.fillRect(g, x + 3 + punch, y, 2, 1);
         } else {
-            this.fillRect(g, x - 4, y, 2, 2);
-            this.fillRect(g, x + 3, y, 2, 2);
+            this.fillRect(g, x - 4, y + ax, 2, 2);
+            this.fillRect(g, x + 3, y - ax, 2, 2);
         }
 
-        // Legs
+        // Legs - powerful stride
         g.fillStyle(0xff6600, 1);
-        this.fillRect(g, x - 2, y + 3, 2, 4);
-        this.fillRect(g, x + 1, y + 3, 2, 4);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
         g.fillStyle(0xcccccc, 1);
-        this.fillRect(g, x - 2, y + 6, 2, 1);
-        this.fillRect(g, x + 1, y + 6, 2, 1);
+        this.fillRect(g, x - 2 + lx, y + 6, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 6, 2, 1);
     }
 
     // MAGE - Robed spellcaster with glowing orb
     drawMage(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const sway = Math.round(legSwing / 3); // Robe sway during walk
+
         // Hooded head
         g.fillStyle(0x8800aa, 1);
         this.fillRect(g, x - 3, y - 7, 6, 5);
@@ -421,22 +450,30 @@ class BootScene extends Phaser.Scene {
         this.fillRect(g, x - 1, y - 4, 1, 1); // Glowing eyes
         this.fillRect(g, x + 1, y - 4, 1, 1);
 
-        // Flowing robe
+        // Flowing robe - sways during walk
         g.fillStyle(0x8800aa, 1);
         this.fillRect(g, x - 3, y - 2, 6, 4);
-        this.fillRect(g, x - 4, y + 2, 8, 5);
+        this.fillRect(g, x - 4 + sway, y + 2, 8, 5);
         g.fillStyle(0xaa22cc, 1);
         this.fillRect(g, x - 1, y - 1, 2, 5); // Robe stripe
 
-        // Staff
+        // Staff - moves with walking
         g.fillStyle(0x664422, 1);
-        this.fillRect(g, x - 5, y - 3, 1, 8);
-
-        // Magic orb
-        g.fillStyle(0xff00ff, glow * 0.8 + 0.2);
-        this.fillRect(g, x - 5, y - 5, 2, 2);
-        g.fillStyle(0xffffff, glow * 0.5);
-        this.fillRect(g, x - 5, y - 5, 1, 1);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 5 + punch, y - 3, 1, 8);
+            // Magic orb glowing during attack
+            g.fillStyle(0xff00ff, 0.9);
+            this.fillRect(g, x - 5 + punch, y - 5, 2, 2);
+            g.fillStyle(0xffffff, 0.8);
+            this.fillRect(g, x - 5 + punch, y - 5, 1, 1);
+        } else {
+            this.fillRect(g, x - 5 - sway, y - 3, 1, 8);
+            // Magic orb
+            g.fillStyle(0xff00ff, glow * 0.8 + 0.2);
+            this.fillRect(g, x - 5 - sway, y - 5, 2, 2);
+            g.fillStyle(0xffffff, glow * 0.5);
+            this.fillRect(g, x - 5 - sway, y - 5, 1, 1);
+        }
 
         // Spell effect during special
         if (anim === 'special') {
@@ -449,6 +486,9 @@ class BootScene extends Phaser.Scene {
 
     // ROBOT - Full android body
     drawRobot(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
         // Dome head
         g.fillStyle(0x556677, 1);
         this.fillRect(g, x - 3, y - 7, 6, 5);
@@ -456,7 +496,7 @@ class BootScene extends Phaser.Scene {
         this.fillRect(g, x - 2, y - 5, 4, 2); // Visor
         g.fillStyle(0x334455, 1);
         this.fillRect(g, x - 1, y - 8, 2, 1); // Top
-        // Antenna
+        // Antenna - blinks
         g.fillStyle(0x00ffff, frame % 2 === 0 ? 1 : 0.5);
         this.fillRect(g, x, y - 9, 1, 1);
 
@@ -468,13 +508,20 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0xff00ff, 0.6);
         this.fillRect(g, x, y + 1, 1, 1); // Core
 
-        // Mechanical arms
+        // Mechanical arms - animated
         g.fillStyle(0x556677, 1);
-        this.fillRect(g, x - 4, y - 1, 1, 3);
-        this.fillRect(g, x + 4, y - 1, 1, 3);
-        g.fillStyle(0x00ffff, 0.6);
-        this.fillRect(g, x - 4, y + 1, 1, 1);
-        this.fillRect(g, x + 4, y + 1, 1, 1);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 4, y - 1, 1, 3);
+            this.fillRect(g, x + 4 + punch, y - 1, 1, 3);
+            g.fillStyle(0x00ffff, 0.8);
+            this.fillRect(g, x + 4 + punch, y, 1, 1);
+        } else {
+            this.fillRect(g, x - 4, y - 1 + ax, 1, 3);
+            this.fillRect(g, x + 4, y - 1 - ax, 1, 3);
+            g.fillStyle(0x00ffff, 0.6);
+            this.fillRect(g, x - 4, y + 1 + ax, 1, 1);
+            this.fillRect(g, x + 4, y + 1 - ax, 1, 1);
+        }
 
         // Laser during special
         if (anim === 'special' && frame >= 1) {
@@ -484,17 +531,20 @@ class BootScene extends Phaser.Scene {
             }
         }
 
-        // Mechanical legs
+        // Mechanical legs - stepping motion
         g.fillStyle(0x556677, 1);
-        this.fillRect(g, x - 2, y + 3, 2, 4);
-        this.fillRect(g, x + 1, y + 3, 2, 4);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
         g.fillStyle(0x00ffff, 0.5);
-        this.fillRect(g, x - 2, y + 5, 1, 1);
-        this.fillRect(g, x + 2, y + 5, 1, 1);
+        this.fillRect(g, x - 2 + lx, y + 5, 1, 1);
+        this.fillRect(g, x + 2 - lx, y + 5, 1, 1);
     }
 
     // PIRATE - Net runner with visor and gun
     drawPirate(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
         // Head with visor
         g.fillStyle(0xffcc88, 1);
         this.fillRect(g, x - 2, y - 6, 4, 4);
@@ -513,28 +563,35 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0x888800, 1);
         this.fillRect(g, x - 2, y + 1, 5, 1); // Belt
 
-        // Gun arm
+        // Arms - gun arm and free arm
         g.fillStyle(0xffcc88, 1);
-        this.fillRect(g, x - 3, y - 1, 1, 2);
-        g.fillStyle(0x444444, 1);
-        this.fillRect(g, x + 3, y - 1, 2, 2);
-        if (anim === 'special' && frame >= 2) {
-            g.fillStyle(0xffff00, 1);
-            this.fillRect(g, x + 5, y - 1, 2, 1);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 3, y - 1, 1, 2);
+            g.fillStyle(0x444444, 1);
+            this.fillRect(g, x + 3 + punch, y - 1, 2, 2);
+            if (frame >= 2) {
+                g.fillStyle(0xffff00, 1);
+                this.fillRect(g, x + 5 + punch, y - 1, 2, 1); // Muzzle flash
+            }
+        } else {
+            this.fillRect(g, x - 3, y - 1 + ax, 1, 2);
+            g.fillStyle(0x444444, 1);
+            this.fillRect(g, x + 3, y - 1 - ax, 2, 2);
         }
 
-        // Legs
-        const lx = Math.round(legSwing / 2);
+        // Legs - opposite directions
         g.fillStyle(0x666600, 1);
         this.fillRect(g, x - 1 + lx, y + 2, 2, 4);
-        this.fillRect(g, x + lx, y + 2, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 2, 2, 4);
         g.fillStyle(0x444400, 1);
         this.fillRect(g, x - 1 + lx, y + 5, 2, 1);
-        this.fillRect(g, x + lx, y + 5, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 5, 2, 1);
     }
 
     // FROSTMAGE - Ice queen with crystal crown
     drawFrostmage(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const sway = Math.round(legSwing / 3); // Robe sway
+
         // Ice crown head
         g.fillStyle(0xaaddff, 1);
         this.fillRect(g, x - 2, y - 6, 4, 4);
@@ -546,30 +603,36 @@ class BootScene extends Phaser.Scene {
         this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
         this.fillRect(g, x + 1, y - 5, 1, 1);
 
-        // Icy robe
+        // Icy robe - sways during walk
         g.fillStyle(0x00aadd, 1);
         this.fillRect(g, x - 3, y - 2, 6, 4);
-        this.fillRect(g, x - 4, y + 2, 8, 5);
+        this.fillRect(g, x - 4 + sway, y + 2, 8, 5);
         g.fillStyle(0xaaffff, 0.7);
         this.fillRect(g, x - 1, y - 1, 2, 5);
 
-        // Ice staff
+        // Ice staff - animated
         g.fillStyle(0x88ccff, 1);
-        this.fillRect(g, x - 5, y - 4, 1, 8);
-        g.fillStyle(0xffffff, glow * 0.5 + 0.5);
-        this.fillRect(g, x - 6, y - 5, 2, 2);
-
-        // Ice blast during special
-        if (anim === 'special') {
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 5 + punch, y - 4, 1, 8);
+            g.fillStyle(0xffffff, 0.9);
+            this.fillRect(g, x - 6 + punch, y - 5, 2, 2);
+            // Ice blast
             g.fillStyle(0xaaffff, 0.9);
             this.fillRect(g, x + 3 + punch, y - 1, 2, 2);
             g.fillStyle(0xffffff, 0.7);
             this.fillRect(g, x + 4 + punch, y, 1, 1);
+        } else {
+            this.fillRect(g, x - 5 - sway, y - 4, 1, 8);
+            g.fillStyle(0xffffff, glow * 0.5 + 0.5);
+            this.fillRect(g, x - 6 - sway, y - 5, 2, 2);
         }
     }
 
     // DEMON - Horned virus with wings
     drawDemon(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const wingFlap = Math.round(Math.sin(frame * Math.PI / 2) * 1); // Wing animation
+
         // Demonic head with horns
         g.fillStyle(0xcc2222, 1);
         this.fillRect(g, x - 3, y - 6, 6, 5);
@@ -591,14 +654,14 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0xff4400, 0.6);
         this.fillRect(g, x - 1, y, 3, 2); // Inner glow
 
-        // Bat wings
+        // Bat wings - flap during walk/attack
         g.fillStyle(0x660000, 1);
-        this.fillRect(g, x - 5, y - 2, 2, 4);
-        this.fillRect(g, x + 4, y - 2, 2, 4);
-        this.fillRect(g, x - 6, y - 1, 1, 3);
-        this.fillRect(g, x + 6, y - 1, 1, 3);
+        this.fillRect(g, x - 5, y - 2 - wingFlap, 2, 4);
+        this.fillRect(g, x + 4, y - 2 - wingFlap, 2, 4);
+        this.fillRect(g, x - 6, y - 1 - wingFlap, 1, 3);
+        this.fillRect(g, x + 6, y - 1 - wingFlap, 1, 3);
 
-        // Fire during special
+        // Fire during attack
         if (anim === 'special' || anim === 'attack') {
             g.fillStyle(0xff4400, 0.9);
             this.fillRect(g, x + 3 + punch, y - 1, 2, 2);
@@ -606,17 +669,20 @@ class BootScene extends Phaser.Scene {
             this.fillRect(g, x + 4 + punch, y, 1, 1);
         }
 
-        // Legs
+        // Legs - powerful stride
         g.fillStyle(0x880000, 1);
-        this.fillRect(g, x - 2, y + 4, 2, 4);
-        this.fillRect(g, x + 1, y + 4, 2, 4);
+        this.fillRect(g, x - 2 + lx, y + 4, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 4, 2, 4);
         g.fillStyle(0x660000, 1);
-        this.fillRect(g, x - 2, y + 7, 2, 1);
-        this.fillRect(g, x + 1, y + 7, 2, 1);
+        this.fillRect(g, x - 2 + lx, y + 7, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 7, 2, 1);
     }
 
     // ANGEL - Winged AI with halo
     drawAngel(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const sway = Math.round(legSwing / 3); // Robe sway
+        const wingFlap = Math.round(Math.sin(frame * Math.PI / 2) * 1); // Wing flap
+
         // Glowing halo
         g.fillStyle(0xffff88, glow * 0.4 + 0.6);
         this.fillRect(g, x - 2, y - 9, 4, 1);
@@ -632,63 +698,66 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0xffaaaa, 1);
         this.fillRect(g, x, y - 3, 1, 1);
 
-        // Flowing robes
+        // Flowing robes - sway during walk
         g.fillStyle(0xaaffff, 1);
         this.fillRect(g, x - 2, y - 2, 5, 4);
-        this.fillRect(g, x - 3, y + 2, 7, 4);
+        this.fillRect(g, x - 3 + sway, y + 2, 7, 4);
         g.fillStyle(0xffffff, 0.8);
         this.fillRect(g, x - 1, y - 1, 3, 1);
 
-        // Large wings
+        // Large wings - flap during movement
         g.fillStyle(0xffffff, 1);
-        this.fillRect(g, x - 5, y - 3, 2, 5);
-        this.fillRect(g, x + 4, y - 3, 2, 5);
-        this.fillRect(g, x - 6, y - 2, 1, 3);
-        this.fillRect(g, x + 6, y - 2, 1, 3);
+        this.fillRect(g, x - 5, y - 3 - wingFlap, 2, 5);
+        this.fillRect(g, x + 4, y - 3 - wingFlap, 2, 5);
+        this.fillRect(g, x - 6, y - 2 - wingFlap, 1, 3);
+        this.fillRect(g, x + 6, y - 2 - wingFlap, 1, 3);
         g.fillStyle(0xffffaa, glow * 0.5);
-        this.fillRect(g, x - 5, y - 2, 2, 3);
-        this.fillRect(g, x + 4, y - 2, 2, 3);
+        this.fillRect(g, x - 5, y - 2 - wingFlap, 2, 3);
+        this.fillRect(g, x + 4, y - 2 - wingFlap, 2, 3);
 
         // Holy light during special
-        if (anim === 'special') {
+        if (anim === 'special' || anim === 'attack') {
             g.fillStyle(0xffff88, 0.9);
             this.fillRect(g, x + 3 + punch, y - 2, 2, 4);
+            g.fillStyle(0xffffff, 0.7);
+            this.fillRect(g, x + 4 + punch, y - 1, 1, 2);
         }
     }
 
     // SHADOW - Ghostly teleporter
     drawShadow(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const sway = Math.round(legSwing / 3); // Ghost sway
+        const hover = Math.round(Math.sin(frame * Math.PI / 3)); // Hovering motion
+
         // Hooded ghost head
         g.fillStyle(0x440066, 0.9);
-        this.fillRect(g, x - 2, y - 6, 5, 4);
+        this.fillRect(g, x - 2, y - 6 + hover, 5, 4);
         g.fillStyle(0x220033, 1);
-        this.fillRect(g, x - 1, y - 5, 3, 2);
+        this.fillRect(g, x - 1, y - 5 + hover, 3, 2);
         g.fillStyle(0xff00ff, 1);
-        this.fillRect(g, x - 1, y - 4, 1, 1); // Eyes
-        this.fillRect(g, x + 1, y - 4, 1, 1);
+        this.fillRect(g, x - 1, y - 4 + hover, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 4 + hover, 1, 1);
 
-        // Wispy body (fades at bottom)
+        // Wispy body (fades at bottom) - sways during walk
         g.fillStyle(0x440066, 0.9);
-        this.fillRect(g, x - 2, y - 2, 5, 3);
+        this.fillRect(g, x - 2, y - 2 + hover, 5, 3);
         g.fillStyle(0x330055, 0.7);
-        this.fillRect(g, x - 2, y + 1, 5, 2);
+        this.fillRect(g, x - 2 + sway, y + 1 + hover, 5, 2);
         g.fillStyle(0x220044, 0.5);
-        this.fillRect(g, x - 2, y + 3, 5, 2);
+        this.fillRect(g, x - 2 - sway, y + 3 + hover, 5, 2);
         g.fillStyle(0x110022, 0.3);
-        this.fillRect(g, x - 1, y + 5, 3, 2);
+        this.fillRect(g, x - 1, y + 5 + hover, 3, 2);
 
-        // Shadow wisps
-        if (anim === 'idle' || anim === 'walk') {
-            g.fillStyle(0x8800ff, glow * 0.4);
-            this.fillRect(g, x - 4, y + 2 + frame % 2, 2, 2);
-            this.fillRect(g, x + 3, y + 1 + frame % 2, 2, 2);
-        }
+        // Shadow wisps - animated
+        g.fillStyle(0x8800ff, 0.4 + glow * 0.3);
+        this.fillRect(g, x - 4 - sway, y + 2 + frame % 2, 2, 2);
+        this.fillRect(g, x + 3 + sway, y + 1 + frame % 2, 2, 2);
 
-        // Shadow strike during special
-        if (anim === 'special') {
+        // Shadow strike during attack
+        if (anim === 'special' || anim === 'attack') {
             g.fillStyle(0xaa00ff, 0.8);
             this.fillRect(g, x + 3 + punch, y - 1, 2, 2);
-            g.fillStyle(0x220044, 0.5);
+            g.fillStyle(0xff00ff, 0.6);
             this.fillRect(g, x + 5 + punch, y, 2, 2);
         }
     }
@@ -737,6 +806,9 @@ class BootScene extends Phaser.Scene {
 
     // DRUID - Plant creature with vines
     drawDruid(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
         // Leafy head
         g.fillStyle(0x00aa44, 1);
         this.fillRect(g, x - 2, y - 6, 4, 4);
@@ -754,32 +826,38 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0x44ff88, 0.6);
         this.fillRect(g, x - 1, y - 1, 3, 3); // Moss
 
-        // Vine arms
+        // Vine arms - animated
         g.fillStyle(0x00aa44, 1);
-        this.fillRect(g, x - 4, y - 2, 2, 1);
-        this.fillRect(g, x - 5, y - 1, 1, 2);
-        this.fillRect(g, x + 3, y - 2, 2, 1);
-        this.fillRect(g, x + 5, y - 1, 1, 2);
-
-        // Vine attack during special
-        if (anim === 'special') {
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 4, y - 2, 2, 1);
+            this.fillRect(g, x - 5, y - 1, 1, 2);
+            this.fillRect(g, x + 3 + punch, y - 2, 2, 1);
+            this.fillRect(g, x + 5 + punch, y - 1, 1, 2);
+            // Vine attack effect
             g.fillStyle(0x44ff88, 0.9);
             for (let i = 0; i < 3 + frame; i++) {
-                this.fillRect(g, x + 5 + i, y - 1 + (i % 2), 1, 1);
+                this.fillRect(g, x + 6 + punch + i, y - 1 + (i % 2), 1, 1);
             }
+        } else {
+            this.fillRect(g, x - 4, y - 2 + ax, 2, 1);
+            this.fillRect(g, x - 5, y - 1 + ax, 1, 2);
+            this.fillRect(g, x + 3, y - 2 - ax, 2, 1);
+            this.fillRect(g, x + 5, y - 1 - ax, 1, 2);
         }
 
-        // Root legs
+        // Root legs - opposite directions
         g.fillStyle(0x553311, 1);
-        this.fillRect(g, x - 2, y + 3, 2, 4);
-        this.fillRect(g, x + 1, y + 3, 2, 4);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
         g.fillStyle(0x442200, 1);
-        this.fillRect(g, x - 3, y + 6, 2, 1);
-        this.fillRect(g, x + 2, y + 6, 2, 1);
+        this.fillRect(g, x - 3 + lx, y + 6, 2, 1);
+        this.fillRect(g, x + 2 - lx, y + 6, 2, 1);
     }
 
     // KNIGHT - Heavy exosuit
     drawKnight(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 3); // Heavy = slower
+
         // Full helmet
         g.fillStyle(0xbb9944, 1);
         this.fillRect(g, x - 3, y - 7, 6, 6);
@@ -799,31 +877,42 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0x666677, 1);
         this.fillRect(g, x - 3, y + 3, 7, 1); // Belt
 
-        // Shield
+        // Shield - raises during attack
         g.fillStyle(0xddbb55, 1);
-        this.fillRect(g, x - 6, y - 1, 2, 4);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 6, y - 2, 2, 4);
+        } else {
+            this.fillRect(g, x - 6, y - 1, 2, 4);
+        }
         g.fillStyle(0xaa8833, 1);
         this.fillRect(g, x - 5, y, 1, 2);
 
-        // Sword arm
+        // Sword arm - swings during attack
         if (anim === 'attack' || anim === 'special') {
             g.fillStyle(0xeeeeff, 1);
             this.fillRect(g, x + 4 + punch, y - 2, 1, 5);
             g.fillStyle(0xffffff, 0.8);
             this.fillRect(g, x + 4 + punch, y - 3, 1, 1);
+        } else {
+            // Sword at rest
+            g.fillStyle(0xaaaacc, 0.6);
+            this.fillRect(g, x + 4, y - 1, 1, 3);
         }
 
-        // Armored legs
+        // Armored legs - heavy step
         g.fillStyle(0x998844, 1);
-        this.fillRect(g, x - 3, y + 5, 3, 4);
-        this.fillRect(g, x + 1, y + 5, 3, 4);
+        this.fillRect(g, x - 3 + lx, y + 5, 3, 4);
+        this.fillRect(g, x + 1 - lx, y + 5, 3, 4);
         g.fillStyle(0x777788, 1);
-        this.fillRect(g, x - 2, y + 7, 2, 1);
-        this.fillRect(g, x + 1, y + 7, 2, 1);
+        this.fillRect(g, x - 2 + lx, y + 7, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 7, 2, 1);
     }
 
     // HACKER - Hoodie figure with laptop
     drawHacker(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
         // Hooded head
         g.fillStyle(0x003300, 1);
         this.fillRect(g, x - 2, y - 6, 5, 4);
@@ -839,31 +928,37 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0x00ff00, 0.5);
         this.fillRect(g, x - 1, y - 1, 2, 1); // Chest logo
 
-        // Laptop/device
+        // Laptop/device - moves during attack
         g.fillStyle(0x222222, 1);
-        this.fillRect(g, x + 3, y, 3, 2);
-        g.fillStyle(0x00ff00, frame % 2 === 0 ? 0.8 : 0.5);
-        this.fillRect(g, x + 4, y, 1, 1);
-
-        // Data stream during special
-        if (anim === 'special') {
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x + 3 + punch, y - 1, 3, 2);
+            g.fillStyle(0x00ff00, 0.9);
+            this.fillRect(g, x + 4 + punch, y - 1, 1, 1);
+            // Data stream
             g.fillStyle(0x00ff00, 0.8);
             for (let i = 0; i < 3 + frame; i++) {
-                this.fillRect(g, x + 6 + i, y - 1 + (i % 3), 1, 1);
+                this.fillRect(g, x + 6 + punch + i, y - 2 + (i % 3), 1, 1);
             }
+        } else {
+            this.fillRect(g, x + 3, y - ax, 3, 2);
+            g.fillStyle(0x00ff00, frame % 2 === 0 ? 0.8 : 0.5);
+            this.fillRect(g, x + 4, y - ax, 1, 1);
         }
 
-        // Legs
-        const lx = Math.round(legSwing / 2);
+        // Legs - opposite directions
         g.fillStyle(0x222222, 1);
         this.fillRect(g, x - 1 + lx, y + 3, 2, 4);
-        this.fillRect(g, x + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
         g.fillStyle(0x00ff00, 0.4);
         this.fillRect(g, x - 1 + lx, y + 6, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 6, 2, 1);
     }
 
     // SNIPER - Long coat with rifle
     drawSniper(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 3);
+        const sway = Math.round(legSwing / 4); // Coat sway
+
         // Helmet/goggles head
         g.fillStyle(0xffaa66, 1);
         this.fillRect(g, x - 2, y - 6, 4, 4);
@@ -873,32 +968,37 @@ class BootScene extends Phaser.Scene {
         this.fillRect(g, x - 1, y - 5, 1, 1); // Lens glow
         this.fillRect(g, x + 1, y - 5, 1, 1);
 
-        // Long coat
+        // Long coat - sways during walk
         g.fillStyle(0xaa3300, 1);
         this.fillRect(g, x - 3, y - 2, 6, 4);
-        this.fillRect(g, x - 4, y + 2, 8, 4);
+        this.fillRect(g, x - 4 + sway, y + 2, 8, 4);
         g.fillStyle(0xffaa00, 0.6);
         this.fillRect(g, x - 1, y - 1, 2, 1);
 
-        // Long rifle
+        // Long rifle - aims during attack
         g.fillStyle(0x444444, 1);
-        this.fillRect(g, x + 3, y - 2, 5, 1);
-        this.fillRect(g, x + 2, y - 1, 2, 2);
-        if (anim === 'special') {
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x + 3 + punch, y - 3, 6, 1);
+            this.fillRect(g, x + 2, y - 2, 2, 2);
             g.fillStyle(0xff4400, 0.9);
-            this.fillRect(g, x + 8, y - 2, 2, 1);
+            this.fillRect(g, x + 9 + punch, y - 3, 2, 1);
             g.fillStyle(0xffff00, 0.7);
-            this.fillRect(g, x + 9, y - 2, 1, 1);
+            this.fillRect(g, x + 10 + punch, y - 3, 1, 1);
+        } else {
+            this.fillRect(g, x + 3, y - 2, 5, 1);
+            this.fillRect(g, x + 2, y - 1, 2, 2);
         }
 
-        // Coat continues as legs
+        // Coat continues as legs - slight movement
         g.fillStyle(0x882200, 1);
-        this.fillRect(g, x - 2, y + 6, 2, 2);
-        this.fillRect(g, x + 1, y + 6, 2, 2);
+        this.fillRect(g, x - 2 + lx, y + 6, 2, 2);
+        this.fillRect(g, x + 1 - lx, y + 6, 2, 2);
     }
 
     // BOMBER - Round body with bombs
     drawBomber(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+
         // Round head with fuse
         g.fillStyle(0xff6600, 1);
         this.fillRect(g, x - 3, y - 7, 6, 5);
@@ -920,21 +1020,21 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0x222222, 1);
         this.fillRect(g, x - 1, y + 1, 2, 2); // Skull symbol
 
-        // Bomb in hand during special
-        if (anim === 'special') {
+        // Bomb in hand during attack
+        if (anim === 'attack' || anim === 'special') {
             g.fillStyle(0x444444, 1);
             this.fillRect(g, x + 4 + punch, y - 2, 3, 3);
             g.fillStyle(0xffff00, frame % 2 === 0 ? 1 : 0.5);
             this.fillRect(g, x + 5 + punch, y - 3, 1, 1);
         }
 
-        // Short legs
+        // Short legs - waddle walk
         g.fillStyle(0xcc5500, 1);
-        this.fillRect(g, x - 2, y + 4, 2, 3);
-        this.fillRect(g, x + 1, y + 4, 2, 3);
+        this.fillRect(g, x - 2 + lx, y + 4, 2, 3);
+        this.fillRect(g, x + 1 - lx, y + 4, 2, 3);
         g.fillStyle(0x884400, 1);
-        this.fillRect(g, x - 2, y + 6, 2, 1);
-        this.fillRect(g, x + 1, y + 6, 2, 1);
+        this.fillRect(g, x - 2 + lx, y + 6, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 6, 2, 1);
     }
 
     // STRIKER - Electric speedster
@@ -987,6 +1087,9 @@ class BootScene extends Phaser.Scene {
 
     // GOLEM - Massive stone creature
     drawGolem(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 4); // Very slow heavy step
+        const ax = Math.round(armSwing / 3);
+
         // Massive stone head
         g.fillStyle(0x666666, 1);
         this.fillRect(g, x - 4, y - 8, 8, 6);
@@ -1006,33 +1109,43 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0x00ffff, 0.5);
         this.fillRect(g, x - 1, y, 2, 2); // Core glow
 
-        // Massive arms
+        // Massive arms - swing or smash
         g.fillStyle(0x666666, 1);
-        this.fillRect(g, x - 7, y - 2, 2, 6);
-        this.fillRect(g, x + 5, y - 2, 2, 6);
-        g.fillStyle(0x444444, 1);
-        this.fillRect(g, x - 7, y + 3, 2, 2); // Fists
-        this.fillRect(g, x + 5, y + 3, 2, 2);
-
-        // Earthquake during special
-        if (anim === 'special') {
-            g.fillStyle(0x888888, 0.8);
-            this.fillRect(g, x - 6, y + 8, 3, 2);
-            this.fillRect(g, x - 2, y + 9, 2, 2);
-            this.fillRect(g, x + 2, y + 8, 3, 2);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 7, y - 2, 2, 6);
+            this.fillRect(g, x + 5 + punch, y - 2 - punch, 2, 6);
+            g.fillStyle(0x444444, 1);
+            this.fillRect(g, x - 7, y + 3, 2, 2);
+            this.fillRect(g, x + 5 + punch, y + 3 - punch, 2, 2);
+            // Ground crack during special
+            if (anim === 'special') {
+                g.fillStyle(0x888888, 0.8);
+                this.fillRect(g, x - 6, y + 8, 3, 2);
+                this.fillRect(g, x - 2, y + 9, 2, 2);
+                this.fillRect(g, x + 2, y + 8, 3, 2);
+            }
+        } else {
+            this.fillRect(g, x - 7, y - 2 + ax, 2, 6);
+            this.fillRect(g, x + 5, y - 2 - ax, 2, 6);
+            g.fillStyle(0x444444, 1);
+            this.fillRect(g, x - 7, y + 3 + ax, 2, 2);
+            this.fillRect(g, x + 5, y + 3 - ax, 2, 2);
         }
 
-        // Thick legs
+        // Thick legs - slow heavy walk
         g.fillStyle(0x555555, 1);
-        this.fillRect(g, x - 4, y + 6, 4, 4);
-        this.fillRect(g, x + 1, y + 6, 4, 4);
+        this.fillRect(g, x - 4 + lx, y + 6, 4, 4);
+        this.fillRect(g, x + 1 - lx, y + 6, 4, 4);
         g.fillStyle(0x444444, 1);
-        this.fillRect(g, x - 4, y + 9, 4, 1);
-        this.fillRect(g, x + 1, y + 9, 4, 1);
+        this.fillRect(g, x - 4 + lx, y + 9, 4, 1);
+        this.fillRect(g, x + 1 - lx, y + 9, 4, 1);
     }
 
     // Default character drawing
     drawDefaultChar(g, x, y, color, accentColor, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
         // Simple head
         g.fillStyle(color, 1);
         this.fillRect(g, x - 2, y - 6, 4, 4);
@@ -1046,14 +1159,19 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(accentColor, 1);
         this.fillRect(g, x - 1, y - 1, 3, 1);
 
-        // Arms
+        // Arms - animated
         g.fillStyle(color, 1);
-        this.fillRect(g, x - 3, y - 1, 1, 3);
-        this.fillRect(g, x + 3, y - 1, 1, 3);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 3, y - 1, 1, 3);
+            this.fillRect(g, x + 3 + punch, y - 1, 1, 3);
+        } else {
+            this.fillRect(g, x - 3, y - 1 + ax, 1, 3);
+            this.fillRect(g, x + 3, y - 1 - ax, 1, 3);
+        }
 
-        // Legs
-        this.fillRect(g, x - 1, y + 3, 1, 4);
-        this.fillRect(g, x + 1, y + 3, 1, 4);
+        // Legs - animated with opposite directions
+        this.fillRect(g, x - 1 + lx, y + 3, 1, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 1, 4);
     }
 
     fillRect(graphics, x, y, w, h) {
