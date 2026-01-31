@@ -16,6 +16,7 @@ class GameScene extends Phaser.Scene {
         // Initialize game state
         this.gameOver = false;
         this.isPaused = false;
+        this.countdownActive = true; // Set IMMEDIATELY to prevent any update logic before countdown starts
 
         // Create arena
         this.createArenaBackground();
@@ -422,6 +423,10 @@ class GameScene extends Phaser.Scene {
         fighter.body.setCollideWorldBounds(false);
         fighter.body.setGravityY(GRAVITY);
         fighter.body.setMaxVelocity(500, 800);
+
+        // Start with gravity disabled - will be enabled after countdown
+        fighter.body.setAllowGravity(false);
+        fighter.body.setImmovable(true);
 
         // Fighter properties
         fighter.characterData = charData;
