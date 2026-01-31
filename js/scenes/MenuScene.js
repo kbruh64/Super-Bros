@@ -1,20 +1,17 @@
-// Main Menu Scene with stunning visuals
+// Main Menu Scene - Minecraft Style UI
 class MenuScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MenuScene' });
     }
 
     create() {
-        // Animated gradient background
-        this.createAnimatedBackground();
+        // Minecraft-style dirt background
+        this.createMinecraftBackground();
 
-        // Particle systems for ambiance
-        this.createParticleEffects();
-
-        // Title with glow effect
+        // Title with blocky style
         this.createTitle();
 
-        // Menu buttons
+        // Minecraft-style menu buttons
         this.createMenuButtons();
 
         // Floating character previews
@@ -23,152 +20,113 @@ class MenuScene extends Phaser.Scene {
         // Version text
         this.add.text(GAME_WIDTH - 10, GAME_HEIGHT - 10, 'v1.0.0', {
             fontSize: '14px',
-            fontFamily: 'Arial',
-            color: '#666666'
+            fontFamily: 'Courier New, monospace',
+            color: '#555555'
         }).setOrigin(1, 1);
     }
 
-    createAnimatedBackground() {
-        // Create multiple gradient layers
-        this.bgLayers = [];
+    createMinecraftBackground() {
+        // Dark background
+        const bg = this.add.graphics();
+        bg.fillStyle(0x2d2d2d, 1);
+        bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-        for (let i = 0; i < 3; i++) {
-            const graphics = this.add.graphics();
-            graphics.fillGradientStyle(
-                0x1a1a2e, 0x16213e,
-                0x0f3460, 0x1a1a2e,
-                1
-            );
-            graphics.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-            graphics.setAlpha(0.5 + i * 0.2);
-            this.bgLayers.push(graphics);
+        // Draw dirt-like pattern
+        const dirtColors = [0x6b5344, 0x5a4636, 0x7a6352, 0x4a3828];
+        const grassColors = [0x5a8f3a, 0x4a7f2a, 0x6a9f4a];
+
+        for (let x = 0; x < GAME_WIDTH; x += 16) {
+            for (let y = 0; y < GAME_HEIGHT; y += 16) {
+                const noise = Math.random();
+                let color;
+                if (y < 64) {
+                    // Grass at top
+                    color = grassColors[Math.floor(Math.random() * grassColors.length)];
+                } else {
+                    // Dirt/stone below
+                    color = dirtColors[Math.floor(Math.random() * dirtColors.length)];
+                }
+                bg.fillStyle(color, 0.3 + noise * 0.2);
+                bg.fillRect(x, y, 16, 16);
+
+                // Add pixel noise texture
+                if (Math.random() > 0.7) {
+                    bg.fillStyle(0x000000, 0.1);
+                    bg.fillRect(x + Math.random() * 8, y + Math.random() * 8, 4, 4);
+                }
+            }
         }
 
-        // Animated color overlay
-        this.colorOverlay = this.add.graphics();
-        this.updateOverlay(0);
-
-        // Animate the overlay
-        this.tweens.addCounter({
-            from: 0,
-            to: 360,
-            duration: 10000,
-            repeat: -1,
-            onUpdate: (tween) => {
-                this.updateOverlay(tween.getValue());
-            }
-        });
-    }
-
-    updateOverlay(hue) {
-        this.colorOverlay.clear();
-        const color = Phaser.Display.Color.HSLToColor(hue / 360, 0.5, 0.15);
-        this.colorOverlay.fillStyle(color.color, 0.3);
-        this.colorOverlay.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-    }
-
-    createParticleEffects() {
-        // Create star field
-        this.particles = this.add.particles(0, 0, 'particle_star', {
-            x: { min: 0, max: GAME_WIDTH },
-            y: { min: 0, max: GAME_HEIGHT },
-            lifespan: 4000,
-            speed: { min: 10, max: 30 },
-            angle: { min: 260, max: 280 },
-            scale: { start: 0.5, end: 0 },
-            alpha: { start: 0.8, end: 0 },
-            frequency: 100,
-            blendMode: 'ADD'
-        });
-
-        // Glowing orbs
-        this.glowOrbs = [];
+        // Darker vignette around edges
+        const vignette = this.add.graphics();
         for (let i = 0; i < 5; i++) {
-            const orb = this.add.circle(
-                Math.random() * GAME_WIDTH,
-                Math.random() * GAME_HEIGHT,
-                20 + Math.random() * 30,
-                0xe94560,
-                0.1
-            );
-            orb.setBlendMode('ADD');
-
-            this.tweens.add({
-                targets: orb,
-                x: Math.random() * GAME_WIDTH,
-                y: Math.random() * GAME_HEIGHT,
-                alpha: { from: 0.05, to: 0.2 },
-                scale: { from: 0.8, to: 1.2 },
-                duration: 5000 + Math.random() * 5000,
-                repeat: -1,
-                yoyo: true,
-                ease: 'Sine.easeInOut'
-            });
-
-            this.glowOrbs.push(orb);
+            vignette.fillStyle(0x000000, 0.15 - i * 0.025);
+            vignette.fillRect(0, 0, GAME_WIDTH, 40 - i * 8);
+            vignette.fillRect(0, GAME_HEIGHT - 40 + i * 8, GAME_WIDTH, 40 - i * 8);
+            vignette.fillRect(0, 0, 40 - i * 8, GAME_HEIGHT);
+            vignette.fillRect(GAME_WIDTH - 40 + i * 8, 0, 40 - i * 8, GAME_HEIGHT);
         }
     }
 
     createTitle() {
-        // Shadow layers for 3D effect
-        for (let i = 5; i > 0; i--) {
-            this.add.text(GAME_WIDTH / 2 + i * 2, 100 + i * 2, 'SUPER BROS', {
-                fontSize: '72px',
-                fontFamily: 'Arial Black, Arial',
+        // Shadow for 3D blocky effect
+        for (let i = 4; i > 0; i--) {
+            this.add.text(GAME_WIDTH / 2 + i, 80 + i, 'SUPER BROS', {
+                fontSize: '64px',
+                fontFamily: 'Courier New, monospace',
+                fontStyle: 'bold',
                 color: '#000000'
-            }).setOrigin(0.5).setAlpha(0.3 - i * 0.05);
+            }).setOrigin(0.5).setAlpha(0.5);
         }
 
-        // Main title
-        const title = this.add.text(GAME_WIDTH / 2, 100, 'SUPER BROS', {
-            fontSize: '72px',
-            fontFamily: 'Arial Black, Arial',
-            color: '#ffffff'
+        // Main title - yellow like Minecraft
+        const title = this.add.text(GAME_WIDTH / 2, 80, 'SUPER BROS', {
+            fontSize: '64px',
+            fontFamily: 'Courier New, monospace',
+            fontStyle: 'bold',
+            color: '#ffff00'
         }).setOrigin(0.5);
+        title.setStroke('#5a5a00', 6);
 
-        // Glow effect using stroke
-        title.setStroke('#e94560', 8);
-        title.setShadow(0, 0, '#e94560', 20, true, true);
-
-        // Animate title
-        this.tweens.add({
-            targets: title,
-            scaleX: 1.05,
-            scaleY: 1.05,
-            duration: 1500,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
-
-        // Subtitle
-        const subtitle = this.add.text(GAME_WIDTH / 2, 170, 'PLATFORM FIGHTER', {
+        // Subtitle - "CYBER EDITION"
+        const subtitle = this.add.text(GAME_WIDTH / 2, 140, 'CYBER EDITION', {
             fontSize: '24px',
-            fontFamily: 'Arial',
-            color: '#e94560'
+            fontFamily: 'Courier New, monospace',
+            color: '#00ffff'
         }).setOrigin(0.5);
+        subtitle.setStroke('#005555', 3);
+
+        // Splash text like Minecraft
+        const splashes = ['Also try Minecraft!', '100% Neon!', 'Cyber themed!', 'Now with combos!', 'Blocky UI!'];
+        const splash = this.add.text(GAME_WIDTH / 2 + 200, 120, splashes[Math.floor(Math.random() * splashes.length)], {
+            fontSize: '18px',
+            fontFamily: 'Courier New, monospace',
+            fontStyle: 'bold',
+            color: '#ffff00'
+        }).setOrigin(0.5).setRotation(-0.3);
 
         this.tweens.add({
-            targets: subtitle,
-            alpha: { from: 0.6, to: 1 },
-            duration: 800,
+            targets: splash,
+            scaleX: 1.1,
+            scaleY: 1.1,
+            duration: 500,
             yoyo: true,
             repeat: -1
         });
     }
 
     createMenuButtons() {
-        const buttonY = 320;
-        const buttonSpacing = 70;
+        const buttonY = 280;
+        const buttonSpacing = 60;
 
         const buttons = [
-            { text: '1 PLAYER', scene: 'CharacterSelectScene', mode: 'single' },
-            { text: '2 PLAYERS', scene: 'CharacterSelectScene', mode: 'versus' },
-            { text: 'HOW TO PLAY', action: 'controls' }
+            { text: 'Singleplayer', scene: 'CharacterSelectScene', mode: 'single' },
+            { text: 'Multiplayer', scene: 'CharacterSelectScene', mode: 'versus' },
+            { text: 'How To Play', action: 'controls' }
         ];
 
         buttons.forEach((btn, index) => {
-            this.createButton(
+            this.createMinecraftButton(
                 GAME_WIDTH / 2,
                 buttonY + index * buttonSpacing,
                 btn.text,
@@ -183,68 +141,80 @@ class MenuScene extends Phaser.Scene {
         });
     }
 
-    createButton(x, y, text, callback) {
+    createMinecraftButton(x, y, text, callback) {
         const container = this.add.container(x, y);
+        const width = 300;
+        const height = 40;
 
-        // Button background
+        // Button background - stone-like gray
         const bg = this.add.graphics();
-        bg.fillStyle(0xe94560, 1);
-        bg.fillRoundedRect(-120, -30, 240, 60, 12);
-
-        // Highlight
-        const highlight = this.add.graphics();
-        highlight.fillStyle(0xff6680, 0.5);
-        highlight.fillRoundedRect(-115, -27, 230, 25, 10);
-
-        // Border
-        const border = this.add.graphics();
-        border.lineStyle(3, 0xff8899, 0.8);
-        border.strokeRoundedRect(-120, -30, 240, 60, 12);
+        this.drawMinecraftButtonBg(bg, -width/2, -height/2, width, height, false);
 
         // Text
         const btnText = this.add.text(0, 0, text, {
-            fontSize: '28px',
-            fontFamily: 'Arial Black, Arial',
+            fontSize: '20px',
+            fontFamily: 'Courier New, monospace',
             color: '#ffffff'
         }).setOrigin(0.5);
-        btnText.setStroke('#000000', 4);
+        btnText.setStroke('#3f3f3f', 2);
 
-        container.add([bg, highlight, border, btnText]);
+        container.add([bg, btnText]);
 
         // Make interactive
-        const hitArea = this.add.rectangle(x, y, 240, 60, 0x000000, 0);
+        const hitArea = this.add.rectangle(x, y, width, height, 0x000000, 0);
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
-            this.tweens.add({
-                targets: container,
-                scaleX: 1.1,
-                scaleY: 1.1,
-                duration: 100
-            });
             bg.clear();
-            bg.fillStyle(0xff6680, 1);
-            bg.fillRoundedRect(-120, -30, 240, 60, 12);
+            this.drawMinecraftButtonBg(bg, -width/2, -height/2, width, height, true);
+            btnText.setColor('#ffffa0');
         });
 
         hitArea.on('pointerout', () => {
-            this.tweens.add({
-                targets: container,
-                scaleX: 1,
-                scaleY: 1,
-                duration: 100
-            });
             bg.clear();
-            bg.fillStyle(0xe94560, 1);
-            bg.fillRoundedRect(-120, -30, 240, 60, 12);
+            this.drawMinecraftButtonBg(bg, -width/2, -height/2, width, height, false);
+            btnText.setColor('#ffffff');
         });
 
         hitArea.on('pointerdown', () => {
-            this.cameras.main.flash(100, 233, 69, 96);
             callback();
         });
 
         return container;
+    }
+
+    drawMinecraftButtonBg(graphics, x, y, width, height, hovered) {
+        // Minecraft button style - gray with beveled edges
+        const mainColor = hovered ? 0x6c8ccc : 0x8b8b8b;
+        const lightColor = hovered ? 0x9cbcfc : 0xc6c6c6;
+        const darkColor = hovered ? 0x3c5c9c : 0x555555;
+        const borderColor = 0x000000;
+
+        // Black border
+        graphics.fillStyle(borderColor, 1);
+        graphics.fillRect(x, y, width, height);
+
+        // Main button body
+        graphics.fillStyle(mainColor, 1);
+        graphics.fillRect(x + 2, y + 2, width - 4, height - 4);
+
+        // Top/left highlight
+        graphics.fillStyle(lightColor, 1);
+        graphics.fillRect(x + 2, y + 2, width - 4, 2);
+        graphics.fillRect(x + 2, y + 2, 2, height - 4);
+
+        // Bottom/right shadow
+        graphics.fillStyle(darkColor, 1);
+        graphics.fillRect(x + 2, y + height - 4, width - 4, 2);
+        graphics.fillRect(x + width - 4, y + 2, 2, height - 4);
+
+        // Pixelated texture
+        for (let i = 0; i < 8; i++) {
+            const px = x + 4 + Math.random() * (width - 8);
+            const py = y + 4 + Math.random() * (height - 8);
+            graphics.fillStyle(hovered ? 0x8cacdc : 0x7a7a7a, 0.5);
+            graphics.fillRect(px, py, 4, 4);
+        }
     }
 
     createFloatingCharacters() {
@@ -279,23 +249,21 @@ class MenuScene extends Phaser.Scene {
         const overlay = this.add.rectangle(
             GAME_WIDTH / 2, GAME_HEIGHT / 2,
             GAME_WIDTH, GAME_HEIGHT,
-            0x000000, 0.8
+            0x000000, 0.7
         );
 
         const panel = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
 
-        // Panel background
+        // Panel background - Minecraft inventory style
         const panelBg = this.add.graphics();
-        panelBg.fillStyle(0x16213e, 1);
-        panelBg.fillRoundedRect(-300, -220, 600, 440, 20);
-        panelBg.lineStyle(4, 0xe94560, 1);
-        panelBg.strokeRoundedRect(-300, -220, 600, 440, 20);
+        this.drawMinecraftPanel(panelBg, -280, -200, 560, 400);
 
         // Title
-        const title = this.add.text(0, -180, 'CONTROLS', {
-            fontSize: '36px',
-            fontFamily: 'Arial Black',
-            color: '#e94560'
+        const title = this.add.text(0, -160, 'CONTROLS', {
+            fontSize: '28px',
+            fontFamily: 'Courier New, monospace',
+            fontStyle: 'bold',
+            color: '#3f3f3f'
         }).setOrigin(0.5);
 
         // Controls info
@@ -315,29 +283,71 @@ class MenuScene extends Phaser.Scene {
         ];
 
         const textContent = this.add.text(0, 20, controlsText.join('\n'), {
-            fontSize: '20px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
+            fontSize: '16px',
+            fontFamily: 'Courier New, monospace',
+            color: '#3f3f3f',
             align: 'center',
-            lineSpacing: 8
+            lineSpacing: 6
         }).setOrigin(0.5);
 
-        // Close button
-        const closeBtn = this.add.text(0, 180, 'CLOSE', {
-            fontSize: '24px',
-            fontFamily: 'Arial Black',
-            color: '#ffffff',
-            backgroundColor: '#e94560',
-            padding: { x: 30, y: 10 }
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        // Close button - Minecraft style
+        const closeBg = this.add.graphics();
+        this.drawMinecraftButtonBg(closeBg, -60, -15, 120, 30, false);
+        const closeText = this.add.text(0, 0, 'Done', {
+            fontSize: '16px',
+            fontFamily: 'Courier New, monospace',
+            color: '#ffffff'
+        }).setOrigin(0.5);
+        closeText.setStroke('#3f3f3f', 2);
 
-        closeBtn.on('pointerover', () => closeBtn.setScale(1.1));
-        closeBtn.on('pointerout', () => closeBtn.setScale(1));
-        closeBtn.on('pointerdown', () => {
-            panel.destroy();
-            overlay.destroy();
+        const closeContainer = this.add.container(0, 160, [closeBg, closeText]);
+
+        const closeHit = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 160, 120, 30, 0x000000, 0);
+        closeHit.setInteractive({ useHandCursor: true });
+
+        closeHit.on('pointerover', () => {
+            closeBg.clear();
+            this.drawMinecraftButtonBg(closeBg, -60, -15, 120, 30, true);
+            closeText.setColor('#ffffa0');
         });
 
-        panel.add([panelBg, title, textContent, closeBtn]);
+        closeHit.on('pointerout', () => {
+            closeBg.clear();
+            this.drawMinecraftButtonBg(closeBg, -60, -15, 120, 30, false);
+            closeText.setColor('#ffffff');
+        });
+
+        closeHit.on('pointerdown', () => {
+            panel.destroy();
+            overlay.destroy();
+            closeHit.destroy();
+        });
+
+        panel.add([panelBg, title, textContent, closeContainer]);
+    }
+
+    drawMinecraftPanel(graphics, x, y, width, height) {
+        // Minecraft inventory panel - light gray with dark border
+        const bgColor = 0xc6c6c6;
+        const borderDark = 0x373737;
+        const borderLight = 0xffffff;
+
+        // Outer dark border
+        graphics.fillStyle(borderDark, 1);
+        graphics.fillRect(x, y, width, height);
+
+        // Inner light area
+        graphics.fillStyle(bgColor, 1);
+        graphics.fillRect(x + 4, y + 4, width - 8, height - 8);
+
+        // Top/left white highlight
+        graphics.fillStyle(borderLight, 1);
+        graphics.fillRect(x + 4, y + 4, width - 8, 2);
+        graphics.fillRect(x + 4, y + 4, 2, height - 8);
+
+        // Bottom/right dark shadow
+        graphics.fillStyle(borderDark, 0.5);
+        graphics.fillRect(x + 4, y + height - 6, width - 8, 2);
+        graphics.fillRect(x + width - 6, y + 4, 2, height - 8);
     }
 }

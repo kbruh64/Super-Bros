@@ -459,56 +459,62 @@ class GameScene extends Phaser.Scene {
 
     createHUD() {
         // Player 1 HUD (left side)
-        this.p1HUD = this.createPlayerHUD(30, 20, this.player1, 0x00ff00);
+        this.p1HUD = this.createPlayerHUD(30, 20, this.player1, 0x55ff55);
 
         // Player 2 HUD (right side)
-        this.p2HUD = this.createPlayerHUD(GAME_WIDTH - 230, 20, this.player2, 0xff6600);
+        this.p2HUD = this.createPlayerHUD(GAME_WIDTH - 230, 20, this.player2, 0xff5555);
 
-        // Timer (center)
+        // Timer (center) - Minecraft style
         this.timerText = this.add.text(GAME_WIDTH / 2, 30, '∞', {
-            fontSize: '32px',
-            fontFamily: 'Arial Black',
+            fontSize: '28px',
+            fontFamily: 'Courier New, monospace',
+            fontStyle: 'bold',
             color: '#ffffff'
         }).setOrigin(0.5);
-        this.timerText.setStroke('#000000', 4);
+        this.timerText.setStroke('#3f3f3f', 3);
     }
 
     createPlayerHUD(x, y, fighter, color) {
         const container = this.add.container(x, y);
 
-        // Background
+        // Minecraft-style inventory panel background
         const bg = this.add.graphics();
-        bg.fillStyle(0x000000, 0.5);
-        bg.fillRoundedRect(0, 0, 200, 80, 10);
+        this.drawMinecraftHUDPanel(bg, 0, 0, 200, 80);
 
-        // Player label
+        // Player label - blocky style
         const label = this.add.text(10, 8, `P${fighter.playerNum}`, {
-            fontSize: '16px',
-            fontFamily: 'Arial Black',
+            fontSize: '14px',
+            fontFamily: 'Courier New, monospace',
+            fontStyle: 'bold',
             color: Phaser.Display.Color.IntegerToColor(color).rgba
         });
+        label.setStroke('#000000', 2);
 
         // Character name
-        const name = this.add.text(45, 8, fighter.characterData.name, {
-            fontSize: '14px',
-            fontFamily: 'Arial',
-            color: '#ffffff'
+        const name = this.add.text(40, 8, fighter.characterData.name, {
+            fontSize: '12px',
+            fontFamily: 'Courier New, monospace',
+            color: '#3f3f3f'
         });
 
-        // Damage percentage
-        const damageText = this.add.text(100, 35, '0%', {
-            fontSize: '28px',
-            fontFamily: 'Arial Black',
-            color: '#00ff00'
+        // Damage percentage - large blocky text
+        const damageText = this.add.text(100, 32, '0%', {
+            fontSize: '24px',
+            fontFamily: 'Courier New, monospace',
+            fontStyle: 'bold',
+            color: '#55ff55'
         }).setOrigin(0.5, 0);
+        damageText.setStroke('#003300', 3);
 
-        // Stock icons
-        const stockContainer = this.add.container(10, 60);
+        // Stock icons - Minecraft heart style
+        const stockContainer = this.add.container(10, 58);
         const stockIcons = [];
         for (let i = 0; i < fighter.stocks; i++) {
-            const icon = this.add.image(i * 22, 0, 'stock_icon');
-            stockContainer.add(icon);
-            stockIcons.push(icon);
+            // Draw pixelated heart
+            const heart = this.add.graphics();
+            this.drawPixelHeart(heart, i * 22, 0, 0xff0000);
+            stockContainer.add(heart);
+            stockIcons.push(heart);
         }
 
         container.add([bg, label, name, damageText, stockContainer]);
@@ -519,6 +525,59 @@ class GameScene extends Phaser.Scene {
             stockIcons,
             fighter
         };
+    }
+
+    drawMinecraftHUDPanel(graphics, x, y, width, height) {
+        // Minecraft inventory style panel
+        const bgColor = 0xc6c6c6;
+        const borderDark = 0x373737;
+        const borderLight = 0xffffff;
+
+        // Outer dark border
+        graphics.fillStyle(borderDark, 0.9);
+        graphics.fillRect(x, y, width, height);
+
+        // Inner light area
+        graphics.fillStyle(bgColor, 0.9);
+        graphics.fillRect(x + 3, y + 3, width - 6, height - 6);
+
+        // Top/left white highlight
+        graphics.fillStyle(borderLight, 0.7);
+        graphics.fillRect(x + 3, y + 3, width - 6, 2);
+        graphics.fillRect(x + 3, y + 3, 2, height - 6);
+
+        // Bottom/right dark shadow
+        graphics.fillStyle(borderDark, 0.5);
+        graphics.fillRect(x + 3, y + height - 5, width - 6, 2);
+        graphics.fillRect(x + width - 5, y + 3, 2, height - 6);
+    }
+
+    drawPixelHeart(graphics, x, y, color) {
+        // 8x8 pixel heart
+        const pixels = [
+            [0,1,1,0,0,1,1,0],
+            [1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1],
+            [0,1,1,1,1,1,1,0],
+            [0,0,1,1,1,1,0,0],
+            [0,0,0,1,1,0,0,0],
+            [0,0,0,0,0,0,0,0]
+        ];
+
+        const size = 2;
+        graphics.fillStyle(color, 1);
+        for (let py = 0; py < pixels.length; py++) {
+            for (let px = 0; px < pixels[py].length; px++) {
+                if (pixels[py][px] === 1) {
+                    graphics.fillRect(x + px * size, y + py * size, size, size);
+                }
+            }
+        }
+
+        // Dark outline
+        graphics.fillStyle(0x550000, 1);
+        graphics.fillRect(x + 2, y + 14, 12, 2);
     }
 
     setupInput() {
@@ -1218,19 +1277,21 @@ class GameScene extends Phaser.Scene {
             comboColor = '#ffff00';
         }
 
-        // Create combo counter text near the target
+        // Create combo counter text near the target - Minecraft style
         const comboText = this.add.text(target.x, target.y - 60, `${attacker.comboCount} HIT COMBO!`, {
-            fontSize: '24px',
-            fontFamily: 'Arial Black',
+            fontSize: '20px',
+            fontFamily: 'Courier New, monospace',
+            fontStyle: 'bold',
             color: comboColor
         }).setOrigin(0.5);
-        comboText.setStroke('#000000', 4);
+        comboText.setStroke('#000000', 3);
 
         // Add label below if earned
         if (comboLabel) {
             const labelText = this.add.text(target.x, target.y - 35, comboLabel, {
-                fontSize: '16px',
-                fontFamily: 'Arial Black',
+                fontSize: '14px',
+                fontFamily: 'Courier New, monospace',
+                fontStyle: 'bold',
                 color: comboColor
             }).setOrigin(0.5);
             labelText.setStroke('#000000', 3);
@@ -1323,23 +1384,27 @@ class GameScene extends Phaser.Scene {
     }
 
     updateHUD() {
-        // Update damage displays
+        // Update damage displays - Minecraft style colors
         [this.p1HUD, this.p2HUD].forEach(hud => {
             const damage = Math.floor(hud.fighter.damage);
             hud.damageText.setText(`${damage}%`);
 
-            // Color based on damage
+            // Color based on damage - Minecraft-ish colors
             if (damage < 50) {
-                hud.damageText.setColor('#00ff00');
+                hud.damageText.setColor('#55ff55');  // Green
+                hud.damageText.setStroke('#005500', 3);
             } else if (damage < 100) {
-                hud.damageText.setColor('#ffff00');
+                hud.damageText.setColor('#ffff55');  // Yellow
+                hud.damageText.setStroke('#555500', 3);
             } else if (damage < 150) {
-                hud.damageText.setColor('#ff8800');
+                hud.damageText.setColor('#ffaa00');  // Gold/Orange
+                hud.damageText.setStroke('#553300', 3);
             } else {
-                hud.damageText.setColor('#ff0000');
+                hud.damageText.setColor('#ff5555');  // Red
+                hud.damageText.setStroke('#550000', 3);
             }
 
-            // Update stock icons
+            // Update stock icons (hearts)
             hud.stockIcons.forEach((icon, i) => {
                 icon.setVisible(i < hud.fighter.stocks);
             });

@@ -168,49 +168,59 @@ class BootScene extends Phaser.Scene {
 
         switch (bodyType) {
             case 'slim':
-                torsoWidth = 3;
+                torsoWidth = 2;
                 headWidth = 3;
+                torsoHeight = 5;
                 break;
             case 'bulky':
-                torsoWidth = 5;
-                torsoHeight = 5;
-                shoulderWidth = 1;
+                torsoWidth = 6;
+                torsoHeight = 6;
+                headWidth = 5;
+                shoulderWidth = 2;
                 break;
             case 'muscular':
-                torsoWidth = 4;
-                shoulderWidth = 1;
-                break;
-            case 'robed':
-                torsoWidth = 5;
-                torsoHeight = 5;
-                break;
-            case 'mechanical':
                 torsoWidth = 5;
                 headWidth = 4;
-                headHeight = 4;
+                shoulderWidth = 2;
                 break;
-            case 'demonic':
-                torsoWidth = 5;
+            case 'robed':
+                torsoWidth = 6;
+                torsoHeight = 6;
+                headWidth = 4;
+                break;
+            case 'mechanical':
+                torsoWidth = 6;
+                headWidth = 5;
                 headHeight = 5;
                 shoulderWidth = 1;
                 break;
+            case 'demonic':
+                torsoWidth = 6;
+                headHeight = 6;
+                headWidth = 5;
+                shoulderWidth = 2;
+                break;
             case 'angelic':
                 headWidth = 4;
+                torsoWidth = 3;
+                torsoHeight = 5;
                 break;
             case 'ethereal':
-                torsoWidth = 3;
+                torsoWidth = 2;
                 headWidth = 3;
+                torsoHeight = 5;
                 break;
             case 'bestial':
-                torsoWidth = 5;
-                headWidth = 5;
-                headHeight = 4;
-                shoulderWidth = 1;
+                torsoWidth = 7;
+                headWidth = 6;
+                headHeight = 5;
+                shoulderWidth = 2;
                 break;
             case 'armored':
-                torsoWidth = 5;
-                torsoHeight = 5;
-                shoulderWidth = 1;
+                torsoWidth = 6;
+                torsoHeight = 6;
+                headWidth = 5;
+                shoulderWidth = 2;
                 break;
         }
 
