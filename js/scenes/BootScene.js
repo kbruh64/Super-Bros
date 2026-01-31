@@ -198,6 +198,36 @@ class BootScene extends Phaser.Scene {
             case 'golem':
                 this.drawGolem(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
                 break;
+            case 'samurai':
+                this.drawSamurai(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'medic':
+                this.drawMedic(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'phantom':
+                this.drawPhantom(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'gladiator':
+                this.drawGladiator(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'psychic':
+                this.drawPsychic(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'berserker':
+                this.drawBerserker(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'engineer':
+                this.drawEngineer(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'vampire':
+                this.drawVampire(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'scorpion':
+                this.drawScorpion(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
+            case 'titan':
+                this.drawTitan(graphics, x, y, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
+                break;
             default:
                 this.drawDefaultChar(graphics, x, y, color, accentColor, animation, frame, attackPunch, glowIntensity, legSwing, armSwing);
         }
@@ -1139,6 +1169,498 @@ class BootScene extends Phaser.Scene {
         g.fillStyle(0x444444, 1);
         this.fillRect(g, x - 4 + lx, y + 9, 4, 1);
         this.fillRect(g, x + 1 - lx, y + 9, 4, 1);
+    }
+
+    // SAMURAI - Ronin warrior with katana
+    drawSamurai(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
+        // Samurai helmet (kabuto)
+        g.fillStyle(0xcc2222, 1);
+        this.fillRect(g, x - 3, y - 7, 6, 5);
+        g.fillStyle(0x880000, 1);
+        this.fillRect(g, x - 4, y - 6, 1, 3); // Side horns
+        this.fillRect(g, x + 3, y - 6, 1, 3);
+        g.fillStyle(0xffcc00, 1);
+        this.fillRect(g, x - 1, y - 8, 2, 1); // Crest
+        g.fillStyle(0x222222, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 2); // Face mask
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+
+        // Armored body (do)
+        g.fillStyle(0x111111, 1);
+        this.fillRect(g, x - 3, y - 2, 6, 5);
+        g.fillStyle(0xcc2222, 1);
+        this.fillRect(g, x - 2, y - 1, 4, 3);
+        g.fillStyle(0xffcc00, 0.6);
+        this.fillRect(g, x - 1, y, 2, 1); // Belt
+
+        // Katana - quick draw during attack
+        g.fillStyle(0xaaaacc, 1);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x + 3 + punch, y - 4, 1, 6);
+            g.fillStyle(0xffffff, 0.9);
+            this.fillRect(g, x + 3 + punch, y - 5, 1, 2);
+            // Slash effect
+            g.fillStyle(0xffffff, 0.6);
+            this.fillRect(g, x + 4 + punch, y - 3, 1, 4);
+        } else {
+            // Sheathed katana
+            g.fillStyle(0x333333, 1);
+            this.fillRect(g, x - 4, y - 1 + ax, 1, 4);
+        }
+
+        // Legs with hakama
+        g.fillStyle(0x222222, 1);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
+        g.fillStyle(0xcc2222, 0.6);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 1);
+    }
+
+    // MEDIC - Support healer with nanobots
+    drawMedic(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
+        // Medical helmet
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0xff3333, 1);
+        this.fillRect(g, x - 1, y - 7, 2, 1); // Red cross on top
+        this.fillRect(g, x, y - 6, 1, 3);
+        g.fillStyle(0x00ff00, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+
+        // Medical suit body
+        g.fillStyle(0xeeeeff, 1);
+        this.fillRect(g, x - 3, y - 2, 6, 5);
+        g.fillStyle(0xff3333, 1);
+        this.fillRect(g, x - 1, y - 1, 1, 3); // Cross on suit
+        this.fillRect(g, x - 2, y, 3, 1);
+
+        // Healing device - active during attack
+        if (anim === 'attack' || anim === 'special') {
+            g.fillStyle(0x00ff88, 1);
+            this.fillRect(g, x + 3 + punch, y - 2, 2, 3);
+            // Healing particles
+            g.fillStyle(0x00ff00, 0.8);
+            for (let i = 0; i < 3; i++) {
+                this.fillRect(g, x + 5 + punch + i, y - 3 + (frame + i) % 4, 1, 1);
+            }
+        } else {
+            g.fillStyle(0x00aa66, 1);
+            this.fillRect(g, x + 3, y - 1 - ax, 2, 2);
+        }
+
+        // Legs
+        g.fillStyle(0xddddee, 1);
+        this.fillRect(g, x - 1 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
+        g.fillStyle(0xff3333, 0.5);
+        this.fillRect(g, x - 1 + lx, y + 6, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 6, 2, 1);
+    }
+
+    // PHANTOM - Ghostly intangible figure
+    drawPhantom(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const float = Math.sin(frame * 0.5) * 1; // Floating effect
+        const lx = Math.round(legSwing / 3);
+
+        // Ghostly hooded head
+        g.fillStyle(0x6666aa, 0.7);
+        this.fillRect(g, x - 2, y - 7 + float, 5, 5);
+        g.fillStyle(0x8888cc, 0.5);
+        this.fillRect(g, x - 1, y - 6 + float, 3, 3);
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 5 + float, 1, 1); // Glowing eyes
+        this.fillRect(g, x + 1, y - 5 + float, 1, 1);
+
+        // Ethereal body - semi-transparent
+        g.fillStyle(0x5555aa, 0.6);
+        this.fillRect(g, x - 3, y - 2 + float, 6, 5);
+        g.fillStyle(0x8888dd, 0.4);
+        this.fillRect(g, x - 2, y - 1 + float, 4, 3);
+
+        // Ghostly arms - phase through during attack
+        if (anim === 'attack' || anim === 'special') {
+            g.fillStyle(0xaaaaff, 0.8);
+            this.fillRect(g, x + 3 + punch, y - 2 + float, 3, 2);
+            this.fillRect(g, x + 5 + punch, y - 1 + float, 2, 3);
+            // Ghost trail
+            g.fillStyle(0x8888ff, 0.4);
+            this.fillRect(g, x + 7 + punch, y + float, 2, 2);
+        } else {
+            g.fillStyle(0x7777bb, 0.5);
+            this.fillRect(g, x - 4, y - 1 + float, 1, 2);
+            this.fillRect(g, x + 3, y - 1 + float, 1, 2);
+        }
+
+        // Wispy lower body - no real legs
+        g.fillStyle(0x5555aa, 0.4);
+        this.fillRect(g, x - 2 + lx, y + 3 + float, 2, 3);
+        this.fillRect(g, x + lx, y + 4 + float, 2, 3);
+        g.fillStyle(0x4444aa, 0.3);
+        this.fillRect(g, x - 1, y + 6 + float, 3, 2);
+    }
+
+    // GLADIATOR - Arena fighter with weapons
+    drawGladiator(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
+        // Gladiator helmet
+        g.fillStyle(0xcc9933, 1);
+        this.fillRect(g, x - 3, y - 7, 6, 5);
+        g.fillStyle(0xaa7722, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 2); // Face guard
+        g.fillStyle(0xff4444, 1);
+        this.fillRect(g, x - 1, y - 9, 3, 2); // Crest plume
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 4, 1, 1);
+        this.fillRect(g, x + 1, y - 4, 1, 1);
+
+        // Muscular armored body
+        g.fillStyle(0xffaa66, 1);
+        this.fillRect(g, x - 4, y - 2, 8, 5);
+        g.fillStyle(0xcc9933, 1);
+        this.fillRect(g, x - 3, y - 1, 2, 3); // Shoulder pad
+        this.fillRect(g, x + 2, y - 1, 2, 3);
+        g.fillStyle(0x8b4513, 1);
+        this.fillRect(g, x - 2, y + 2, 5, 1); // Belt
+
+        // Weapons - sword and shield
+        if (anim === 'attack' || anim === 'special') {
+            // Sword swing
+            g.fillStyle(0xddddee, 1);
+            this.fillRect(g, x + 4 + punch, y - 3, 1, 6);
+            g.fillStyle(0xffffff, 0.8);
+            this.fillRect(g, x + 4 + punch, y - 4, 1, 2);
+            // Shield bash
+            g.fillStyle(0xcc9933, 1);
+            this.fillRect(g, x - 6, y - 2, 2, 4);
+        } else {
+            g.fillStyle(0x999999, 0.7);
+            this.fillRect(g, x + 4, y - ax, 1, 3);
+            g.fillStyle(0xcc9933, 1);
+            this.fillRect(g, x - 5, y - 1 + ax, 2, 3);
+        }
+
+        // Strong legs
+        g.fillStyle(0xffaa66, 1);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
+        g.fillStyle(0x8b4513, 1);
+        this.fillRect(g, x - 2 + lx, y + 5, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 5, 2, 1);
+    }
+
+    // PSYCHIC - Mind-powered fighter
+    drawPsychic(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const pulse = (frame % 4) / 4; // Pulsing effect
+
+        // Bald head with glowing mind
+        g.fillStyle(0xffcc99, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0xaa00ff, 0.5 + pulse * 0.3);
+        this.fillRect(g, x - 1, y - 7, 2, 2); // Mind glow
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1);
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+        g.fillStyle(0xaa00ff, 0.8);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Purple eye glow
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+
+        // Robed body
+        g.fillStyle(0x6600aa, 1);
+        this.fillRect(g, x - 3, y - 2, 6, 6);
+        g.fillStyle(0x8800cc, 1);
+        this.fillRect(g, x - 2, y - 1, 4, 3);
+        g.fillStyle(0xaa00ff, 0.4 + pulse * 0.2);
+        this.fillRect(g, x - 1, y, 2, 2); // Core energy
+
+        // Psychic powers - energy during attack
+        if (anim === 'attack' || anim === 'special') {
+            g.fillStyle(0xcc00ff, 0.9);
+            this.fillRect(g, x + 3 + punch, y - 2, 2, 2);
+            this.fillRect(g, x + 5 + punch, y - 1, 2, 2);
+            // Telekinetic wave
+            g.fillStyle(0xaa00ff, 0.6);
+            this.fillRect(g, x + 6 + punch, y - 3, 1, 5);
+            g.fillStyle(0x8800cc, 0.4);
+            this.fillRect(g, x + 7 + punch, y - 2, 1, 4);
+        } else {
+            // Floating orbs
+            g.fillStyle(0xaa00ff, 0.6);
+            this.fillRect(g, x - 4, y - 2 + Math.round(pulse * 2), 1, 1);
+            this.fillRect(g, x + 4, y - 1 - Math.round(pulse * 2), 1, 1);
+        }
+
+        // Robed legs
+        g.fillStyle(0x550088, 1);
+        this.fillRect(g, x - 2 + lx, y + 4, 2, 3);
+        this.fillRect(g, x + 1 - lx, y + 4, 2, 3);
+    }
+
+    // BERSERKER - Rage-fueled warrior
+    drawBerserker(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const rage = (anim === 'attack' || anim === 'special') ? 1 : 0;
+
+        // Wild hair and fierce face
+        g.fillStyle(0xff6600, 1);
+        this.fillRect(g, x - 3, y - 8, 6, 3); // Wild hair
+        this.fillRect(g, x - 4, y - 7, 1, 2);
+        this.fillRect(g, x + 3, y - 7, 1, 2);
+        g.fillStyle(0xffaa66, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 3);
+        g.fillStyle(0xff0000, rage ? 1 : 0.6);
+        this.fillRect(g, x - 1, y - 4, 1, 1); // Rage eyes
+        this.fillRect(g, x + 1, y - 4, 1, 1);
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 3, 1, 1); // Fangs
+        this.fillRect(g, x + 1, y - 3, 1, 1);
+
+        // Muscular fur-clad body
+        g.fillStyle(0x8b4513, 1);
+        this.fillRect(g, x - 4, y - 2, 8, 5);
+        g.fillStyle(0xffaa66, 1);
+        this.fillRect(g, x - 3, y - 1, 6, 3);
+        g.fillStyle(0x664422, 1);
+        this.fillRect(g, x - 2, y + 2, 5, 1); // Fur belt
+
+        // Rage aura during attack
+        if (anim === 'attack' || anim === 'special') {
+            g.fillStyle(0xff0000, 0.4);
+            this.fillRect(g, x - 5, y - 3, 10, 8);
+            // Axe swing
+            g.fillStyle(0x666666, 1);
+            this.fillRect(g, x + 4 + punch, y - 4, 2, 5);
+            g.fillStyle(0x888888, 1);
+            this.fillRect(g, x + 5 + punch, y - 5, 2, 2);
+        } else {
+            // Axe at rest
+            g.fillStyle(0x555555, 0.7);
+            this.fillRect(g, x + 4, y - 1, 1, 3);
+        }
+
+        // Strong legs
+        g.fillStyle(0x8b4513, 1);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
+        g.fillStyle(0xffaa66, 1);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 1);
+    }
+
+    // ENGINEER - Tech builder with turrets
+    drawEngineer(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
+        // Hard hat
+        g.fillStyle(0xffcc00, 1);
+        this.fillRect(g, x - 3, y - 7, 6, 3);
+        g.fillStyle(0xffaa00, 1);
+        this.fillRect(g, x - 4, y - 5, 8, 1); // Hat brim
+        g.fillStyle(0xffcc99, 1);
+        this.fillRect(g, x - 2, y - 4, 4, 3);
+        g.fillStyle(0x444444, 1);
+        this.fillRect(g, x - 1, y - 3, 1, 1); // Goggles
+        this.fillRect(g, x + 1, y - 3, 1, 1);
+
+        // Work vest body
+        g.fillStyle(0xff6600, 1);
+        this.fillRect(g, x - 3, y - 1, 6, 4);
+        g.fillStyle(0xffcc00, 1);
+        this.fillRect(g, x - 2, y, 1, 2); // Reflective stripes
+        this.fillRect(g, x + 2, y, 1, 2);
+        g.fillStyle(0x444444, 1);
+        this.fillRect(g, x - 1, y + 2, 3, 1); // Tool belt
+
+        // Wrench/tool - builds during attack
+        if (anim === 'attack' || anim === 'special') {
+            g.fillStyle(0x888888, 1);
+            this.fillRect(g, x + 3 + punch, y - 2, 3, 1);
+            this.fillRect(g, x + 5 + punch, y - 3, 1, 3);
+            // Sparks
+            g.fillStyle(0xffff00, 0.8);
+            this.fillRect(g, x + 6 + punch, y - 2, 1, 1);
+            this.fillRect(g, x + 5 + punch, y - 4, 1, 1);
+        } else {
+            g.fillStyle(0x666666, 1);
+            this.fillRect(g, x + 3, y - ax, 2, 1);
+            this.fillRect(g, x - 4, y + ax, 2, 1);
+        }
+
+        // Work boots
+        g.fillStyle(0x553311, 1);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
+        g.fillStyle(0xffcc00, 0.6);
+        this.fillRect(g, x - 2 + lx, y + 6, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 6, 2, 1);
+    }
+
+    // VAMPIRE - Blood-draining undead
+    drawVampire(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+        const ax = Math.round(armSwing / 2);
+
+        // Pale face with slicked hair
+        g.fillStyle(0x222222, 1);
+        this.fillRect(g, x - 2, y - 8, 4, 3); // Hair
+        g.fillStyle(0xddeeff, 1);
+        this.fillRect(g, x - 2, y - 5, 4, 3);
+        g.fillStyle(0xff0000, 1);
+        this.fillRect(g, x - 1, y - 4, 1, 1); // Red eyes
+        this.fillRect(g, x + 1, y - 4, 1, 1);
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x - 1, y - 3, 1, 1); // Fangs
+        this.fillRect(g, x + 1, y - 3, 1, 1);
+
+        // Cape and formal wear
+        g.fillStyle(0x880000, 1);
+        this.fillRect(g, x - 4, y - 2, 8, 6); // Cape
+        g.fillStyle(0x222222, 1);
+        this.fillRect(g, x - 2, y - 1, 5, 4); // Suit
+        g.fillStyle(0xffffff, 1);
+        this.fillRect(g, x, y - 1, 1, 2); // Shirt front
+        g.fillStyle(0xff0000, 0.6);
+        this.fillRect(g, x, y, 1, 1); // Blood drop
+
+        // Clawed hands - drain during attack
+        if (anim === 'attack' || anim === 'special') {
+            g.fillStyle(0xddeeff, 1);
+            this.fillRect(g, x + 3 + punch, y - 2, 2, 2);
+            g.fillStyle(0xff0000, 0.8);
+            this.fillRect(g, x + 4 + punch, y - 3, 1, 1);
+            this.fillRect(g, x + 5 + punch, y - 2, 1, 1);
+            // Blood drain effect
+            g.fillStyle(0xff0000, 0.5);
+            this.fillRect(g, x + 5 + punch, y - 1, 2, 2);
+        } else {
+            g.fillStyle(0xddeeff, 0.8);
+            this.fillRect(g, x - 4, y - 1 + ax, 1, 2);
+            this.fillRect(g, x + 4, y - 1 - ax, 1, 2);
+        }
+
+        // Cape as legs
+        g.fillStyle(0x660000, 1);
+        this.fillRect(g, x - 2 + lx, y + 4, 2, 3);
+        this.fillRect(g, x + 1 - lx, y + 4, 2, 3);
+        g.fillStyle(0x880000, 0.8);
+        this.fillRect(g, x - 3 + lx, y + 5, 1, 2);
+        this.fillRect(g, x + 3 - lx, y + 5, 1, 2);
+    }
+
+    // SCORPION - Armored stinger fighter
+    drawScorpion(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 2);
+
+        // Armored head
+        g.fillStyle(0x886622, 1);
+        this.fillRect(g, x - 2, y - 6, 4, 4);
+        g.fillStyle(0xaa8833, 1);
+        this.fillRect(g, x - 3, y - 5, 1, 2); // Mandibles
+        this.fillRect(g, x + 2, y - 5, 1, 2);
+        g.fillStyle(0x00ff00, 1);
+        this.fillRect(g, x - 1, y - 5, 1, 1); // Eyes
+        this.fillRect(g, x + 1, y - 5, 1, 1);
+
+        // Armored body with segments
+        g.fillStyle(0x996633, 1);
+        this.fillRect(g, x - 3, y - 2, 6, 5);
+        g.fillStyle(0x886622, 1);
+        this.fillRect(g, x - 2, y - 1, 4, 1);
+        this.fillRect(g, x - 2, y + 1, 4, 1);
+
+        // Scorpion tail - strikes during attack
+        g.fillStyle(0xaa8833, 1);
+        if (anim === 'attack' || anim === 'special') {
+            // Tail strikes forward
+            this.fillRect(g, x, y - 8, 2, 2);
+            this.fillRect(g, x + 1, y - 6, 2, 2);
+            this.fillRect(g, x + 2 + punch, y - 5, 2, 2);
+            // Stinger
+            g.fillStyle(0x00ff00, 0.9);
+            this.fillRect(g, x + 4 + punch, y - 5, 1, 1);
+        } else {
+            // Tail curled back
+            this.fillRect(g, x, y - 8, 2, 2);
+            this.fillRect(g, x - 1, y - 7, 2, 1);
+            this.fillRect(g, x - 2, y - 6, 1, 1);
+            g.fillStyle(0x00ff00, 0.7);
+            this.fillRect(g, x - 2, y - 7, 1, 1);
+        }
+
+        // Pincers
+        g.fillStyle(0x886622, 1);
+        this.fillRect(g, x - 5, y - 1, 2, 2);
+        this.fillRect(g, x + 3, y - 1, 2, 2);
+
+        // Legs
+        g.fillStyle(0x775522, 1);
+        this.fillRect(g, x - 2 + lx, y + 3, 2, 4);
+        this.fillRect(g, x + 1 - lx, y + 3, 2, 4);
+        g.fillStyle(0x664411, 1);
+        this.fillRect(g, x - 2 + lx, y + 6, 2, 1);
+        this.fillRect(g, x + 1 - lx, y + 6, 2, 1);
+    }
+
+    // TITAN - Massive war machine
+    drawTitan(g, x, y, anim, frame, punch, glow, legSwing, armSwing) {
+        const lx = Math.round(legSwing / 4); // Very heavy
+
+        // Massive armored head
+        g.fillStyle(0x555577, 1);
+        this.fillRect(g, x - 4, y - 9, 8, 7);
+        g.fillStyle(0x7777aa, 1);
+        this.fillRect(g, x - 3, y - 8, 6, 5);
+        g.fillStyle(0xff4400, 1);
+        this.fillRect(g, x - 2, y - 6, 2, 2); // Glowing visor
+        this.fillRect(g, x + 1, y - 6, 2, 2);
+        g.fillStyle(0x444466, 1);
+        this.fillRect(g, x - 1, y - 4, 3, 1); // Vent
+
+        // Massive mechanical body
+        g.fillStyle(0x444466, 1);
+        this.fillRect(g, x - 5, y - 2, 10, 7);
+        g.fillStyle(0x555588, 1);
+        this.fillRect(g, x - 4, y - 1, 8, 5);
+        g.fillStyle(0xff6600, 0.6);
+        this.fillRect(g, x - 1, y, 2, 2); // Power core
+        g.fillStyle(0x666699, 1);
+        this.fillRect(g, x - 4, y + 3, 8, 1); // Waist armor
+
+        // Massive arms - smash during attack
+        g.fillStyle(0x555577, 1);
+        if (anim === 'attack' || anim === 'special') {
+            this.fillRect(g, x - 7, y - 2, 2, 6);
+            this.fillRect(g, x + 5 + punch, y - 3, 2, 6);
+            // Impact effect
+            g.fillStyle(0xff8800, 0.7);
+            this.fillRect(g, x + 7 + punch, y, 2, 3);
+            g.fillStyle(0xffaa00, 0.5);
+            this.fillRect(g, x + 8 + punch, y - 1, 1, 4);
+        } else {
+            this.fillRect(g, x - 7, y - 1, 2, 5);
+            this.fillRect(g, x + 5, y - 1, 2, 5);
+        }
+
+        // Massive legs
+        g.fillStyle(0x444466, 1);
+        this.fillRect(g, x - 4 + lx, y + 5, 3, 5);
+        this.fillRect(g, x + 1 - lx, y + 5, 3, 5);
+        g.fillStyle(0x555577, 1);
+        this.fillRect(g, x - 4 + lx, y + 8, 4, 2);
+        this.fillRect(g, x + 1 - lx, y + 8, 4, 2);
     }
 
     // Default character drawing

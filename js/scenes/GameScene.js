@@ -1039,25 +1039,10 @@ class GameScene extends Phaser.Scene {
 
     createMeleeAttack(fighter, attack) {
         const direction = fighter.facingRight ? 1 : -1;
+        const effectType = fighter.characterData.attackEffect || 'slash_default';
 
-        // Visual effect
-        const slash = this.add.image(
-            fighter.x + direction * 30,
-            fighter.y,
-            'effect_slash'
-        );
-        slash.setFlipX(!fighter.facingRight);
-        slash.setBlendMode('ADD');
-        slash.setTint(fighter.characterData.color);
-
-        this.tweens.add({
-            targets: slash,
-            alpha: 0,
-            scaleX: 1.5,
-            scaleY: 1.5,
-            duration: 200,
-            onComplete: () => slash.destroy()
-        });
+        // Create varied visual effects based on character
+        this.createMeleeEffect(fighter, direction, effectType);
 
         // Check hit
         const hitbox = {
@@ -1070,6 +1055,354 @@ class GameScene extends Phaser.Scene {
         const opponent = fighter.opponent;
         if (this.checkHitbox(hitbox, opponent) && !opponent.isInvincible) {
             this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+        }
+    }
+
+    createMeleeEffect(fighter, direction, effectType) {
+        const x = fighter.x + direction * 30;
+        const y = fighter.y;
+        const color = fighter.characterData.color;
+
+        switch (effectType) {
+            case 'slash_purple':
+            case 'katana_red':
+                // Arc slash effect
+                const arc = this.add.graphics();
+                arc.lineStyle(4, color, 1);
+                arc.setBlendMode('ADD');
+                const startAngle = direction > 0 ? -0.6 : Math.PI - 0.6;
+                const endAngle = direction > 0 ? 0.6 : Math.PI + 0.6;
+                arc.beginPath();
+                arc.arc(x, y, 35, startAngle, endAngle);
+                arc.strokePath();
+                this.tweens.add({
+                    targets: arc,
+                    alpha: 0,
+                    scaleX: 1.5,
+                    scaleY: 1.5,
+                    duration: 150,
+                    onComplete: () => arc.destroy()
+                });
+                break;
+
+            case 'punch_orange':
+            case 'rage_red':
+                // Fist impact burst
+                const burst = this.add.circle(x + direction * 10, y, 8, color);
+                burst.setBlendMode('ADD');
+                for (let i = 0; i < 4; i++) {
+                    const spark = this.add.circle(x, y, 3, 0xffff00);
+                    spark.setBlendMode('ADD');
+                    this.tweens.add({
+                        targets: spark,
+                        x: x + direction * (30 + Math.random() * 20),
+                        y: y + (Math.random() - 0.5) * 30,
+                        alpha: 0,
+                        duration: 150,
+                        onComplete: () => spark.destroy()
+                    });
+                }
+                this.tweens.add({
+                    targets: burst,
+                    scale: 3,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => burst.destroy()
+                });
+                break;
+
+            case 'shot_yellow':
+            case 'rail_red':
+                // Quick muzzle flash
+                const flash = this.add.circle(x, y, 12, 0xffff00);
+                flash.setBlendMode('ADD');
+                const line = this.add.rectangle(x + direction * 20, y, 25, 3, color);
+                line.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: [flash, line],
+                    alpha: 0,
+                    scaleX: 1.5,
+                    duration: 100,
+                    onComplete: () => { flash.destroy(); line.destroy(); }
+                });
+                break;
+
+            case 'beam_cyan':
+            case 'data_green':
+                // Energy beam burst
+                const beam = this.add.rectangle(x + direction * 15, y, 30, 6, color);
+                beam.setBlendMode('ADD');
+                const glow = this.add.rectangle(x + direction * 15, y, 30, 12, color, 0.4);
+                glow.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: [beam, glow],
+                    scaleX: 2,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => { beam.destroy(); glow.destroy(); }
+                });
+                break;
+
+            case 'dash_green':
+            case 'phase_purple':
+                // Speed lines
+                for (let i = 0; i < 5; i++) {
+                    const line = this.add.rectangle(x - direction * (i * 8), y + (i - 2) * 4, 15, 2, color);
+                    line.setBlendMode('ADD');
+                    line.setAlpha(0.8 - i * 0.15);
+                    this.tweens.add({
+                        targets: line,
+                        x: line.x + direction * 30,
+                        alpha: 0,
+                        duration: 100,
+                        onComplete: () => line.destroy()
+                    });
+                }
+                break;
+
+            case 'kunai_purple':
+            case 'poison_yellow':
+                // Throwing motion trails
+                const trail = this.add.polygon(x, y, [0, -8, 15 * direction, 0, 0, 8], color);
+                trail.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: trail,
+                    x: x + direction * 40,
+                    alpha: 0,
+                    duration: 120,
+                    onComplete: () => trail.destroy()
+                });
+                break;
+
+            case 'void_dark':
+                // Dark void effect
+                const void1 = this.add.circle(x, y, 20, 0x220044);
+                const void2 = this.add.circle(x, y, 12, 0x440088);
+                void2.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: void1,
+                    scale: 2,
+                    alpha: 0,
+                    duration: 200,
+                    onComplete: () => void1.destroy()
+                });
+                this.tweens.add({
+                    targets: void2,
+                    scale: 0,
+                    duration: 200,
+                    onComplete: () => void2.destroy()
+                });
+                break;
+
+            case 'spark_yellow':
+                // Electric sparks
+                for (let i = 0; i < 6; i++) {
+                    const spark = this.add.rectangle(x, y, 2, 8, 0xffff00);
+                    spark.setBlendMode('ADD');
+                    spark.setAngle(Math.random() * 360);
+                    this.tweens.add({
+                        targets: spark,
+                        x: x + (Math.random() - 0.5) * 50,
+                        y: y + (Math.random() - 0.5) * 50,
+                        alpha: 0,
+                        angle: spark.angle + 180,
+                        duration: 150,
+                        onComplete: () => spark.destroy()
+                    });
+                }
+                break;
+
+            case 'crush_blue':
+            case 'quake_gray':
+            case 'stomp_blue':
+                // Heavy impact
+                const impact = this.add.circle(x, y + 10, 15, color);
+                impact.setBlendMode('ADD');
+                const shockwave = this.add.ellipse(x, y + 20, 10, 5, color, 0.7);
+                shockwave.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: impact,
+                    scale: 2,
+                    alpha: 0,
+                    duration: 200,
+                    onComplete: () => impact.destroy()
+                });
+                this.tweens.add({
+                    targets: shockwave,
+                    scaleX: 5,
+                    scaleY: 2,
+                    alpha: 0,
+                    duration: 250,
+                    onComplete: () => shockwave.destroy()
+                });
+                break;
+
+            case 'shield_gold':
+            case 'trident_gold':
+                // Shield/weapon bash
+                const shield = this.add.rectangle(x + direction * 5, y, 8, 25, color);
+                shield.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: shield,
+                    x: x + direction * 25,
+                    scaleX: 0.5,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => shield.destroy()
+                });
+                break;
+
+            case 'claw_green':
+                // Triple claw marks
+                for (let i = 0; i < 3; i++) {
+                    const claw = this.add.rectangle(x + direction * (i * 5), y - 10 + i * 10, 20, 3, color);
+                    claw.setBlendMode('ADD');
+                    claw.setAngle(direction > 0 ? -30 : 30);
+                    this.tweens.add({
+                        targets: claw,
+                        x: claw.x + direction * 20,
+                        alpha: 0,
+                        duration: 120,
+                        onComplete: () => claw.destroy()
+                    });
+                }
+                break;
+
+            case 'magic_pink':
+            case 'mind_pink':
+            case 'psi':
+                // Magic sparkles
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    const sparkle = this.add.star(x, y, 4, 2, 4, color);
+                    sparkle.setBlendMode('ADD');
+                    this.tweens.add({
+                        targets: sparkle,
+                        x: x + Math.cos(angle) * 25,
+                        y: y + Math.sin(angle) * 25,
+                        alpha: 0,
+                        scale: 0.5,
+                        duration: 200,
+                        onComplete: () => sparkle.destroy()
+                    });
+                }
+                break;
+
+            case 'frost_blue':
+                // Ice crystals
+                for (let i = 0; i < 4; i++) {
+                    const crystal = this.add.polygon(x + direction * (i * 8), y + (i - 1.5) * 8,
+                        [0, -6, 4, 0, 0, 6, -4, 0], 0x88ddff);
+                    crystal.setBlendMode('ADD');
+                    this.tweens.add({
+                        targets: crystal,
+                        x: crystal.x + direction * 20,
+                        alpha: 0,
+                        angle: 45,
+                        duration: 180,
+                        onComplete: () => crystal.destroy()
+                    });
+                }
+                break;
+
+            case 'fire_red':
+            case 'bomb_orange':
+                // Fire burst
+                for (let i = 0; i < 5; i++) {
+                    const flame = this.add.circle(x + (Math.random() - 0.5) * 20, y + (Math.random() - 0.5) * 20,
+                        4 + Math.random() * 4, [0xff4400, 0xff8800, 0xffff00][Math.floor(Math.random() * 3)]);
+                    flame.setBlendMode('ADD');
+                    this.tweens.add({
+                        targets: flame,
+                        y: flame.y - 20,
+                        alpha: 0,
+                        scale: 0.5,
+                        duration: 200,
+                        onComplete: () => flame.destroy()
+                    });
+                }
+                break;
+
+            case 'holy_white':
+            case 'heal_green':
+                // Holy/healing glow
+                const halo = this.add.circle(x, y, 25, color, 0.3);
+                halo.setBlendMode('ADD');
+                const cross = this.add.graphics();
+                cross.fillStyle(0xffffff, 0.8);
+                cross.fillRect(x - 2, y - 10, 4, 20);
+                cross.fillRect(x - 8, y - 2, 16, 4);
+                cross.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: [halo, cross],
+                    alpha: 0,
+                    scale: 1.5,
+                    duration: 200,
+                    onComplete: () => { halo.destroy(); cross.destroy(); }
+                });
+                break;
+
+            case 'vine_green':
+                // Vine whip
+                const vine = this.add.graphics();
+                vine.lineStyle(3, color, 1);
+                vine.beginPath();
+                vine.moveTo(x - direction * 10, y);
+                vine.bezierCurveTo(x + direction * 10, y - 15, x + direction * 25, y + 10, x + direction * 40, y);
+                vine.strokePath();
+                vine.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: vine,
+                    alpha: 0,
+                    duration: 180,
+                    onComplete: () => vine.destroy()
+                });
+                break;
+
+            case 'wrench_yellow':
+                // Mechanical wrench swing
+                const wrench = this.add.rectangle(x, y, 6, 18, 0xffff00);
+                wrench.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: wrench,
+                    angle: direction * 90,
+                    x: x + direction * 25,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => wrench.destroy()
+                });
+                break;
+
+            case 'drain_red':
+                // Blood drain effect
+                for (let i = 0; i < 4; i++) {
+                    const drop = this.add.circle(x + direction * 20 + (Math.random() - 0.5) * 20, y + 10, 3, 0xff0044);
+                    drop.setBlendMode('ADD');
+                    this.tweens.add({
+                        targets: drop,
+                        x: x,
+                        y: y,
+                        alpha: 0,
+                        duration: 200,
+                        onComplete: () => drop.destroy()
+                    });
+                }
+                break;
+
+            default:
+                // Default slash effect
+                const slash = this.add.image(x, y, 'effect_slash');
+                slash.setFlipX(!fighter.facingRight);
+                slash.setBlendMode('ADD');
+                slash.setTint(color);
+                this.tweens.add({
+                    targets: slash,
+                    alpha: 0,
+                    scaleX: 1.5,
+                    scaleY: 1.5,
+                    duration: 200,
+                    onComplete: () => slash.destroy()
+                });
         }
     }
 
