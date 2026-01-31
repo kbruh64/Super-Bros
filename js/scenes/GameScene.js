@@ -633,16 +633,16 @@ class GameScene extends Phaser.Scene {
             specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
         };
 
-        // Player 2 controls (Arrows + F/Shift, E/Right Ctrl)
+        // Player 2 controls (Arrows + Numpad 1/4, Numpad 2/5)
         this.p2Keys = {
             up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
             down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
             left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
             right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
-            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F),
-            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
-            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
-            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
+            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_ONE),
+            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_FOUR),
+            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_TWO),
+            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_FIVE)
         };
 
         // Pause
@@ -1337,6 +1337,10 @@ class GameScene extends Phaser.Scene {
                 shuriken.attackKnockback = attack.knockback * 0.7;
                 shuriken.setBlendMode('ADD');
 
+                // Set proper body size for collision
+                shuriken.body.setSize(24, 24);
+                shuriken.body.setOffset(-12, -12);
+
                 fighter.projectiles.add(shuriken);
 
                 const rad = Phaser.Math.DegToRad(angle);
@@ -1373,9 +1377,8 @@ class GameScene extends Phaser.Scene {
         fireball.attackKnockback = attack.knockback;
         fireball.setBlendMode('ADD');
 
-        // Inner glow
-        const inner = this.add.circle(0, 0, 12, 0xffffff);
-        inner.setBlendMode('ADD');
+        // Set circular physics body for proper collision
+        fireball.body.setCircle(20);
 
         fighter.projectiles.add(fireball);
         fireball.body.setAllowGravity(false);
@@ -1520,6 +1523,9 @@ class GameScene extends Phaser.Scene {
                 bullet.attackKnockback = attack.knockback * 0.3;
                 bullet.setBlendMode('ADD');
 
+                // Set proper body size for collision
+                bullet.body.setSize(12, 4);
+
                 fighter.projectiles.add(bullet);
                 bullet.body.setAllowGravity(false);
                 bullet.body.setVelocityX(direction * 600);
@@ -1557,6 +1563,10 @@ class GameScene extends Phaser.Scene {
         iceSpike.attackKnockback = attack.knockback;
         iceSpike.isIce = true;
         iceSpike.setBlendMode('ADD');
+
+        // Set proper body size for collision
+        iceSpike.body.setSize(30, 20);
+        iceSpike.body.setOffset(-15, -10);
 
         fighter.projectiles.add(iceSpike);
         iceSpike.body.setAllowGravity(false);
