@@ -25,7 +25,8 @@ class CharacterSelectScene extends Phaser.Scene {
 
     createBackground() {
         // Cyber-grid background
-        const bg = this.add.graphics();
+            this.setupInput();
+            this.updateCharacterSelection();
         bg.fillStyle(0x0a0a15, 1);
         bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
@@ -42,14 +43,19 @@ class CharacterSelectScene extends Phaser.Scene {
         bg.strokePath();
 
         // Random neon pixels
-        for (let i = 0; i < 50; i++) {
-            const colors = [0xff00ff, 0x00ffff, 0x00ff00];
+            this.input.keyboard.on('keydown-LEFT', () => {
+                this.currentSelector = (this.currentSelector - 1 + Object.keys(CHARACTERS).length) % Object.keys(CHARACTERS).length;
+                this.updateCharacterSelection();
             bg.fillStyle(colors[Math.floor(Math.random() * colors.length)], 0.1);
             bg.fillRect(
                 Math.floor(Math.random() * GAME_WIDTH / 16) * 16,
-                Math.floor(Math.random() * GAME_HEIGHT / 16) * 16,
+                this.currentSelector = (this.currentSelector + 1) % Object.keys(CHARACTERS).length;
+                this.updateCharacterSelection();
                 16, 16
             );
+        }
+        updateCharacterSelection() {
+            // Logic to visually update the selected character based on currentSelector
         }
     }
 
