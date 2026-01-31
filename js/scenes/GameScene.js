@@ -1075,95 +1075,1369 @@ class GameScene extends Phaser.Scene {
 
     createSpecialAttack(fighter, attack) {
         const direction = fighter.facingRight ? 1 : -1;
-        const charId = fighter.characterData.id;
+        const attackType = attack.type || 'default';
 
-        // Show special effect with error handling
-        const textureKey = `special_${charId}`;
-        if (this.textures.exists(textureKey)) {
-            try {
-                const specialEffect = this.add.image(
-                    fighter.x + direction * 50,
-                    fighter.y,
-                    textureKey
-                );
-                specialEffect.setFlipX(!fighter.facingRight);
-                specialEffect.setBlendMode('ADD');
-                specialEffect.setScale(1.5);
+        // Execute unique attack based on type
+        switch (attackType) {
+            case 'dash':
+                this.createDashAttack(fighter, attack, direction);
+                break;
+            case 'smash':
+                this.createSmashAttack(fighter, attack, direction);
+                break;
+            case 'uppercut':
+                this.createUppercutAttack(fighter, attack, direction);
+                break;
+            case 'shuriken':
+                this.createShurikenAttack(fighter, attack, direction);
+                break;
+            case 'fireball':
+                this.createFireballAttack(fighter, attack, direction);
+                break;
+            case 'laser':
+                this.createLaserAttack(fighter, attack, direction);
+                break;
+            case 'pistol':
+                this.createPistolAttack(fighter, attack, direction);
+                break;
+            case 'ice':
+                this.createIceAttack(fighter, attack, direction);
+                break;
+            case 'inferno':
+                this.createInfernoAttack(fighter, attack, direction);
+                break;
+            case 'holy':
+                this.createHolyAttack(fighter, attack, direction);
+                break;
+            case 'shadow':
+                this.createShadowAttack(fighter, attack, direction);
+                break;
+            case 'roar':
+                this.createRoarAttack(fighter, attack, direction);
+                break;
+            case 'nature':
+                this.createNatureAttack(fighter, attack, direction);
+                break;
+            case 'shield':
+                this.createShieldAttack(fighter, attack, direction);
+                break;
+            case 'hack':
+                this.createHackAttack(fighter, attack, direction);
+                break;
+            case 'railgun':
+                this.createRailgunAttack(fighter, attack, direction);
+                break;
+            case 'bomb':
+                this.createBombAttack(fighter, attack, direction);
+                break;
+            case 'lightning':
+                this.createLightningAttack(fighter, attack, direction);
+                break;
+            case 'earthquake':
+                this.createEarthquakeAttack(fighter, attack, direction);
+                break;
+            case 'slash':
+                this.createSlashAttack(fighter, attack, direction);
+                break;
+            default:
+                this.createDefaultProjectile(fighter, attack, direction);
+        }
+    }
+
+    // DASH - Speed burst with afterimages
+    createDashAttack(fighter, attack, direction) {
+        const startX = fighter.x;
+        const dashDistance = attack.range;
+
+        // Create afterimages
+        for (let i = 0; i < 5; i++) {
+            this.time.delayedCall(i * 30, () => {
+                const afterimage = this.add.image(fighter.x, fighter.y, `char_${fighter.characterData.id}`);
+                afterimage.setScale(1.5);
+                afterimage.setAlpha(0.6 - i * 0.1);
+                afterimage.setTint(0x00ffff);
+                afterimage.setBlendMode('ADD');
+                afterimage.setFlipX(!fighter.facingRight);
 
                 this.tweens.add({
-                    targets: specialEffect,
-                    x: specialEffect.x + direction * 30,
+                    targets: afterimage,
                     alpha: 0,
-                    scaleX: 2,
-                    scaleY: 2,
-                    duration: 400,
-                    onComplete: () => specialEffect.destroy()
+                    duration: 200,
+                    onComplete: () => afterimage.destroy()
                 });
-            } catch (e) {
-                console.warn('Error creating special effect:', e);
-            }
+            });
         }
 
-        // Check if it's a projectile-based attack
-        if (attack.range > 80) {
-            this.createProjectile(fighter, attack, direction);
-        } else {
-            // Melee special - wider hitbox
-            const hitbox = {
-                x: fighter.x + direction * attack.range / 2,
-                y: fighter.y,
-                width: attack.range * 1.5,
-                height: 70
-            };
+        // Dash movement
+        fighter.body.setVelocityX(direction * 800);
+        this.time.delayedCall(150, () => {
+            fighter.body.setVelocityX(direction * 100);
+        });
 
+        // Hit detection during dash
+        const checkHits = this.time.addEvent({
+            delay: 30,
+            repeat: 4,
+            callback: () => {
+                const opponent = fighter.opponent;
+                if (!opponent.isInvincible && !opponent.dashHit) {
+                    const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+                    if (dist < 60) {
+                        opponent.dashHit = true;
+                        this.applyDamage(opponent, attack.damage / 3, attack.knockback * 0.5, direction);
+                        this.createHitSpark(opponent.x, opponent.y, 0x00ffff);
+                    }
+                }
+            }
+        });
+
+        this.time.delayedCall(200, () => {
+            if (fighter.opponent) fighter.opponent.dashHit = false;
+        });
+    }
+
+    // SMASH - Ground pound with shockwave
+    createSmashAttack(fighter, attack, direction) {
+        // Jump up first
+        fighter.body.setVelocityY(-300);
+
+        this.time.delayedCall(200, () => {
+            // Slam down
+            fighter.body.setVelocityY(600);
+
+            // Wait for ground impact
+            this.time.delayedCall(150, () => {
+                // Shockwave effect
+                const shockwave = this.add.circle(fighter.x, fighter.y + 30, 10, 0x4488ff, 0.8);
+                shockwave.setBlendMode('ADD');
+
+                this.tweens.add({
+                    targets: shockwave,
+                    scaleX: 15,
+                    scaleY: 3,
+                    alpha: 0,
+                    duration: 400,
+                    onComplete: () => shockwave.destroy()
+                });
+
+                // Ground crack lines
+                for (let i = 0; i < 8; i++) {
+                    const crack = this.add.rectangle(
+                        fighter.x + (i - 4) * 30,
+                        fighter.y + 35,
+                        4, 20, 0xffff00
+                    );
+                    crack.setBlendMode('ADD');
+                    this.tweens.add({
+                        targets: crack,
+                        y: crack.y - 30,
+                        alpha: 0,
+                        duration: 300,
+                        onComplete: () => crack.destroy()
+                    });
+                }
+
+                // Camera shake
+                this.cameras.main.shake(200, 0.02);
+
+                // Damage in area
+                const opponent = fighter.opponent;
+                if (!opponent.isInvincible) {
+                    const dist = Math.abs(opponent.x - fighter.x);
+                    if (dist < attack.range && opponent.y > fighter.y - 50) {
+                        this.applyDamage(opponent, attack.damage, attack.knockback, opponent.x > fighter.x ? 1 : -1);
+                    }
+                }
+            });
+        });
+    }
+
+    // UPPERCUT - Rising attack with fire trail
+    createUppercutAttack(fighter, attack, direction) {
+        // Launch upward
+        fighter.body.setVelocityY(-500);
+        fighter.body.setVelocityX(direction * 200);
+
+        // Fire trail
+        const trailEvent = this.time.addEvent({
+            delay: 30,
+            repeat: 8,
+            callback: () => {
+                const flame = this.add.circle(
+                    fighter.x + (Math.random() - 0.5) * 20,
+                    fighter.y + 20,
+                    8 + Math.random() * 8,
+                    0xff8800
+                );
+                flame.setBlendMode('ADD');
+
+                this.tweens.add({
+                    targets: flame,
+                    y: flame.y + 40,
+                    scaleX: 0,
+                    scaleY: 0,
+                    alpha: 0,
+                    duration: 300,
+                    onComplete: () => flame.destroy()
+                });
+            }
+        });
+
+        // Hit detection
+        const hitCheck = this.time.addEvent({
+            delay: 50,
+            repeat: 5,
+            callback: () => {
+                const opponent = fighter.opponent;
+                if (!opponent.isInvincible && !opponent.uppercutHit) {
+                    const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+                    if (dist < 70) {
+                        opponent.uppercutHit = true;
+                        opponent.body.setVelocityY(-400);
+                        this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                    }
+                }
+            }
+        });
+
+        this.time.delayedCall(400, () => {
+            if (fighter.opponent) fighter.opponent.uppercutHit = false;
+        });
+    }
+
+    // SHURIKEN - Multiple throwing stars in spread
+    createShurikenAttack(fighter, attack, direction) {
+        const angles = [-20, 0, 20];
+
+        angles.forEach((angle, i) => {
+            this.time.delayedCall(i * 80, () => {
+                const shuriken = this.add.star(fighter.x + direction * 30, fighter.y, 4, 5, 12, 0xaa00ff);
+                this.physics.add.existing(shuriken);
+
+                shuriken.isProjectile = true;
+                shuriken.hasHit = false;
+                shuriken.owner = fighter;
+                shuriken.attackDamage = attack.damage / 2;
+                shuriken.attackKnockback = attack.knockback * 0.7;
+                shuriken.setBlendMode('ADD');
+
+                fighter.projectiles.add(shuriken);
+
+                const rad = Phaser.Math.DegToRad(angle);
+                const speed = 450;
+                shuriken.body.setAllowGravity(false);
+                shuriken.body.setVelocity(
+                    Math.cos(rad) * speed * direction,
+                    Math.sin(rad) * speed
+                );
+
+                // Spin animation
+                this.tweens.add({
+                    targets: shuriken,
+                    angle: 720 * direction,
+                    duration: 500
+                });
+
+                this.time.delayedCall(1500, () => {
+                    if (shuriken && shuriken.active) shuriken.destroy();
+                });
+            });
+        });
+    }
+
+    // FIREBALL - Big exploding projectile
+    createFireballAttack(fighter, attack, direction) {
+        const fireball = this.add.circle(fighter.x + direction * 40, fighter.y, 20, 0xff00ff);
+        this.physics.add.existing(fireball);
+
+        fireball.isProjectile = true;
+        fireball.hasHit = false;
+        fireball.owner = fighter;
+        fireball.attackDamage = attack.damage;
+        fireball.attackKnockback = attack.knockback;
+        fireball.setBlendMode('ADD');
+
+        // Inner glow
+        const inner = this.add.circle(0, 0, 12, 0xffffff);
+        inner.setBlendMode('ADD');
+
+        fighter.projectiles.add(fireball);
+        fireball.body.setAllowGravity(false);
+        fireball.body.setVelocityX(direction * 300);
+
+        // Pulsing effect
+        this.tweens.add({
+            targets: fireball,
+            scaleX: 1.3,
+            scaleY: 1.3,
+            duration: 100,
+            yoyo: true,
+            repeat: -1
+        });
+
+        // Trail particles
+        const trailEvent = this.time.addEvent({
+            delay: 50,
+            repeat: 30,
+            callback: () => {
+                if (!fireball.active) return;
+                const trail = this.add.circle(fireball.x, fireball.y, 8 + Math.random() * 8, 0x8800ff);
+                trail.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: trail,
+                    scale: 0,
+                    alpha: 0,
+                    duration: 200,
+                    onComplete: () => trail.destroy()
+                });
+            }
+        });
+
+        // Explosion on hit or timeout
+        const explode = () => {
+            if (!fireball.active) return;
+            // Explosion circle
+            const explosion = this.add.circle(fireball.x, fireball.y, 20, 0xff00ff, 0.8);
+            explosion.setBlendMode('ADD');
+            this.tweens.add({
+                targets: explosion,
+                scale: 4,
+                alpha: 0,
+                duration: 300,
+                onComplete: () => explosion.destroy()
+            });
+
+            // Damage nearby
             const opponent = fighter.opponent;
-            if (this.checkHitbox(hitbox, opponent) && !opponent.isInvincible) {
-                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+            if (!opponent.isInvincible) {
+                const dist = Phaser.Math.Distance.Between(fireball.x, fireball.y, opponent.x, opponent.y);
+                if (dist < 80) {
+                    this.applyDamage(opponent, attack.damage * 0.5, attack.knockback * 0.8, direction);
+                }
+            }
+
+            this.cameras.main.shake(100, 0.01);
+            fireball.destroy();
+        };
+
+        fireball.explode = explode;
+        this.time.delayedCall(2000, explode);
+    }
+
+    // LASER - Instant piercing beam
+    createLaserAttack(fighter, attack, direction) {
+        const beamLength = attack.range;
+
+        // Charge up effect
+        const charge = this.add.circle(fighter.x + direction * 30, fighter.y, 5, 0x00ffff);
+        charge.setBlendMode('ADD');
+
+        this.tweens.add({
+            targets: charge,
+            scale: 3,
+            duration: 200,
+            onComplete: () => {
+                charge.destroy();
+
+                // Fire beam
+                const beam = this.add.rectangle(
+                    fighter.x + direction * (beamLength / 2 + 30),
+                    fighter.y,
+                    beamLength,
+                    8,
+                    0x00ffff
+                );
+                beam.setBlendMode('ADD');
+
+                // Beam glow
+                const beamGlow = this.add.rectangle(
+                    beam.x, beam.y,
+                    beamLength, 20,
+                    0x00ffff, 0.3
+                );
+                beamGlow.setBlendMode('ADD');
+
+                // Hit detection along beam
+                const opponent = fighter.opponent;
+                if (!opponent.isInvincible) {
+                    const inBeamX = direction > 0
+                        ? (opponent.x > fighter.x && opponent.x < fighter.x + beamLength)
+                        : (opponent.x < fighter.x && opponent.x > fighter.x - beamLength);
+                    const inBeamY = Math.abs(opponent.y - fighter.y) < 40;
+
+                    if (inBeamX && inBeamY) {
+                        this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                        this.createHitSpark(opponent.x, opponent.y, 0x00ffff);
+                    }
+                }
+
+                // Beam fade
+                this.tweens.add({
+                    targets: [beam, beamGlow],
+                    alpha: 0,
+                    scaleY: 0,
+                    duration: 150,
+                    onComplete: () => {
+                        beam.destroy();
+                        beamGlow.destroy();
+                    }
+                });
+            }
+        });
+    }
+
+    // PISTOL - Rapid fire shots
+    createPistolAttack(fighter, attack, direction) {
+        for (let i = 0; i < 5; i++) {
+            this.time.delayedCall(i * 80, () => {
+                const bullet = this.add.rectangle(
+                    fighter.x + direction * 40,
+                    fighter.y + (Math.random() - 0.5) * 10,
+                    12, 4, 0xffff00
+                );
+                this.physics.add.existing(bullet);
+
+                bullet.isProjectile = true;
+                bullet.hasHit = false;
+                bullet.owner = fighter;
+                bullet.attackDamage = attack.damage / 4;
+                bullet.attackKnockback = attack.knockback * 0.3;
+                bullet.setBlendMode('ADD');
+
+                fighter.projectiles.add(bullet);
+                bullet.body.setAllowGravity(false);
+                bullet.body.setVelocityX(direction * 600);
+
+                // Muzzle flash
+                const flash = this.add.circle(fighter.x + direction * 35, fighter.y, 15, 0xffff00, 0.8);
+                flash.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: flash,
+                    scale: 0,
+                    alpha: 0,
+                    duration: 100,
+                    onComplete: () => flash.destroy()
+                });
+
+                this.time.delayedCall(1000, () => {
+                    if (bullet && bullet.active) bullet.destroy();
+                });
+            });
+        }
+    }
+
+    // ICE - Freezing projectile
+    createIceAttack(fighter, attack, direction) {
+        const iceSpike = this.add.polygon(fighter.x + direction * 40, fighter.y, [
+            0, -15, 10, 15, -10, 15
+        ], 0x00ddff);
+        iceSpike.setRotation(direction > 0 ? Math.PI / 2 : -Math.PI / 2);
+        this.physics.add.existing(iceSpike);
+
+        iceSpike.isProjectile = true;
+        iceSpike.hasHit = false;
+        iceSpike.owner = fighter;
+        iceSpike.attackDamage = attack.damage;
+        iceSpike.attackKnockback = attack.knockback;
+        iceSpike.isIce = true;
+        iceSpike.setBlendMode('ADD');
+
+        fighter.projectiles.add(iceSpike);
+        iceSpike.body.setAllowGravity(false);
+        iceSpike.body.setVelocityX(direction * 350);
+
+        // Ice trail
+        const trailEvent = this.time.addEvent({
+            delay: 40,
+            repeat: 25,
+            callback: () => {
+                if (!iceSpike.active) return;
+                const crystal = this.add.star(iceSpike.x, iceSpike.y, 6, 3, 6, 0xaaffff);
+                crystal.setBlendMode('ADD');
+                crystal.setAlpha(0.6);
+                this.tweens.add({
+                    targets: crystal,
+                    scale: 0,
+                    alpha: 0,
+                    angle: 180,
+                    duration: 300,
+                    onComplete: () => crystal.destroy()
+                });
+            }
+        });
+
+        this.time.delayedCall(2000, () => {
+            if (iceSpike && iceSpike.active) iceSpike.destroy();
+        });
+    }
+
+    // INFERNO - Explosive area burst
+    createInfernoAttack(fighter, attack, direction) {
+        // Charge effect
+        const chargeRing = this.add.circle(fighter.x, fighter.y, 20, 0xff0044, 0);
+        chargeRing.setStrokeStyle(3, 0xff0044);
+
+        this.tweens.add({
+            targets: chargeRing,
+            scale: 2,
+            alpha: 1,
+            duration: 300,
+            onComplete: () => {
+                chargeRing.destroy();
+
+                // Explosion burst
+                for (let i = 0; i < 12; i++) {
+                    const angle = (i / 12) * Math.PI * 2;
+                    const flame = this.add.circle(fighter.x, fighter.y, 15, 0xff4400);
+                    flame.setBlendMode('ADD');
+
+                    this.tweens.add({
+                        targets: flame,
+                        x: fighter.x + Math.cos(angle) * attack.range,
+                        y: fighter.y + Math.sin(angle) * attack.range,
+                        scale: 0.3,
+                        alpha: 0,
+                        duration: 400,
+                        onComplete: () => flame.destroy()
+                    });
+                }
+
+                // Center explosion
+                const explosion = this.add.circle(fighter.x, fighter.y, 30, 0xff8800);
+                explosion.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: explosion,
+                    scale: 4,
+                    alpha: 0,
+                    duration: 400,
+                    onComplete: () => explosion.destroy()
+                });
+
+                this.cameras.main.shake(200, 0.015);
+
+                // Damage in radius
+                const opponent = fighter.opponent;
+                if (!opponent.isInvincible) {
+                    const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+                    if (dist < attack.range) {
+                        const knockDir = opponent.x > fighter.x ? 1 : -1;
+                        this.applyDamage(opponent, attack.damage, attack.knockback, knockDir);
+                    }
+                }
+            }
+        });
+    }
+
+    // HOLY - Light beam with heal
+    createHolyAttack(fighter, attack, direction) {
+        // Heal self slightly
+        fighter.damage = Math.max(0, fighter.damage - 5);
+
+        // Light pillar on opponent
+        const opponent = fighter.opponent;
+        const targetX = opponent.x;
+
+        // Warning circle
+        const warning = this.add.circle(targetX, opponent.y + 30, 40, 0xffffff, 0.3);
+
+        this.tweens.add({
+            targets: warning,
+            alpha: 0.8,
+            duration: 400,
+            yoyo: true,
+            onComplete: () => {
+                warning.destroy();
+
+                // Light beam from above
+                const beam = this.add.rectangle(targetX, -100, 60, 800, 0xaaffff, 0.8);
+                beam.setBlendMode('ADD');
+
+                this.tweens.add({
+                    targets: beam,
+                    y: 300,
+                    duration: 200,
+                    onComplete: () => {
+                        // Hit check
+                        if (!opponent.isInvincible && Math.abs(opponent.x - targetX) < 50) {
+                            this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                        }
+
+                        this.tweens.add({
+                            targets: beam,
+                            alpha: 0,
+                            duration: 200,
+                            onComplete: () => beam.destroy()
+                        });
+                    }
+                });
+
+                // Sparkles
+                for (let i = 0; i < 10; i++) {
+                    const sparkle = this.add.star(
+                        targetX + (Math.random() - 0.5) * 80,
+                        300 + Math.random() * 200,
+                        4, 3, 8, 0xffffff
+                    );
+                    sparkle.setBlendMode('ADD');
+                    this.tweens.add({
+                        targets: sparkle,
+                        y: sparkle.y - 100,
+                        alpha: 0,
+                        duration: 500,
+                        onComplete: () => sparkle.destroy()
+                    });
+                }
+            }
+        });
+    }
+
+    // SHADOW - Teleport behind and strike
+    createShadowAttack(fighter, attack, direction) {
+        const opponent = fighter.opponent;
+        const startX = fighter.x;
+        const startY = fighter.y;
+
+        // Vanish effect
+        fighter.sprite.setAlpha(0);
+        const vanishEffect = this.add.circle(startX, startY, 30, 0x8800ff);
+        vanishEffect.setBlendMode('ADD');
+        this.tweens.add({
+            targets: vanishEffect,
+            scale: 0,
+            duration: 200,
+            onComplete: () => vanishEffect.destroy()
+        });
+
+        // Teleport behind opponent
+        this.time.delayedCall(200, () => {
+            const behindX = opponent.x - direction * 60;
+            fighter.x = behindX;
+            fighter.y = opponent.y;
+
+            // Reappear effect
+            const appearEffect = this.add.circle(fighter.x, fighter.y, 5, 0x8800ff);
+            appearEffect.setBlendMode('ADD');
+            this.tweens.add({
+                targets: appearEffect,
+                scale: 6,
+                alpha: 0,
+                duration: 200,
+                onComplete: () => appearEffect.destroy()
+            });
+
+            fighter.sprite.setAlpha(1);
+            fighter.facingRight = opponent.x > fighter.x;
+            fighter.sprite.setFlipX(!fighter.facingRight);
+
+            // Strike
+            if (!opponent.isInvincible) {
+                const newDir = fighter.facingRight ? 1 : -1;
+                this.applyDamage(opponent, attack.damage, attack.knockback, newDir);
+                this.createHitSpark(opponent.x, opponent.y, 0x8800ff);
+            }
+        });
+    }
+
+    // ROAR - Area knockback wave
+    createRoarAttack(fighter, attack, direction) {
+        // Roar rings
+        for (let i = 0; i < 4; i++) {
+            this.time.delayedCall(i * 80, () => {
+                const ring = this.add.circle(fighter.x, fighter.y, 20, 0x00ff44, 0);
+                ring.setStrokeStyle(4, 0x00ff44);
+                ring.setBlendMode('ADD');
+
+                this.tweens.add({
+                    targets: ring,
+                    scale: 5,
+                    alpha: 0,
+                    duration: 400,
+                    onComplete: () => ring.destroy()
+                });
+            });
+        }
+
+        // Screen shake
+        this.cameras.main.shake(300, 0.015);
+
+        // Knockback in radius
+        const opponent = fighter.opponent;
+        if (!opponent.isInvincible) {
+            const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+            if (dist < attack.range) {
+                const knockDir = opponent.x > fighter.x ? 1 : -1;
+                this.applyDamage(opponent, attack.damage, attack.knockback * 1.5, knockDir);
+                opponent.body.setVelocityY(-300);
             }
         }
     }
 
-    createProjectile(fighter, attack, direction) {
-        try {
-            const startX = fighter.x + direction * 40;
-            const startY = fighter.y;
+    // NATURE - Vine trap
+    createNatureAttack(fighter, attack, direction) {
+        const trapX = fighter.x + direction * 100;
 
-            // Create simple circle directly with physics
-            const projectile = this.add.circle(startX, startY, 12, fighter.characterData.color);
-            this.physics.add.existing(projectile);
+        // Seed projectile
+        const seed = this.add.circle(fighter.x + direction * 30, fighter.y, 8, 0x00ff88);
+        this.physics.add.existing(seed);
+        seed.body.setVelocityX(direction * 300);
+        seed.body.setGravityY(500);
 
-            if (!projectile.body) {
-                projectile.destroy();
-                return;
+        this.tweens.add({
+            targets: seed,
+            angle: 360 * direction,
+            duration: 500,
+            repeat: -1
+        });
+
+        // Check for ground contact
+        const groundCheck = this.time.addEvent({
+            delay: 50,
+            repeat: 20,
+            callback: () => {
+                if (seed.y > 520) {
+                    groundCheck.remove();
+                    seed.destroy();
+
+                    // Spawn vines
+                    for (let i = 0; i < 5; i++) {
+                        const vine = this.add.rectangle(
+                            seed.x + (i - 2) * 15,
+                            520,
+                            6, 0, 0x00ff44
+                        );
+                        vine.setOrigin(0.5, 1);
+
+                        this.tweens.add({
+                            targets: vine,
+                            height: 60 + Math.random() * 30,
+                            duration: 200,
+                            delay: i * 50
+                        });
+
+                        this.time.delayedCall(2000, () => {
+                            this.tweens.add({
+                                targets: vine,
+                                height: 0,
+                                alpha: 0,
+                                duration: 200,
+                                onComplete: () => vine.destroy()
+                            });
+                        });
+                    }
+
+                    // Trap damage check
+                    const trapCheck = this.time.addEvent({
+                        delay: 100,
+                        repeat: 18,
+                        callback: () => {
+                            const opponent = fighter.opponent;
+                            if (!opponent.isInvincible && !opponent.vineHit) {
+                                if (Math.abs(opponent.x - seed.x) < 50 && opponent.y > 480) {
+                                    opponent.vineHit = true;
+                                    this.applyDamage(opponent, attack.damage, attack.knockback * 0.5, direction);
+                                    opponent.body.setVelocityX(0);
+                                    this.time.delayedCall(500, () => { opponent.vineHit = false; });
+                                }
+                            }
+                        }
+                    });
+                }
             }
+        });
 
-            // Mark as projectile with owner and attack data BEFORE adding to group
-            projectile.isProjectile = true;
-            projectile.hasHit = false;
-            projectile.owner = fighter;
-            projectile.attackDamage = attack.damage;
-            projectile.attackKnockback = attack.knockback;
+        this.time.delayedCall(1500, () => {
+            if (seed && seed.active) seed.destroy();
+        });
+    }
 
-            // Add glow effect
-            projectile.setBlendMode('ADD');
+    // SHIELD - Reflective shield bash
+    createShieldAttack(fighter, attack, direction) {
+        // Shield visual
+        const shield = this.add.ellipse(
+            fighter.x + direction * 35,
+            fighter.y,
+            25, 50, 0xffaa00
+        );
+        shield.setStrokeStyle(4, 0xffffff);
 
-            // Add to group for collision detection FIRST
-            fighter.projectiles.add(projectile);
+        // Shield glow
+        const glow = this.add.ellipse(
+            shield.x, shield.y,
+            35, 60, 0xffaa00, 0.3
+        );
+        glow.setBlendMode('ADD');
 
-            // Set physics properties AFTER adding to group (group can reset them)
-            projectile.body.setAllowGravity(false);
-            projectile.body.setVelocityX(direction * 350);
+        // Shield active period
+        fighter.hasShield = true;
 
-            // Auto-destroy
-            this.time.delayedCall(3000, () => {
-                if (projectile && projectile.active) {
-                    try {
-                        projectile.destroy();
-                    } catch (e) {}
+        // Check for projectile reflection
+        const reflectCheck = this.time.addEvent({
+            delay: 50,
+            repeat: 10,
+            callback: () => {
+                // Check opponent projectiles
+                const opponent = fighter.opponent;
+                opponent.projectiles.getChildren().forEach(proj => {
+                    if (proj.active && !proj.reflected) {
+                        const dist = Phaser.Math.Distance.Between(shield.x, shield.y, proj.x, proj.y);
+                        if (dist < 50) {
+                            proj.reflected = true;
+                            proj.owner = fighter;
+                            proj.body.setVelocityX(-proj.body.velocity.x * 1.5);
+                            proj.setTint(0xffaa00);
+
+                            // Reflection flash
+                            const flash = this.add.circle(proj.x, proj.y, 20, 0xffffff);
+                            flash.setBlendMode('ADD');
+                            this.tweens.add({
+                                targets: flash,
+                                scale: 0,
+                                duration: 100,
+                                onComplete: () => flash.destroy()
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        // Bash forward
+        this.time.delayedCall(300, () => {
+            fighter.hasShield = false;
+
+            this.tweens.add({
+                targets: [shield, glow],
+                x: shield.x + direction * 60,
+                duration: 100,
+                onComplete: () => {
+                    // Bash damage
+                    const opponent = fighter.opponent;
+                    if (!opponent.isInvincible) {
+                        const dist = Phaser.Math.Distance.Between(shield.x, shield.y, opponent.x, opponent.y);
+                        if (dist < 70) {
+                            this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                        }
+                    }
+
+                    this.tweens.add({
+                        targets: [shield, glow],
+                        alpha: 0,
+                        duration: 150,
+                        onComplete: () => {
+                            shield.destroy();
+                            glow.destroy();
+                        }
+                    });
                 }
             });
-        } catch (e) {
-            console.error('Error creating projectile:', e);
+        });
+    }
+
+    // HACK - Deploy trap
+    createHackAttack(fighter, attack, direction) {
+        const trapX = fighter.x + direction * 80;
+
+        // Deploy animation
+        const deployEffect = this.add.circle(fighter.x, fighter.y, 10, 0x00ff00);
+        deployEffect.setBlendMode('ADD');
+
+        this.tweens.add({
+            targets: deployEffect,
+            x: trapX,
+            y: 520,
+            duration: 300,
+            onComplete: () => {
+                deployEffect.destroy();
+
+                // Trap visual - glitchy square
+                const trap = this.add.rectangle(trapX, 520, 40, 10, 0x00ff00, 0.6);
+                const trapGlow = this.add.rectangle(trapX, 520, 50, 15, 0x00ff00, 0.2);
+                trapGlow.setBlendMode('ADD');
+
+                // Glitch effect
+                this.tweens.add({
+                    targets: trap,
+                    scaleX: { from: 0.9, to: 1.1 },
+                    duration: 100,
+                    yoyo: true,
+                    repeat: -1
+                });
+
+                // Trap trigger check
+                const trapCheck = this.time.addEvent({
+                    delay: 100,
+                    repeat: 50,
+                    callback: () => {
+                        const opponent = fighter.opponent;
+                        if (!opponent.isInvincible && !opponent.hacked) {
+                            if (Math.abs(opponent.x - trapX) < 40 && opponent.y > 480) {
+                                opponent.hacked = true;
+
+                                // Hack effect - glitch on opponent
+                                this.applyDamage(opponent, attack.damage, attack.knockback * 0.3, direction);
+
+                                // Stun with glitch visuals
+                                opponent.body.setVelocity(0, 0);
+                                opponent.hitstun = 800;
+
+                                for (let i = 0; i < 8; i++) {
+                                    this.time.delayedCall(i * 80, () => {
+                                        const glitch = this.add.rectangle(
+                                            opponent.x + (Math.random() - 0.5) * 40,
+                                            opponent.y + (Math.random() - 0.5) * 60,
+                                            20 + Math.random() * 30, 4, 0x00ff00
+                                        );
+                                        glitch.setBlendMode('ADD');
+                                        this.tweens.add({
+                                            targets: glitch,
+                                            alpha: 0,
+                                            duration: 100,
+                                            onComplete: () => glitch.destroy()
+                                        });
+                                    });
+                                }
+
+                                trap.destroy();
+                                trapGlow.destroy();
+                                trapCheck.remove();
+
+                                this.time.delayedCall(1000, () => { opponent.hacked = false; });
+                            }
+                        }
+                    }
+                });
+
+                // Trap expires
+                this.time.delayedCall(5000, () => {
+                    if (trap.active) {
+                        this.tweens.add({
+                            targets: [trap, trapGlow],
+                            alpha: 0,
+                            duration: 200,
+                            onComplete: () => {
+                                trap.destroy();
+                                trapGlow.destroy();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    // RAILGUN - Super fast piercing shot
+    createRailgunAttack(fighter, attack, direction) {
+        // Long charge up
+        const chargeBar = this.add.rectangle(fighter.x, fighter.y - 50, 0, 8, 0xff4400);
+
+        // Charge particles
+        const chargeEvent = this.time.addEvent({
+            delay: 30,
+            repeat: 15,
+            callback: () => {
+                const particle = this.add.circle(
+                    fighter.x + (Math.random() - 0.5) * 60,
+                    fighter.y + (Math.random() - 0.5) * 60,
+                    4, 0xff4400
+                );
+                particle.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: particle,
+                    x: fighter.x + direction * 30,
+                    y: fighter.y,
+                    scale: 0,
+                    duration: 200,
+                    onComplete: () => particle.destroy()
+                });
+            }
+        });
+
+        this.tweens.add({
+            targets: chargeBar,
+            width: 60,
+            duration: 500,
+            onComplete: () => {
+                chargeBar.destroy();
+
+                // Fire railgun
+                const beam = this.add.rectangle(
+                    fighter.x + direction * 250,
+                    fighter.y,
+                    500, 6, 0xff4400
+                );
+                beam.setBlendMode('ADD');
+
+                // Wider glow beam
+                const beamGlow = this.add.rectangle(
+                    beam.x, beam.y,
+                    500, 20, 0xff4400, 0.4
+                );
+                beamGlow.setBlendMode('ADD');
+
+                // Screen shake
+                this.cameras.main.shake(200, 0.02);
+
+                // Instant hit check
+                const opponent = fighter.opponent;
+                if (!opponent.isInvincible) {
+                    const inBeam = direction > 0
+                        ? opponent.x > fighter.x
+                        : opponent.x < fighter.x;
+                    const inHeight = Math.abs(opponent.y - fighter.y) < 30;
+
+                    if (inBeam && inHeight) {
+                        this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                        this.createHitSpark(opponent.x, opponent.y, 0xff4400);
+                    }
+                }
+
+                // Beam fade
+                this.tweens.add({
+                    targets: [beam, beamGlow],
+                    alpha: 0,
+                    scaleY: 0,
+                    duration: 100,
+                    onComplete: () => {
+                        beam.destroy();
+                        beamGlow.destroy();
+                    }
+                });
+            }
+        });
+    }
+
+    // BOMB - Arcing explosive
+    createBombAttack(fighter, attack, direction) {
+        const bomb = this.add.circle(fighter.x + direction * 30, fighter.y - 20, 15, 0xff6600);
+        this.physics.add.existing(bomb);
+
+        // Fuse glow
+        const fuse = this.add.circle(bomb.x, bomb.y - 12, 4, 0xffff00);
+        fuse.setBlendMode('ADD');
+
+        bomb.body.setVelocity(direction * 250, -300);
+        bomb.body.setGravityY(600);
+        bomb.body.setBounce(0.4);
+
+        // Update fuse position
+        const fuseUpdate = this.time.addEvent({
+            delay: 16,
+            repeat: -1,
+            callback: () => {
+                if (bomb.active) {
+                    fuse.x = bomb.x;
+                    fuse.y = bomb.y - 12;
+                }
+            }
+        });
+
+        // Fuse flicker
+        this.tweens.add({
+            targets: fuse,
+            scale: { from: 0.8, to: 1.5 },
+            duration: 100,
+            yoyo: true,
+            repeat: -1
+        });
+
+        // Explode after delay or on contact
+        const explode = () => {
+            if (!bomb.active) return;
+            fuseUpdate.remove();
+
+            // Big explosion
+            const explosion = this.add.circle(bomb.x, bomb.y, 20, 0xff6600);
+            explosion.setBlendMode('ADD');
+
+            this.tweens.add({
+                targets: explosion,
+                scale: 6,
+                alpha: 0,
+                duration: 400,
+                onComplete: () => explosion.destroy()
+            });
+
+            // Debris
+            for (let i = 0; i < 12; i++) {
+                const debris = this.add.circle(
+                    bomb.x, bomb.y,
+                    4 + Math.random() * 6,
+                    [0xff6600, 0xffff00, 0xff0000][i % 3]
+                );
+                const angle = (i / 12) * Math.PI * 2;
+                const speed = 200 + Math.random() * 200;
+
+                this.tweens.add({
+                    targets: debris,
+                    x: bomb.x + Math.cos(angle) * speed,
+                    y: bomb.y + Math.sin(angle) * speed,
+                    alpha: 0,
+                    duration: 400,
+                    onComplete: () => debris.destroy()
+                });
+            }
+
+            this.cameras.main.shake(250, 0.025);
+
+            // Area damage
+            const opponent = fighter.opponent;
+            if (!opponent.isInvincible) {
+                const dist = Phaser.Math.Distance.Between(bomb.x, bomb.y, opponent.x, opponent.y);
+                if (dist < 100) {
+                    const knockDir = opponent.x > bomb.x ? 1 : -1;
+                    this.applyDamage(opponent, attack.damage, attack.knockback, knockDir);
+                }
+            }
+
+            bomb.destroy();
+            fuse.destroy();
+        };
+
+        this.time.delayedCall(1500, explode);
+    }
+
+    // LIGHTNING - Chain lightning
+    createLightningAttack(fighter, attack, direction) {
+        const opponent = fighter.opponent;
+
+        // Initial bolt to opponent
+        this.createLightningBolt(fighter.x, fighter.y, opponent.x, opponent.y, 0xffff00);
+
+        // Hit
+        if (!opponent.isInvincible) {
+            this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+        }
+
+        // Chain effect - sparks around opponent
+        for (let i = 0; i < 3; i++) {
+            this.time.delayedCall(i * 100, () => {
+                const spark = this.add.star(
+                    opponent.x + (Math.random() - 0.5) * 40,
+                    opponent.y + (Math.random() - 0.5) * 60,
+                    4, 5, 15, 0xffff00
+                );
+                spark.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: spark,
+                    scale: 0,
+                    angle: 180,
+                    duration: 200,
+                    onComplete: () => spark.destroy()
+                });
+            });
+        }
+
+        this.cameras.main.flash(50, 255, 255, 100);
+    }
+
+    createLightningBolt(x1, y1, x2, y2, color) {
+        const graphics = this.add.graphics();
+        graphics.lineStyle(3, color, 1);
+        graphics.setBlendMode('ADD');
+
+        // Jagged lightning path
+        const segments = 8;
+        let prevX = x1, prevY = y1;
+
+        graphics.beginPath();
+        graphics.moveTo(x1, y1);
+
+        for (let i = 1; i <= segments; i++) {
+            const t = i / segments;
+            const nextX = x1 + (x2 - x1) * t + (Math.random() - 0.5) * 40;
+            const nextY = y1 + (y2 - y1) * t + (Math.random() - 0.5) * 30;
+            graphics.lineTo(nextX, nextY);
+            prevX = nextX;
+            prevY = nextY;
+        }
+
+        graphics.lineTo(x2, y2);
+        graphics.strokePath();
+
+        // Glow
+        graphics.lineStyle(8, color, 0.3);
+        graphics.beginPath();
+        graphics.moveTo(x1, y1);
+        graphics.lineTo(x2, y2);
+        graphics.strokePath();
+
+        this.tweens.add({
+            targets: graphics,
+            alpha: 0,
+            duration: 150,
+            onComplete: () => graphics.destroy()
+        });
+    }
+
+    // EARTHQUAKE - Ground shockwave
+    createEarthquakeAttack(fighter, attack, direction) {
+        // Big stomp
+        fighter.body.setVelocityY(400);
+
+        this.time.delayedCall(150, () => {
+            // Shockwaves in both directions
+            for (let dir = -1; dir <= 1; dir += 2) {
+                for (let i = 0; i < 6; i++) {
+                    this.time.delayedCall(i * 60, () => {
+                        const pillar = this.add.rectangle(
+                            fighter.x + dir * (50 + i * 40),
+                            520,
+                            30, 0, 0x888888
+                        );
+                        pillar.setOrigin(0.5, 1);
+
+                        this.tweens.add({
+                            targets: pillar,
+                            height: 50 + Math.random() * 40,
+                            duration: 100,
+                            yoyo: true,
+                            hold: 100,
+                            onComplete: () => pillar.destroy()
+                        });
+                    });
+                }
+            }
+
+            // Dust clouds
+            for (let i = 0; i < 10; i++) {
+                const dust = this.add.circle(
+                    fighter.x + (Math.random() - 0.5) * 200,
+                    530,
+                    15 + Math.random() * 15,
+                    0x888888, 0.6
+                );
+                this.tweens.add({
+                    targets: dust,
+                    y: dust.y - 40,
+                    alpha: 0,
+                    scale: 2,
+                    duration: 500,
+                    onComplete: () => dust.destroy()
+                });
+            }
+
+            // Heavy screen shake
+            this.cameras.main.shake(400, 0.03);
+
+            // Damage grounded opponents
+            const opponent = fighter.opponent;
+            if (!opponent.isInvincible && opponent.isGrounded) {
+                const dist = Math.abs(opponent.x - fighter.x);
+                if (dist < attack.range) {
+                    opponent.body.setVelocityY(-350);
+                    this.applyDamage(opponent, attack.damage, attack.knockback, opponent.x > fighter.x ? 1 : -1);
+                }
+            }
+        });
+    }
+
+    // SLASH - Wide plasma arc
+    createSlashAttack(fighter, attack, direction) {
+        // Create arc slash effect
+        const arc = this.add.graphics();
+        arc.lineStyle(6, 0xff00ff, 1);
+        arc.setBlendMode('ADD');
+
+        const arcX = fighter.x + direction * 40;
+        const startAngle = direction > 0 ? -0.8 : Math.PI - 0.8;
+        const endAngle = direction > 0 ? 0.8 : Math.PI + 0.8;
+
+        arc.beginPath();
+        arc.arc(arcX, fighter.y, 60, startAngle, endAngle);
+        arc.strokePath();
+
+        // Glow arc
+        const glowArc = this.add.graphics();
+        glowArc.lineStyle(15, 0xff00ff, 0.4);
+        glowArc.setBlendMode('ADD');
+        glowArc.beginPath();
+        glowArc.arc(arcX, fighter.y, 60, startAngle, endAngle);
+        glowArc.strokePath();
+
+        // Slash particles
+        for (let i = 0; i < 8; i++) {
+            const angle = startAngle + (endAngle - startAngle) * (i / 7);
+            const particle = this.add.circle(
+                arcX + Math.cos(angle) * 60,
+                fighter.y + Math.sin(angle) * 60,
+                5, 0x00ffff
+            );
+            particle.setBlendMode('ADD');
+
+            this.tweens.add({
+                targets: particle,
+                x: particle.x + Math.cos(angle) * 30,
+                y: particle.y + Math.sin(angle) * 30,
+                alpha: 0,
+                duration: 200,
+                onComplete: () => particle.destroy()
+            });
+        }
+
+        // Fade arc
+        this.tweens.add({
+            targets: [arc, glowArc],
+            alpha: 0,
+            duration: 200,
+            onComplete: () => {
+                arc.destroy();
+                glowArc.destroy();
+            }
+        });
+
+        // Hit detection
+        const opponent = fighter.opponent;
+        if (!opponent.isInvincible) {
+            const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+            if (dist < attack.range) {
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                this.createHitSpark(opponent.x, opponent.y, 0xff00ff);
+            }
+        }
+    }
+
+    // Default projectile for any unhandled types
+    createDefaultProjectile(fighter, attack, direction) {
+        const projectile = this.add.circle(
+            fighter.x + direction * 40,
+            fighter.y,
+            12,
+            fighter.characterData.color
+        );
+        this.physics.add.existing(projectile);
+
+        projectile.isProjectile = true;
+        projectile.hasHit = false;
+        projectile.owner = fighter;
+        projectile.attackDamage = attack.damage;
+        projectile.attackKnockback = attack.knockback;
+        projectile.setBlendMode('ADD');
+
+        fighter.projectiles.add(projectile);
+        projectile.body.setAllowGravity(false);
+        projectile.body.setVelocityX(direction * 350);
+
+        this.time.delayedCall(3000, () => {
+            if (projectile && projectile.active) projectile.destroy();
+        });
+    }
+
+    // Helper: Create hit spark effect
+    createHitSpark(x, y, color) {
+        for (let i = 0; i < 8; i++) {
+            const spark = this.add.circle(x, y, 4, color);
+            spark.setBlendMode('ADD');
+            const angle = (i / 8) * Math.PI * 2;
+
+            this.tweens.add({
+                targets: spark,
+                x: x + Math.cos(angle) * 40,
+                y: y + Math.sin(angle) * 40,
+                alpha: 0,
+                scale: 0,
+                duration: 200,
+                onComplete: () => spark.destroy()
+            });
         }
     }
 
