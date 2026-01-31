@@ -10,6 +10,8 @@ class CharacterSelectScene extends Phaser.Scene {
         this.player2Selection = null;
         this.aiDifficulty = 'MEDIUM';
         this.currentSelector = 1;
+        this.scrollY = 0;
+        this.maxScroll = 0;
     }
 
     create() {
@@ -89,11 +91,29 @@ class CharacterSelectScene extends Phaser.Scene {
     createCharacterGrid() {
         this.characterBoxes = [];
         const startX = 85;
-        const startY = 100;
+        const startY = 0; // Relative to container
         const boxWidth = 95;
         const boxHeight = 105;
         const spacing = 8;
         const cols = 5;
+
+        // Create scrollable container
+        this.gridContainer = this.add.container(0, 100);
+
+        // Calculate grid dimensions
+        const rows = Math.ceil(CHARACTER_LIST.length / cols);
+        const gridHeight = rows * (boxHeight + spacing);
+        const visibleHeight = 360; // Visible area height
+
+        // Create mask for scrolling area
+        const maskGraphics = this.make.graphics();
+        maskGraphics.fillStyle(0xffffff);
+        maskGraphics.fillRect(20, 95, 530, visibleHeight);
+        const mask = maskGraphics.createGeometryMask();
+        this.gridContainer.setMask(mask);
+
+        // Calculate max scroll
+        this.maxScroll = Math.max(0, gridHeight - visibleHeight + 20);
 
         CHARACTER_LIST.forEach((char, index) => {
             const col = index % cols;
@@ -103,7 +123,84 @@ class CharacterSelectScene extends Phaser.Scene {
 
             const box = this.createCharacterBox(x, y, char, boxWidth, boxHeight);
             this.characterBoxes.push(box);
+            this.gridContainer.add(box.container);
         });
+
+        // Create scroll arrows
+        this.createScrollArrows(visibleHeight);
+
+        // Mouse wheel scrolling
+        this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY) => {
+            if (pointer.x < 560) { // Only scroll when mouse is over grid area
+                this.scrollGrid(deltaY * 0.5);
+            }
+        });
+    }
+
+    createScrollArrows(visibleHeight) {
+        const arrowX = 555;
+        const topY = 110;
+        const bottomY = 95 + visibleHeight - 20;
+
+        // Up arrow
+        this.upArrow = this.add.text(arrowX, topY, '▲', {
+            fontSize: '20px',
+            fontFamily: 'Courier New, monospace',
+            color: '#00ffff'
+        }).setOrigin(0.5);
+        this.upArrow.setInteractive({ useHandCursor: true });
+        this.upArrow.on('pointerdown', () => this.scrollGrid(-50));
+        this.upArrow.on('pointerover', () => this.upArrow.setColor('#ffffff'));
+        this.upArrow.on('pointerout', () => this.upArrow.setColor('#00ffff'));
+
+        // Down arrow
+        this.downArrow = this.add.text(arrowX, bottomY, '▼', {
+            fontSize: '20px',
+            fontFamily: 'Courier New, monospace',
+            color: '#00ffff'
+        }).setOrigin(0.5);
+        this.downArrow.setInteractive({ useHandCursor: true });
+        this.downArrow.on('pointerdown', () => this.scrollGrid(50));
+        this.downArrow.on('pointerover', () => this.downArrow.setColor('#ffffff'));
+        this.downArrow.on('pointerout', () => this.downArrow.setColor('#00ffff'));
+
+        // Scroll indicator bar
+        this.scrollBar = this.add.graphics();
+        this.updateScrollBar(visibleHeight);
+
+        // Initial arrow states
+        this.upArrow.setAlpha(0.3); // Start at top, so up is disabled
+        this.downArrow.setAlpha(this.maxScroll > 0 ? 1 : 0.3);
+    }
+
+    scrollGrid(delta) {
+        this.scrollY = Phaser.Math.Clamp(this.scrollY + delta, 0, this.maxScroll);
+        this.gridContainer.y = 100 - this.scrollY;
+        this.updateScrollBar(360);
+
+        // Update arrow visibility
+        this.upArrow.setAlpha(this.scrollY > 0 ? 1 : 0.3);
+        this.downArrow.setAlpha(this.scrollY < this.maxScroll ? 1 : 0.3);
+    }
+
+    updateScrollBar(visibleHeight) {
+        this.scrollBar.clear();
+
+        if (this.maxScroll <= 0) return;
+
+        const barX = 560;
+        const barY = 130;
+        const barHeight = visibleHeight - 60;
+
+        // Track
+        this.scrollBar.fillStyle(0x333333, 0.5);
+        this.scrollBar.fillRect(barX, barY, 4, barHeight);
+
+        // Thumb
+        const thumbHeight = Math.max(30, (visibleHeight / (visibleHeight + this.maxScroll)) * barHeight);
+        const thumbY = barY + (this.scrollY / this.maxScroll) * (barHeight - thumbHeight);
+        this.scrollBar.fillStyle(0x00ffff, 0.8);
+        this.scrollBar.fillRect(barX, thumbY, 4, thumbHeight);
     }
 
     createCharacterBox(x, y, character, width, height) {
@@ -136,10 +233,8 @@ class CharacterSelectScene extends Phaser.Scene {
         p2Border.strokeRect(-width/2 + 3, -height/2 + 3, width - 6, height - 6);
         p2Border.setVisible(false);
 
-        container.add([bg, sprite, name, p1Border, p2Border]);
-
-        // Interactive
-        const hitArea = this.add.rectangle(x, y, width, height, 0x000000, 0);
+        // Interactive hitbox (inside container)
+        const hitArea = this.add.rectangle(0, 0, width, height, 0x000000, 0);
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
@@ -154,6 +249,8 @@ class CharacterSelectScene extends Phaser.Scene {
         hitArea.on('pointerdown', () => {
             this.selectCharacter(character);
         });
+
+        container.add([bg, sprite, name, p1Border, p2Border, hitArea]);
 
         return {
             container,
@@ -452,6 +549,15 @@ class CharacterSelectScene extends Phaser.Scene {
 
         this.input.keyboard.on('keydown-F', () => {
             this.confirmSelection();
+        });
+
+        // Scroll with Page Up/Down
+        this.input.keyboard.on('keydown-PAGE_UP', () => {
+            this.scrollGrid(-100);
+        });
+
+        this.input.keyboard.on('keydown-PAGE_DOWN', () => {
+            this.scrollGrid(100);
         });
     }
 
