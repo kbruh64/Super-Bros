@@ -776,7 +776,8 @@ class GameScene extends Phaser.Scene {
                 } else if (count === 0) {
                     countdownText.setText('FIGHT!');
                     countdownText.setFontSize(80);
-                    this.cameras.main.flash(200, 233, 69, 96);
+                    // Subtle flash - much gentler on the eyes
+                    this.cameras.main.flash(80, 233, 69, 96, true, 0.15);
                 } else {
                     countdownText.destroy();
                     this.countdownActive = false;
@@ -1094,15 +1095,18 @@ class GameScene extends Phaser.Scene {
         updateParticles();
     }
 
-    // Screen shake effect
+    // Screen shake effect - gentle version
     doScreenShake(intensity = 5, duration = 100) {
-        this.cameras.main.shake(duration, intensity / 1000);
+        // Much more subtle - reduced by 70%
+        this.cameras.main.shake(duration * 0.5, intensity / 4000);
     }
 
-    // Hitstop effect (freeze frame)
+    // Hitstop effect (freeze frame) - subtle version
     doHitstop(duration = 50) {
+        // Cap at 25ms for subtle effect
+        const reducedDuration = Math.min(duration * 0.4, 25);
         this.physics.world.pause();
-        this.time.delayedCall(duration, () => {
+        this.time.delayedCall(reducedDuration, () => {
             this.physics.world.resume();
         });
     }
@@ -1241,8 +1245,8 @@ class GameScene extends Phaser.Scene {
         const y = fighter.y;
         const color = fighter.characterData.color;
 
-        // Add subtle screen shake for all attacks
-        this.doScreenShake(2, 50);
+        // No screen shake on basic attacks - only visual effects
+        // (shake is reserved for actual hits in applyDamage)
 
         switch (effectType) {
             case 'slash_purple':
@@ -1269,7 +1273,7 @@ class GameScene extends Phaser.Scene {
             case 'punch_orange':
             case 'rage_red':
                 // PIXELATED FIST IMPACT - comic book style POW!
-                this.doScreenShake(4, 80);
+                // Screen shake removed - too intense
 
                 // Create impact star burst
                 const impactG = this.add.graphics();
@@ -1309,7 +1313,7 @@ class GameScene extends Phaser.Scene {
             case 'shot_yellow':
             case 'rail_red':
                 // PIXELATED MUZZLE FLASH
-                this.doScreenShake(3, 60);
+                // Shake removed
 
                 const muzzleG = this.add.graphics();
                 muzzleG.setBlendMode('ADD');
@@ -1435,7 +1439,7 @@ class GameScene extends Phaser.Scene {
 
             case 'void_dark':
                 // PIXELATED DARK VOID - swirling darkness
-                this.doScreenShake(3, 100);
+                // Shake removed
                 const voidG = this.add.graphics();
                 voidG.setBlendMode('ADD');
 
@@ -1468,7 +1472,7 @@ class GameScene extends Phaser.Scene {
 
             case 'spark_yellow':
                 // PIXELATED LIGHTNING SPARKS
-                this.doScreenShake(2, 60);
+                // Shake removed
                 const sparkG = this.add.graphics();
                 sparkG.setBlendMode('ADD');
 
@@ -1505,7 +1509,7 @@ class GameScene extends Phaser.Scene {
             case 'quake_gray':
             case 'stomp_blue':
                 // PIXELATED GROUND POUND - earthquake effect
-                this.doScreenShake(6, 150);
+                // Shake removed
                 const quakeG = this.add.graphics();
                 quakeG.setBlendMode('ADD');
 
@@ -1543,7 +1547,7 @@ class GameScene extends Phaser.Scene {
             case 'shield_gold':
             case 'trident_gold':
                 // PIXELATED SHIELD BASH - sparks fly!
-                this.doScreenShake(3, 80);
+                // Shake removed
                 const shieldG = this.add.graphics();
                 shieldG.setBlendMode('ADD');
 
@@ -1575,7 +1579,7 @@ class GameScene extends Phaser.Scene {
 
             case 'claw_green':
                 // PIXELATED CLAW SWIPE - three savage marks
-                this.doScreenShake(3, 70);
+                // Shake removed
                 const clawG = this.add.graphics();
                 clawG.setBlendMode('ADD');
 
@@ -1608,7 +1612,7 @@ class GameScene extends Phaser.Scene {
             case 'mind_pink':
             case 'psi':
                 // PIXELATED PSYCHIC BURST - mind explosion
-                this.doScreenShake(2, 80);
+                // Shake removed
                 const psiG = this.add.graphics();
                 psiG.setBlendMode('ADD');
 
@@ -1674,7 +1678,7 @@ class GameScene extends Phaser.Scene {
             case 'fire_red':
             case 'bomb_orange':
                 // PIXELATED FIRE EXPLOSION - flames everywhere!
-                this.doScreenShake(4, 100);
+                // Shake removed
                 const fireG = this.add.graphics();
                 fireG.setBlendMode('ADD');
 
@@ -1782,7 +1786,7 @@ class GameScene extends Phaser.Scene {
 
             case 'wrench_yellow':
                 // PIXELATED WRENCH SWING - mechanical mayhem
-                this.doScreenShake(2, 60);
+                // Shake removed
                 const wrenchG = this.add.graphics();
                 wrenchG.setBlendMode('ADD');
 
@@ -3015,7 +3019,8 @@ class GameScene extends Phaser.Scene {
             });
         }
 
-        this.cameras.main.flash(50, 255, 255, 100);
+        // Subtle flash for lightning - reduced intensity
+        this.cameras.main.flash(30, 255, 255, 100, true, 0.1);
     }
 
     createLightningBolt(x1, y1, x2, y2, color) {
@@ -3303,20 +3308,21 @@ class GameScene extends Phaser.Scene {
                 } catch (e2) {}
             }
 
-            // Camera effects - enhanced
+            // Camera effects - GENTLE version (won't hurt your eyes)
             try {
-                const shakeIntensity = Math.min(damage * 0.002, 0.015);
+                // Very subtle shake - reduced by 80%
+                const shakeIntensity = Math.min(damage * 0.0004, 0.003);
                 if (this.cameras && this.cameras.main) {
-                    this.cameras.main.shake(80 + damage * 2, shakeIntensity);
+                    this.cameras.main.shake(40, shakeIntensity);
 
-                    // Hitstop for dramatic effect on big hits
-                    if (damage >= 12) {
-                        this.doHitstop(30 + damage);
+                    // Subtle hitstop only on really big hits
+                    if (damage >= 18) {
+                        this.doHitstop(20);
                     }
 
-                    // Screen flash for big hits
-                    if (damage >= 15) {
-                        this.cameras.main.flash(40, 255, 255, 255, 0.3);
+                    // Very subtle screen tint instead of flash (only on huge hits)
+                    if (damage >= 20) {
+                        this.cameras.main.flash(30, 255, 255, 255, 0.1);
                     }
                 }
             } catch (e) {
@@ -3508,8 +3514,8 @@ class GameScene extends Phaser.Scene {
         this.gameOver = true;
         this.physics.pause();
 
-        // Victory transition
-        this.cameras.main.flash(500, 255, 255, 255);
+        // Victory transition - gentle fade
+        this.cameras.main.flash(200, 255, 255, 255, true, 0.2);
 
         this.time.delayedCall(1000, () => {
             this.scene.start('VictoryScene', {
