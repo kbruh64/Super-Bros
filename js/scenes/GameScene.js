@@ -51,20 +51,102 @@ class GameScene extends Phaser.Scene {
 
     createArenaBackground() {
         const arena = this.currentArena;
+        const theme = arena.theme;
 
-        // Main gradient background
+        // Determine if bright or dark theme
+        this.isDarkTheme = ['cosmic', 'fire', 'cyber'].includes(theme);
+
+        // Create pixelated background
         this.bgGraphics = this.add.graphics();
-        this.bgGraphics.fillGradientStyle(
-            arena.background.colors[0],
-            arena.background.colors[0],
-            arena.background.colors[2],
-            arena.background.colors[2],
-            1
-        );
-        this.bgGraphics.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        this.createPixelatedSky(theme);
 
         // Create theme-specific background effects
         this.createThemeEffects();
+
+        // Start sky animation
+        this.skyTime = 0;
+    }
+
+    // PIXELATED SKY GENERATOR
+    createPixelatedSky(theme) {
+        const pixelSize = 8; // Size of each "pixel" in the sky
+        const cols = Math.ceil(GAME_WIDTH / pixelSize);
+        const rows = Math.ceil(GAME_HEIGHT / pixelSize);
+
+        // Theme color palettes (gradient from top to bottom)
+        const palettes = {
+            cosmic: {
+                colors: [0x0a0015, 0x150030, 0x200045, 0x1a0030, 0x0f0020],
+                bright: false
+            },
+            fire: {
+                colors: [0x1a0500, 0x331100, 0x552200, 0x773300, 0x440000],
+                bright: false
+            },
+            ice: {
+                colors: [0xaaddff, 0x88ccee, 0x66aadd, 0x4488cc, 0x3366aa],
+                bright: true
+            },
+            cyber: {
+                colors: [0x000022, 0x001133, 0x002244, 0x001133, 0x000022],
+                bright: false
+            },
+            sky: {
+                colors: [0x4488ff, 0x55aaff, 0x77ccff, 0x99ddff, 0xaaeeff],
+                bright: true
+            },
+            nature: {
+                colors: [0x1a3a1a, 0x2a5a2a, 0x3a7a3a, 0x4a9a4a, 0x3a6a3a],
+                bright: true
+            },
+            epic: {
+                colors: [0x1a1a2e, 0x252545, 0x16213e, 0x1f2f4f, 0x0f1a2e],
+                bright: false
+            },
+            ancient: {
+                colors: [0x2d1b0e, 0x3d2b1e, 0x4d3b2e, 0x3d2b1e, 0x2d1b0e],
+                bright: false
+            },
+            default: {
+                colors: [0x222244, 0x333355, 0x444466, 0x333355, 0x222244],
+                bright: false
+            }
+        };
+
+        const palette = palettes[theme] || palettes.default;
+
+        // Draw pixelated gradient sky
+        for (let row = 0; row < rows; row++) {
+            const t = row / rows;
+            const colorIndex = Math.floor(t * (palette.colors.length - 1));
+            const nextIndex = Math.min(colorIndex + 1, palette.colors.length - 1);
+            const blend = (t * (palette.colors.length - 1)) - colorIndex;
+
+            for (let col = 0; col < cols; col++) {
+                // Add some noise/variation
+                const noise = (Math.sin(col * 0.3 + row * 0.2) + 1) * 0.1;
+                const color = this.lerpColor(palette.colors[colorIndex], palette.colors[nextIndex], blend + noise * 0.2);
+
+                this.bgGraphics.fillStyle(color, 1);
+                this.bgGraphics.fillRect(col * pixelSize, row * pixelSize, pixelSize, pixelSize);
+            }
+        }
+    }
+
+    // Color interpolation helper
+    lerpColor(color1, color2, t) {
+        const r1 = (color1 >> 16) & 0xff;
+        const g1 = (color1 >> 8) & 0xff;
+        const b1 = color1 & 0xff;
+        const r2 = (color2 >> 16) & 0xff;
+        const g2 = (color2 >> 8) & 0xff;
+        const b2 = color2 & 0xff;
+
+        const r = Math.floor(r1 + (r2 - r1) * Math.max(0, Math.min(1, t)));
+        const g = Math.floor(g1 + (g2 - g1) * Math.max(0, Math.min(1, t)));
+        const b = Math.floor(b1 + (b2 - b1) * Math.max(0, Math.min(1, t)));
+
+        return (r << 16) | (g << 8) | b;
     }
 
     createThemeEffects() {
@@ -72,222 +154,508 @@ class GameScene extends Phaser.Scene {
 
         switch (theme) {
             case 'cosmic':
-                this.createCosmicBackground();
+                this.createPixelCosmicBackground();
                 break;
             case 'fire':
-                this.createFireBackground();
+                this.createPixelFireBackground();
                 break;
             case 'ice':
-                this.createIceBackground();
+                this.createPixelIceBackground();
                 break;
             case 'cyber':
-                this.createCyberBackground();
+                this.createPixelCyberBackground();
                 break;
             case 'sky':
-                this.createSkyBackground();
+                this.createPixelSkyBackground();
+                break;
+            case 'nature':
+                this.createPixelNatureBackground();
+                break;
+            case 'epic':
+            case 'ancient':
+                this.createPixelEpicBackground();
                 break;
             default:
-                this.createDefaultBackground();
+                this.createPixelDefaultBackground();
         }
     }
 
-    createCosmicBackground() {
-        // Starfield
-        for (let i = 0; i < 100; i++) {
-            const star = this.add.circle(
+    // COSMIC - Dark with twinkling pixel stars
+    createPixelCosmicBackground() {
+        this.pixelStars = [];
+
+        // Create pixel stars
+        for (let i = 0; i < 80; i++) {
+            const size = Math.random() > 0.8 ? 4 : 2;
+            const star = this.add.rectangle(
                 Math.random() * GAME_WIDTH,
                 Math.random() * GAME_HEIGHT,
-                Math.random() * 2 + 1,
-                0xffffff,
-                Math.random() * 0.8 + 0.2
+                size, size,
+                [0xffffff, 0xaaaaff, 0xffaaff, 0xaaffff][Math.floor(Math.random() * 4)]
             );
-
-            this.tweens.add({
-                targets: star,
-                alpha: { from: star.alpha, to: star.alpha * 0.3 },
-                duration: 1000 + Math.random() * 2000,
-                yoyo: true,
-                repeat: -1
-            });
+            star.baseAlpha = 0.3 + Math.random() * 0.7;
+            star.twinkleSpeed = 0.5 + Math.random() * 2;
+            star.twinkleOffset = Math.random() * Math.PI * 2;
+            this.pixelStars.push(star);
         }
 
-        // Nebula effect
-        for (let i = 0; i < 5; i++) {
-            const nebula = this.add.circle(
-                Math.random() * GAME_WIDTH,
-                Math.random() * GAME_HEIGHT,
-                100 + Math.random() * 100,
-                [0xff00ff, 0x00ffff, 0xff6600][i % 3],
-                0.05
-            );
-            nebula.setBlendMode('ADD');
-
-            this.tweens.add({
-                targets: nebula,
-                x: nebula.x + Math.random() * 100 - 50,
-                y: nebula.y + Math.random() * 50 - 25,
-                alpha: { from: 0.03, to: 0.08 },
-                duration: 5000 + Math.random() * 5000,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut'
-            });
-        }
-    }
-
-    createFireBackground() {
-        // Lava glow at bottom
-        const lavaGlow = this.add.graphics();
-        lavaGlow.fillStyle(0xff4400, 0.3);
-        lavaGlow.fillRect(0, GAME_HEIGHT - 150, GAME_WIDTH, 150);
-
-        // Ember particles rising
-        this.add.particles(0, 0, 'particle_ember', {
-            x: { min: 0, max: GAME_WIDTH },
-            y: GAME_HEIGHT,
-            lifespan: 4000,
-            speed: { min: 50, max: 150 },
-            angle: { min: 260, max: 280 },
-            scale: { start: 0.8, end: 0 },
-            alpha: { start: 1, end: 0 },
-            frequency: 50,
-            blendMode: 'ADD'
-        });
-
-        // Heat wave effect
-        this.heatWave = this.add.graphics();
-        this.heatPhase = 0;
-    }
-
-    createIceBackground() {
-        // Aurora effect
+        // Pixel nebula blobs
         for (let i = 0; i < 3; i++) {
-            const aurora = this.add.graphics();
-            aurora.fillStyle([0x00ff88, 0x00ffcc, 0x88ffff][i], 0.1);
+            const nebula = this.add.graphics();
+            const nx = 100 + Math.random() * (GAME_WIDTH - 200);
+            const ny = 50 + Math.random() * (GAME_HEIGHT - 200);
+            const color = [0xff00ff, 0x00ffff, 0xff6600][i];
 
-            const y = 50 + i * 80;
-            aurora.fillRect(0, y, GAME_WIDTH, 60);
+            // Draw pixelated nebula
+            for (let px = -5; px <= 5; px++) {
+                for (let py = -5; py <= 5; py++) {
+                    const dist = Math.sqrt(px * px + py * py);
+                    if (dist < 5) {
+                        nebula.fillStyle(color, 0.1 * (1 - dist / 5));
+                        nebula.fillRect(nx + px * 12, ny + py * 12, 12, 12);
+                    }
+                }
+            }
+            nebula.setBlendMode('ADD');
+        }
+    }
 
-            this.tweens.add({
-                targets: aurora,
-                alpha: { from: 0.05, to: 0.15 },
-                duration: 3000 + i * 1000,
-                yoyo: true,
-                repeat: -1
-            });
+    // FIRE - Dark with animated pixel embers
+    createPixelFireBackground() {
+        // Pixel lava at bottom
+        const lavaGraphics = this.add.graphics();
+        for (let x = 0; x < GAME_WIDTH; x += 8) {
+            const height = 80 + Math.sin(x * 0.05) * 30;
+            for (let y = 0; y < height; y += 8) {
+                const t = y / height;
+                const color = this.lerpColor(0xff6600, 0xff0000, t);
+                lavaGraphics.fillStyle(color, 0.6 - t * 0.4);
+                lavaGraphics.fillRect(x, GAME_HEIGHT - height + y, 8, 8);
+            }
         }
 
-        // Snowfall
-        this.add.particles(0, 0, 'particle_snow', {
-            x: { min: 0, max: GAME_WIDTH },
-            y: -10,
-            lifespan: 8000,
-            speedY: { min: 30, max: 80 },
-            speedX: { min: -20, max: 20 },
-            scale: { start: 0.8, end: 0.4 },
-            alpha: { start: 0.9, end: 0.3 },
-            frequency: 30,
-            rotate: { min: 0, max: 360 }
+        // Animated pixel embers
+        this.pixelEmbers = [];
+        for (let i = 0; i < 30; i++) {
+            const ember = this.add.rectangle(
+                Math.random() * GAME_WIDTH,
+                GAME_HEIGHT + Math.random() * 50,
+                4, 4,
+                [0xff4400, 0xff6600, 0xffaa00, 0xffff00][Math.floor(Math.random() * 4)]
+            );
+            ember.setBlendMode('ADD');
+            ember.vx = (Math.random() - 0.5) * 0.5;
+            ember.vy = -1 - Math.random() * 2;
+            this.pixelEmbers.push(ember);
+        }
+    }
+
+    // ICE - Bright with pixel aurora and snowflakes
+    createPixelIceBackground() {
+        // Pixel aurora bands
+        this.auroraGraphics = this.add.graphics();
+        this.auroraPhase = 0;
+
+        // Initial aurora draw
+        this.drawPixelAurora();
+
+        // Pixel snowflakes
+        this.pixelSnow = [];
+        for (let i = 0; i < 40; i++) {
+            const snow = this.add.rectangle(
+                Math.random() * GAME_WIDTH,
+                Math.random() * GAME_HEIGHT,
+                Math.random() > 0.7 ? 4 : 2,
+                Math.random() > 0.7 ? 4 : 2,
+                0xffffff,
+                0.7 + Math.random() * 0.3
+            );
+            snow.vx = (Math.random() - 0.5) * 0.3;
+            snow.vy = 0.5 + Math.random() * 1;
+            this.pixelSnow.push(snow);
+        }
+    }
+
+    drawPixelAurora() {
+        this.auroraGraphics.clear();
+        const colors = [0x00ff88, 0x00ffaa, 0x44ffcc, 0x88ffdd];
+
+        for (let band = 0; band < 3; band++) {
+            const baseY = 30 + band * 50;
+            for (let x = 0; x < GAME_WIDTH; x += 8) {
+                const wave = Math.sin(x * 0.02 + this.auroraPhase + band) * 20;
+                const height = 30 + Math.sin(x * 0.01 + this.auroraPhase * 0.5) * 15;
+
+                for (let y = 0; y < height; y += 8) {
+                    const t = y / height;
+                    this.auroraGraphics.fillStyle(colors[band], 0.15 * (1 - t));
+                    this.auroraGraphics.fillRect(x, baseY + wave + y, 8, 8);
+                }
+            }
+        }
+    }
+
+    // CYBER - Dark with pixel grid and neon scanlines
+    createPixelCyberBackground() {
+        // Pixel grid
+        const gridGraphics = this.add.graphics();
+        gridGraphics.fillStyle(0x00ffff, 0.15);
+
+        for (let x = 0; x < GAME_WIDTH; x += 40) {
+            for (let y = 0; y < GAME_HEIGHT; y += 8) {
+                gridGraphics.fillRect(x, y, 2, 2);
+            }
+        }
+        for (let y = 0; y < GAME_HEIGHT; y += 40) {
+            for (let x = 0; x < GAME_WIDTH; x += 8) {
+                gridGraphics.fillRect(x, y, 2, 2);
+            }
+        }
+
+        // Neon scanlines
+        this.scanlineY = 0;
+        this.scanlineGraphics = this.add.graphics();
+
+        // Data streams
+        this.dataStreams = [];
+        for (let i = 0; i < 8; i++) {
+            const stream = {
+                x: Math.random() * GAME_WIDTH,
+                chars: [],
+                speed: 2 + Math.random() * 3
+            };
+            for (let c = 0; c < 10; c++) {
+                stream.chars.push({
+                    y: -c * 20,
+                    alpha: 1 - c * 0.1
+                });
+            }
+            this.dataStreams.push(stream);
+        }
+        this.dataGraphics = this.add.graphics();
+    }
+
+    // SKY - Bright with pixel sun and clouds
+    createPixelSkyBackground() {
+        // Pixel sun
+        const sunGraphics = this.add.graphics();
+        const sunX = 150, sunY = 80;
+
+        // Sun core
+        for (let px = -4; px <= 4; px++) {
+            for (let py = -4; py <= 4; py++) {
+                const dist = Math.sqrt(px * px + py * py);
+                if (dist <= 4) {
+                    const color = dist < 2 ? 0xffffaa : (dist < 3 ? 0xffdd44 : 0xffaa00);
+                    sunGraphics.fillStyle(color, 1);
+                    sunGraphics.fillRect(sunX + px * 8, sunY + py * 8, 8, 8);
+                }
+            }
+        }
+
+        // Sun rays (pixelated)
+        for (let r = 0; r < 8; r++) {
+            const angle = (r / 8) * Math.PI * 2;
+            for (let d = 5; d < 10; d++) {
+                const rx = sunX + Math.cos(angle) * d * 8;
+                const ry = sunY + Math.sin(angle) * d * 8;
+                sunGraphics.fillStyle(0xffff00, 0.3);
+                sunGraphics.fillRect(rx - 2, ry - 2, 4, 4);
+            }
+        }
+        sunGraphics.setBlendMode('ADD');
+
+        // Pixel clouds
+        this.pixelClouds = [];
+        for (let i = 0; i < 4; i++) {
+            const cloud = this.createPixelCloud(
+                -100 + Math.random() * (GAME_WIDTH + 100),
+                40 + Math.random() * 120
+            );
+            cloud.vx = 0.3 + Math.random() * 0.5;
+            this.pixelClouds.push(cloud);
+        }
+    }
+
+    createPixelCloud(x, y) {
+        const cloudGraphics = this.add.graphics();
+        const cloudData = [];
+
+        // Generate cloud shape
+        const puffs = 4 + Math.floor(Math.random() * 3);
+        for (let p = 0; p < puffs; p++) {
+            const px = p * 20 - puffs * 10;
+            const py = Math.sin(p * 0.8) * 8;
+            const size = 2 + Math.floor(Math.random() * 2);
+
+            for (let dx = -size; dx <= size; dx++) {
+                for (let dy = -size; dy <= size; dy++) {
+                    if (Math.abs(dx) + Math.abs(dy) <= size + 1) {
+                        cloudData.push({ x: px + dx * 6, y: py + dy * 6 });
+                    }
+                }
+            }
+        }
+
+        // Draw cloud pixels
+        cloudData.forEach(pixel => {
+            cloudGraphics.fillStyle(0xffffff, 0.8);
+            cloudGraphics.fillRect(pixel.x, pixel.y, 6, 6);
+        });
+
+        cloudGraphics.setPosition(x, y);
+        return cloudGraphics;
+    }
+
+    // NATURE - Bright jungle with pixel leaves and fireflies
+    createPixelNatureBackground() {
+        // Pixel trees in background
+        const treeGraphics = this.add.graphics();
+        for (let t = 0; t < 6; t++) {
+            const tx = 80 + t * 150 + Math.random() * 50;
+            const ty = GAME_HEIGHT - 100;
+
+            // Tree trunk
+            treeGraphics.fillStyle(0x4a3520, 1);
+            for (let i = 0; i < 8; i++) {
+                treeGraphics.fillRect(tx - 8 + (i % 2) * 2, ty - i * 12, 12, 12);
+            }
+
+            // Tree leaves (pixel circles)
+            const leafColors = [0x2a6a2a, 0x3a8a3a, 0x4aaa4a];
+            for (let lx = -3; lx <= 3; lx++) {
+                for (let ly = -3; ly <= 1; ly++) {
+                    const dist = Math.sqrt(lx * lx + ly * ly);
+                    if (dist < 3.5) {
+                        treeGraphics.fillStyle(leafColors[Math.floor(Math.random() * 3)], 0.9);
+                        treeGraphics.fillRect(tx + lx * 14, ty - 90 + ly * 12, 12, 12);
+                    }
+                }
+            }
+        }
+
+        // Pixel fireflies
+        this.pixelFireflies = [];
+        for (let i = 0; i < 15; i++) {
+            const firefly = this.add.rectangle(
+                Math.random() * GAME_WIDTH,
+                100 + Math.random() * (GAME_HEIGHT - 200),
+                3, 3,
+                0xffff44
+            );
+            firefly.setBlendMode('ADD');
+            firefly.baseX = firefly.x;
+            firefly.baseY = firefly.y;
+            firefly.phase = Math.random() * Math.PI * 2;
+            firefly.glowPhase = Math.random() * Math.PI * 2;
+            this.pixelFireflies.push(firefly);
+        }
+
+        // Falling leaves
+        this.pixelLeaves = [];
+        for (let i = 0; i < 12; i++) {
+            const leaf = this.add.rectangle(
+                Math.random() * GAME_WIDTH,
+                Math.random() * GAME_HEIGHT,
+                6, 4,
+                [0x88aa44, 0x66882a, 0xaacc66][Math.floor(Math.random() * 3)]
+            );
+            leaf.setAngle(Math.random() * 360);
+            leaf.vx = (Math.random() - 0.5) * 0.5;
+            leaf.vy = 0.3 + Math.random() * 0.5;
+            leaf.spin = (Math.random() - 0.5) * 2;
+            this.pixelLeaves.push(leaf);
+        }
+    }
+
+    // EPIC/ANCIENT - Dark dramatic with floating particles and light rays
+    createPixelEpicBackground() {
+        // Dramatic light rays from above
+        const rayGraphics = this.add.graphics();
+        for (let r = 0; r < 5; r++) {
+            const rx = 100 + r * 180;
+            const rayWidth = 30 + Math.random() * 20;
+
+            for (let y = 0; y < GAME_HEIGHT; y += 8) {
+                const spread = y * 0.15;
+                const alpha = 0.1 * (1 - y / GAME_HEIGHT);
+                rayGraphics.fillStyle(0xffffcc, alpha);
+                rayGraphics.fillRect(rx - rayWidth/2 - spread/2, y, rayWidth + spread, 8);
+            }
+        }
+        rayGraphics.setBlendMode('ADD');
+
+        // Floating dust motes
+        this.epicDust = [];
+        for (let i = 0; i < 25; i++) {
+            const dust = this.add.rectangle(
+                Math.random() * GAME_WIDTH,
+                Math.random() * GAME_HEIGHT,
+                2, 2,
+                0xffffaa,
+                0.4 + Math.random() * 0.3
+            );
+            dust.setBlendMode('ADD');
+            dust.vx = (Math.random() - 0.5) * 0.3;
+            dust.vy = -0.1 - Math.random() * 0.2;
+            dust.wobblePhase = Math.random() * Math.PI * 2;
+            this.epicDust.push(dust);
+        }
+
+        // Pixel pillars/ruins in background
+        const ruinGraphics = this.add.graphics();
+        const pillarPositions = [50, 200, 600, 950, 1100];
+        pillarPositions.forEach((px, idx) => {
+            const height = 150 + Math.random() * 100;
+            const broken = Math.random() > 0.5;
+
+            for (let py = 0; py < height; py += 8) {
+                const shade = 0x333344 + (py % 16 === 0 ? 0x111111 : 0);
+                ruinGraphics.fillStyle(shade, 0.5);
+                ruinGraphics.fillRect(px, GAME_HEIGHT - py - 8, 24, 8);
+
+                if (broken && py > height - 40) {
+                    if (Math.random() > 0.3) continue; // Skip some blocks for broken look
+                }
+            }
         });
     }
 
-    createCyberBackground() {
-        // Grid lines
-        const gridGraphics = this.add.graphics();
-        gridGraphics.lineStyle(1, 0x00ffff, 0.2);
-
-        for (let x = 0; x < GAME_WIDTH; x += 50) {
-            gridGraphics.moveTo(x, 0);
-            gridGraphics.lineTo(x, GAME_HEIGHT);
-        }
-        for (let y = 0; y < GAME_HEIGHT; y += 50) {
-            gridGraphics.moveTo(0, y);
-            gridGraphics.lineTo(GAME_WIDTH, y);
-        }
-        gridGraphics.strokePath();
-
-        // Neon glow pulses
-        this.neonPulses = [];
-        for (let i = 0; i < 4; i++) {
-            const pulse = this.add.rectangle(
+    createPixelDefaultBackground() {
+        // Simple animated pixel particles
+        this.defaultParticles = [];
+        for (let i = 0; i < 20; i++) {
+            const particle = this.add.rectangle(
                 Math.random() * GAME_WIDTH,
                 Math.random() * GAME_HEIGHT,
-                200,
-                2,
-                [0xff00ff, 0x00ffff, 0xffff00, 0xff0088][i],
-                0.5
+                4, 4,
+                0x666688,
+                0.3
             );
-            pulse.setBlendMode('ADD');
-
-            this.tweens.add({
-                targets: pulse,
-                x: Math.random() * GAME_WIDTH,
-                alpha: { from: 0.2, to: 0.6 },
-                scaleX: { from: 0.5, to: 2 },
-                duration: 2000 + Math.random() * 2000,
-                yoyo: true,
-                repeat: -1
-            });
-
-            this.neonPulses.push(pulse);
+            particle.vx = (Math.random() - 0.5) * 0.5;
+            particle.vy = (Math.random() - 0.5) * 0.5;
+            this.defaultParticles.push(particle);
         }
     }
 
-    createSkyBackground() {
-        // Sun
-        const sun = this.add.circle(200, 100, 60, 0xffdd00, 0.8);
-        sun.setBlendMode('ADD');
+    // Update animated backgrounds (call in update loop)
+    updatePixelBackgrounds() {
+        this.skyTime = (this.skyTime || 0) + 0.016;
 
-        // Sun rays
-        for (let i = 0; i < 8; i++) {
-            const ray = this.add.rectangle(
-                200, 100,
-                200, 3,
-                0xffff00, 0.3
-            );
-            ray.setAngle(i * 45);
-            ray.setBlendMode('ADD');
-
-            this.tweens.add({
-                targets: ray,
-                scaleX: { from: 0.8, to: 1.2 },
-                alpha: { from: 0.2, to: 0.4 },
-                duration: 2000,
-                yoyo: true,
-                repeat: -1
+        // Update star twinkle
+        if (this.pixelStars) {
+            this.pixelStars.forEach(star => {
+                star.setAlpha(star.baseAlpha * (0.5 + 0.5 * Math.sin(this.skyTime * star.twinkleSpeed + star.twinkleOffset)));
             });
         }
 
-        // Clouds
-        for (let i = 0; i < 5; i++) {
-            const cloud = this.createCloud(
-                -200 + Math.random() * (GAME_WIDTH + 200),
-                50 + Math.random() * 150
-            );
-
-            this.tweens.add({
-                targets: cloud,
-                x: cloud.x + GAME_WIDTH + 400,
-                duration: 30000 + Math.random() * 20000,
-                repeat: -1
+        // Update embers
+        if (this.pixelEmbers) {
+            this.pixelEmbers.forEach(ember => {
+                ember.y += ember.vy;
+                ember.x += ember.vx + Math.sin(this.skyTime * 2 + ember.x * 0.01) * 0.3;
+                if (ember.y < -10) {
+                    ember.y = GAME_HEIGHT + 10;
+                    ember.x = Math.random() * GAME_WIDTH;
+                }
             });
         }
-    }
 
-    createCloud(x, y) {
-        const cloud = this.add.container(x, y);
-
-        for (let i = 0; i < 5; i++) {
-            const puff = this.add.ellipse(
-                i * 25 - 50, Math.sin(i) * 10,
-                60 + Math.random() * 30,
-                40 + Math.random() * 20,
-                0xffffff, 0.6
-            );
-            cloud.add(puff);
+        // Update snow
+        if (this.pixelSnow) {
+            this.pixelSnow.forEach(snow => {
+                snow.y += snow.vy;
+                snow.x += snow.vx + Math.sin(this.skyTime + snow.y * 0.01) * 0.2;
+                if (snow.y > GAME_HEIGHT + 10) {
+                    snow.y = -10;
+                    snow.x = Math.random() * GAME_WIDTH;
+                }
+            });
         }
 
-        return cloud;
+        // Update aurora
+        if (this.auroraGraphics) {
+            this.auroraPhase += 0.02;
+            if (Math.floor(this.skyTime * 10) % 3 === 0) {
+                this.drawPixelAurora();
+            }
+        }
+
+        // Update cyber scanlines and data
+        if (this.scanlineGraphics) {
+            this.scanlineGraphics.clear();
+            this.scanlineY = (this.scanlineY + 3) % GAME_HEIGHT;
+            this.scanlineGraphics.fillStyle(0x00ffff, 0.2);
+            this.scanlineGraphics.fillRect(0, this.scanlineY, GAME_WIDTH, 2);
+            this.scanlineGraphics.fillStyle(0xff00ff, 0.1);
+            this.scanlineGraphics.fillRect(0, (this.scanlineY + 100) % GAME_HEIGHT, GAME_WIDTH, 2);
+        }
+
+        if (this.dataStreams && this.dataGraphics) {
+            this.dataGraphics.clear();
+            this.dataStreams.forEach(stream => {
+                stream.chars.forEach((char, i) => {
+                    char.y += stream.speed;
+                    if (char.y > GAME_HEIGHT) char.y = -20;
+                    this.dataGraphics.fillStyle(0x00ff00, char.alpha * 0.5);
+                    this.dataGraphics.fillRect(stream.x, char.y, 4, 8);
+                });
+            });
+        }
+
+        // Update clouds
+        if (this.pixelClouds) {
+            this.pixelClouds.forEach(cloud => {
+                cloud.x += cloud.vx;
+                if (cloud.x > GAME_WIDTH + 150) {
+                    cloud.x = -150;
+                }
+            });
+        }
+
+        // Update default particles
+        if (this.defaultParticles) {
+            this.defaultParticles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > GAME_WIDTH) p.vx *= -1;
+                if (p.y < 0 || p.y > GAME_HEIGHT) p.vy *= -1;
+            });
+        }
+
+        // Update fireflies (nature theme)
+        if (this.pixelFireflies) {
+            this.pixelFireflies.forEach(ff => {
+                ff.x = ff.baseX + Math.sin(this.skyTime * 0.5 + ff.phase) * 30;
+                ff.y = ff.baseY + Math.cos(this.skyTime * 0.7 + ff.phase) * 20;
+                ff.setAlpha(0.3 + 0.7 * Math.abs(Math.sin(this.skyTime * 2 + ff.glowPhase)));
+            });
+        }
+
+        // Update falling leaves (nature theme)
+        if (this.pixelLeaves) {
+            this.pixelLeaves.forEach(leaf => {
+                leaf.x += leaf.vx + Math.sin(this.skyTime + leaf.y * 0.02) * 0.3;
+                leaf.y += leaf.vy;
+                leaf.angle += leaf.spin;
+                if (leaf.y > GAME_HEIGHT + 10) {
+                    leaf.y = -10;
+                    leaf.x = Math.random() * GAME_WIDTH;
+                }
+            });
+        }
+
+        // Update epic dust motes
+        if (this.epicDust) {
+            this.epicDust.forEach(dust => {
+                dust.x += dust.vx + Math.sin(this.skyTime * 0.3 + dust.wobblePhase) * 0.2;
+                dust.y += dust.vy;
+                if (dust.y < -10) {
+                    dust.y = GAME_HEIGHT + 10;
+                    dust.x = Math.random() * GAME_WIDTH;
+                }
+            });
+        }
     }
 
     createDefaultBackground() {
@@ -835,6 +1203,9 @@ class GameScene extends Phaser.Scene {
     }
 
     update(time, delta) {
+        // Always update animated backgrounds (even during countdown)
+        this.updatePixelBackgrounds();
+
         if (this.gameOver || this.isPaused || this.countdownActive) return;
 
         // Update cooldowns
@@ -1930,6 +2301,37 @@ class GameScene extends Phaser.Scene {
                 break;
             case 'slash':
                 this.createSlashAttack(fighter, attack, direction);
+                break;
+            // NEW CHARACTER SPECIALS
+            case 'iai':
+                this.createIaiAttack(fighter, attack, direction);
+                break;
+            case 'heal':
+                this.createHealAttack(fighter, attack, direction);
+                break;
+            case 'phase':
+                this.createPhaseAttack(fighter, attack, direction);
+                break;
+            case 'arena':
+                this.createArenaAttack(fighter, attack, direction);
+                break;
+            case 'psi':
+                this.createPsiAttack(fighter, attack, direction);
+                break;
+            case 'rage':
+                this.createRageAttack(fighter, attack, direction);
+                break;
+            case 'turret':
+                this.createTurretAttack(fighter, attack, direction);
+                break;
+            case 'drain':
+                this.createDrainAttack(fighter, attack, direction);
+                break;
+            case 'sting':
+                this.createStingAttack(fighter, attack, direction);
+                break;
+            case 'titan':
+                this.createTitanAttack(fighter, attack, direction);
                 break;
             default:
                 this.createDefaultProjectile(fighter, attack, direction);
@@ -3187,6 +3589,543 @@ class GameScene extends Phaser.Scene {
                 this.createHitSpark(opponent.x, opponent.y, 0xff00ff);
             }
         }
+    }
+
+    // IAI - Samurai quick draw (instant slash in a line)
+    createIaiAttack(fighter, attack, direction) {
+        // Instant dash-slash
+        const startX = fighter.x;
+        const endX = fighter.x + direction * attack.range;
+
+        // Slash line effect
+        const slashLine = this.add.graphics();
+        slashLine.lineStyle(4, 0xff2222, 1);
+        slashLine.setBlendMode('ADD');
+        slashLine.beginPath();
+        slashLine.moveTo(startX, fighter.y);
+        slashLine.lineTo(endX, fighter.y);
+        slashLine.strokePath();
+
+        // Blade trail
+        for (let i = 0; i < 6; i++) {
+            const trailX = startX + direction * (i * attack.range / 6);
+            const trail = this.add.rectangle(trailX, fighter.y, 8, 40, 0xffffff);
+            trail.setBlendMode('ADD');
+            trail.setAlpha(0.8 - i * 0.1);
+            this.tweens.add({
+                targets: trail,
+                alpha: 0,
+                scaleY: 0.5,
+                duration: 150,
+                delay: i * 20,
+                onComplete: () => trail.destroy()
+            });
+        }
+
+        // Move fighter instantly
+        fighter.x = Math.min(Math.max(endX, 50), 750);
+
+        this.tweens.add({
+            targets: slashLine,
+            alpha: 0,
+            duration: 200,
+            onComplete: () => slashLine.destroy()
+        });
+
+        // Hit detection along the line
+        const opponent = fighter.opponent;
+        if (!opponent.isInvincible) {
+            const oppX = opponent.x;
+            if ((direction > 0 && oppX > startX && oppX < endX) ||
+                (direction < 0 && oppX < startX && oppX > endX)) {
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                this.createHitSpark(opponent.x, opponent.y, 0xff2222);
+            }
+        }
+    }
+
+    // HEAL - Medic healing burst
+    createHealAttack(fighter, attack, direction) {
+        // Healing aura
+        const healAura = this.add.circle(fighter.x, fighter.y, 60, 0x44ff44, 0.3);
+        healAura.setBlendMode('ADD');
+
+        // Healing particles rising
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2;
+            const particle = this.add.rectangle(
+                fighter.x + Math.cos(angle) * 30,
+                fighter.y + Math.sin(angle) * 30,
+                6, 6, 0x44ff44
+            );
+            particle.setBlendMode('ADD');
+            this.tweens.add({
+                targets: particle,
+                y: particle.y - 40,
+                alpha: 0,
+                duration: 400,
+                onComplete: () => particle.destroy()
+            });
+        }
+
+        // Heal the fighter (reduce damage)
+        fighter.damage = Math.max(0, fighter.damage - 15);
+
+        // Also create a damaging projectile
+        const healBolt = this.add.circle(fighter.x + direction * 30, fighter.y, 10, 0x44ff44);
+        this.physics.add.existing(healBolt);
+        healBolt.isProjectile = true;
+        healBolt.hasHit = false;
+        healBolt.owner = fighter;
+        healBolt.attackDamage = attack.damage;
+        healBolt.attackKnockback = attack.knockback;
+        healBolt.body.setVelocityX(direction * 350);
+        healBolt.body.setCircle(10);
+        healBolt.setBlendMode('ADD');
+
+        this.projectiles.add(healBolt);
+
+        this.time.delayedCall(1500, () => {
+            if (healBolt.active) healBolt.destroy();
+        });
+
+        this.tweens.add({
+            targets: healAura,
+            scale: 2,
+            alpha: 0,
+            duration: 400,
+            onComplete: () => healAura.destroy()
+        });
+    }
+
+    // PHASE - Phantom teleport attack
+    createPhaseAttack(fighter, attack, direction) {
+        const startX = fighter.x;
+        const startY = fighter.y;
+
+        // Disappear effect
+        const ghostStart = this.add.rectangle(startX, startY, 30, 50, 0x6600aa, 0.6);
+        ghostStart.setBlendMode('ADD');
+
+        // Teleport to opponent or forward
+        const opponent = fighter.opponent;
+        let targetX = fighter.x + direction * attack.range;
+        if (Math.abs(opponent.x - fighter.x) < attack.range) {
+            targetX = opponent.x + direction * 50;
+        }
+        targetX = Math.min(Math.max(targetX, 50), 750);
+
+        // Ghost trail
+        for (let i = 0; i < 5; i++) {
+            const t = i / 4;
+            const ghostX = startX + (targetX - startX) * t;
+            const ghost = this.add.rectangle(ghostX, startY, 25, 45, 0xaa00ff, 0.4 - i * 0.08);
+            ghost.setBlendMode('ADD');
+            this.tweens.add({
+                targets: ghost,
+                alpha: 0,
+                duration: 200,
+                delay: i * 30,
+                onComplete: () => ghost.destroy()
+            });
+        }
+
+        // Move fighter
+        fighter.x = targetX;
+
+        // Appear effect
+        const ghostEnd = this.add.rectangle(targetX, startY, 30, 50, 0xcc00ff, 0.8);
+        ghostEnd.setBlendMode('ADD');
+
+        this.tweens.add({
+            targets: [ghostStart, ghostEnd],
+            alpha: 0,
+            duration: 300,
+            onComplete: () => { ghostStart.destroy(); ghostEnd.destroy(); }
+        });
+
+        // Hit if passed through opponent
+        if (!opponent.isInvincible) {
+            const dist = Math.abs(opponent.x - targetX);
+            if (dist < 60) {
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                this.createHitSpark(opponent.x, opponent.y, 0xaa00ff);
+            }
+        }
+    }
+
+    // ARENA - Gladiator multi-hit combo
+    createArenaAttack(fighter, attack, direction) {
+        // Multi-hit combo
+        const hits = 4;
+        for (let h = 0; h < hits; h++) {
+            this.time.delayedCall(h * 100, () => {
+                // Slash effect
+                const slash = this.add.graphics();
+                slash.lineStyle(5, 0xffcc00, 1);
+                slash.setBlendMode('ADD');
+                const angle = (h % 2 === 0) ? -0.5 : 0.5;
+                slash.beginPath();
+                slash.arc(fighter.x + direction * 30, fighter.y, 40, angle - 0.8, angle + 0.8);
+                slash.strokePath();
+
+                this.tweens.add({
+                    targets: slash,
+                    alpha: 0,
+                    scale: 1.3,
+                    duration: 150,
+                    onComplete: () => slash.destroy()
+                });
+
+                // Hit detection
+                const opponent = fighter.opponent;
+                if (!opponent.isInvincible) {
+                    const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+                    if (dist < attack.range) {
+                        this.applyDamage(opponent, attack.damage / hits, attack.knockback * 0.5, direction);
+                        this.createHitSpark(opponent.x, opponent.y, 0xffcc00);
+                    }
+                }
+            });
+        }
+    }
+
+    // PSI - Psychic wave attack
+    createPsiAttack(fighter, attack, direction) {
+        // Expanding psychic rings
+        for (let r = 0; r < 3; r++) {
+            this.time.delayedCall(r * 100, () => {
+                const ring = this.add.circle(fighter.x, fighter.y, 20, 0xff44ff, 0);
+                ring.setStrokeStyle(4, 0xff44ff);
+                ring.setBlendMode('ADD');
+
+                this.tweens.add({
+                    targets: ring,
+                    scale: 4,
+                    alpha: 0,
+                    duration: 400,
+                    onComplete: () => ring.destroy()
+                });
+            });
+        }
+
+        // Psychic projectile
+        const psiBall = this.add.circle(fighter.x + direction * 30, fighter.y, 15, 0xff44ff);
+        this.physics.add.existing(psiBall);
+        psiBall.isProjectile = true;
+        psiBall.hasHit = false;
+        psiBall.owner = fighter;
+        psiBall.attackDamage = attack.damage;
+        psiBall.attackKnockback = attack.knockback;
+        psiBall.body.setVelocityX(direction * 300);
+        psiBall.body.setCircle(15);
+        psiBall.setBlendMode('ADD');
+
+        this.projectiles.add(psiBall);
+
+        // Psi trail
+        this.time.addEvent({
+            delay: 50,
+            repeat: 20,
+            callback: () => {
+                if (psiBall.active) {
+                    const trail = this.add.circle(psiBall.x, psiBall.y, 8, 0xaa00ff, 0.5);
+                    trail.setBlendMode('ADD');
+                    this.tweens.add({
+                        targets: trail,
+                        alpha: 0,
+                        scale: 0.5,
+                        duration: 200,
+                        onComplete: () => trail.destroy()
+                    });
+                }
+            }
+        });
+
+        this.time.delayedCall(2000, () => {
+            if (psiBall.active) psiBall.destroy();
+        });
+    }
+
+    // RAGE - Berserker fury mode
+    createRageAttack(fighter, attack, direction) {
+        // Rage aura
+        const rageAura = this.add.circle(fighter.x, fighter.y, 50, 0xff0000, 0.4);
+        rageAura.setBlendMode('ADD');
+
+        // Rage particles
+        for (let i = 0; i < 15; i++) {
+            const particle = this.add.rectangle(
+                fighter.x + (Math.random() - 0.5) * 60,
+                fighter.y + (Math.random() - 0.5) * 60,
+                4, 8, 0xff4400
+            );
+            particle.setBlendMode('ADD');
+            particle.setAngle(Math.random() * 360);
+            this.tweens.add({
+                targets: particle,
+                y: particle.y - 50,
+                alpha: 0,
+                duration: 300,
+                onComplete: () => particle.destroy()
+            });
+        }
+
+        // Forward rush
+        fighter.body.setVelocityX(direction * 400);
+
+        // Powerful hit
+        this.time.delayedCall(100, () => {
+            const opponent = fighter.opponent;
+            if (!opponent.isInvincible) {
+                const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+                if (dist < attack.range) {
+                    // Damage bonus based on fighter's own damage
+                    const bonusDamage = Math.floor(fighter.damage / 10);
+                    this.applyDamage(opponent, attack.damage + bonusDamage, attack.knockback, direction);
+                    this.createHitSpark(opponent.x, opponent.y, 0xff0000);
+                }
+            }
+        });
+
+        this.tweens.add({
+            targets: rageAura,
+            scale: 2,
+            alpha: 0,
+            duration: 300,
+            onComplete: () => rageAura.destroy()
+        });
+    }
+
+    // TURRET - Engineer deploys auto-turret
+    createTurretAttack(fighter, attack, direction) {
+        // Create turret
+        const turretX = fighter.x + direction * 60;
+        const turretY = fighter.y + 20;
+
+        const turretBase = this.add.rectangle(turretX, turretY, 20, 15, 0x888800);
+        const turretGun = this.add.rectangle(turretX + direction * 10, turretY - 5, 15, 6, 0xffff00);
+        turretGun.setBlendMode('ADD');
+
+        // Turret fires for a duration
+        let shotsFired = 0;
+        const maxShots = 6;
+        const fireEvent = this.time.addEvent({
+            delay: 300,
+            repeat: maxShots - 1,
+            callback: () => {
+                if (!turretBase.active) return;
+
+                // Fire bullet
+                const bullet = this.add.circle(turretX + direction * 20, turretY - 5, 5, 0xffff00);
+                this.physics.add.existing(bullet);
+                bullet.isProjectile = true;
+                bullet.hasHit = false;
+                bullet.owner = fighter;
+                bullet.attackDamage = attack.damage / 3;
+                bullet.attackKnockback = attack.knockback * 0.5;
+                bullet.body.setVelocityX(direction * 500);
+                bullet.body.setCircle(5);
+                bullet.setBlendMode('ADD');
+
+                this.projectiles.add(bullet);
+
+                // Muzzle flash
+                const flash = this.add.circle(turretX + direction * 22, turretY - 5, 8, 0xffffff);
+                flash.setBlendMode('ADD');
+                this.tweens.add({
+                    targets: flash,
+                    alpha: 0,
+                    scale: 0.5,
+                    duration: 50,
+                    onComplete: () => flash.destroy()
+                });
+
+                this.time.delayedCall(1000, () => {
+                    if (bullet.active) bullet.destroy();
+                });
+
+                shotsFired++;
+            }
+        });
+
+        // Destroy turret after duration
+        this.time.delayedCall(2500, () => {
+            fireEvent.remove();
+            if (turretBase.active) {
+                this.tweens.add({
+                    targets: [turretBase, turretGun],
+                    alpha: 0,
+                    duration: 200,
+                    onComplete: () => {
+                        turretBase.destroy();
+                        turretGun.destroy();
+                    }
+                });
+            }
+        });
+    }
+
+    // DRAIN - Vampire life steal
+    createDrainAttack(fighter, attack, direction) {
+        // Dark aura
+        const drainAura = this.add.circle(fighter.x, fighter.y, 40, 0x880022, 0.5);
+        drainAura.setBlendMode('ADD');
+
+        // Blood particles toward fighter
+        const opponent = fighter.opponent;
+        if (!opponent.isInvincible) {
+            const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+            if (dist < attack.range) {
+                // Create blood drain effect
+                for (let i = 0; i < 8; i++) {
+                    this.time.delayedCall(i * 50, () => {
+                        const blood = this.add.circle(opponent.x, opponent.y, 4, 0xff0044);
+                        blood.setBlendMode('ADD');
+                        this.tweens.add({
+                            targets: blood,
+                            x: fighter.x,
+                            y: fighter.y,
+                            alpha: 0,
+                            duration: 300,
+                            onComplete: () => blood.destroy()
+                        });
+                    });
+                }
+
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                // Heal fighter
+                fighter.damage = Math.max(0, fighter.damage - attack.damage * 0.5);
+                this.createHitSpark(opponent.x, opponent.y, 0xff0044);
+            }
+        }
+
+        this.tweens.add({
+            targets: drainAura,
+            scale: 1.5,
+            alpha: 0,
+            duration: 400,
+            onComplete: () => drainAura.destroy()
+        });
+    }
+
+    // STING - Scorpion poison attack
+    createStingAttack(fighter, attack, direction) {
+        // Tail strike animation
+        const tail = this.add.graphics();
+        tail.fillStyle(0xaaaa00, 1);
+        tail.fillRect(fighter.x, fighter.y - 30, direction * 40, 6);
+        tail.fillStyle(0x00ff00, 1);
+        tail.fillRect(fighter.x + direction * 38, fighter.y - 32, 8, 10);
+        tail.setBlendMode('ADD');
+
+        // Poison projectile
+        const stinger = this.add.circle(fighter.x + direction * 50, fighter.y - 20, 8, 0x00ff00);
+        this.physics.add.existing(stinger);
+        stinger.isProjectile = true;
+        stinger.hasHit = false;
+        stinger.owner = fighter;
+        stinger.attackDamage = attack.damage;
+        stinger.attackKnockback = attack.knockback;
+        stinger.body.setVelocityX(direction * 400);
+        stinger.body.setVelocityY(100);
+        stinger.body.setCircle(8);
+        stinger.setBlendMode('ADD');
+
+        this.projectiles.add(stinger);
+
+        // Poison trail
+        this.time.addEvent({
+            delay: 80,
+            repeat: 10,
+            callback: () => {
+                if (stinger.active) {
+                    const poison = this.add.circle(stinger.x, stinger.y, 4, 0x88ff00, 0.6);
+                    poison.setBlendMode('ADD');
+                    this.tweens.add({
+                        targets: poison,
+                        alpha: 0,
+                        scale: 0.3,
+                        duration: 300,
+                        onComplete: () => poison.destroy()
+                    });
+                }
+            }
+        });
+
+        this.tweens.add({
+            targets: tail,
+            alpha: 0,
+            duration: 200,
+            onComplete: () => tail.destroy()
+        });
+
+        this.time.delayedCall(1500, () => {
+            if (stinger.active) stinger.destroy();
+        });
+    }
+
+    // TITAN - Colossus meteor strike
+    createTitanAttack(fighter, attack, direction) {
+        // Jump up
+        fighter.body.setVelocityY(-300);
+
+        // Meteors fall after delay
+        this.time.delayedCall(400, () => {
+            for (let m = 0; m < 3; m++) {
+                this.time.delayedCall(m * 150, () => {
+                    const meteorX = fighter.x + direction * (30 + m * 40);
+                    const meteor = this.add.circle(meteorX, 0, 15, 0x446688);
+                    this.physics.add.existing(meteor);
+                    meteor.isProjectile = true;
+                    meteor.hasHit = false;
+                    meteor.owner = fighter;
+                    meteor.attackDamage = attack.damage / 3;
+                    meteor.attackKnockback = attack.knockback;
+                    meteor.body.setVelocityY(600);
+                    meteor.body.setCircle(15);
+                    meteor.setBlendMode('ADD');
+
+                    // Meteor trail
+                    this.time.addEvent({
+                        delay: 30,
+                        repeat: 15,
+                        callback: () => {
+                            if (meteor.active) {
+                                const trail = this.add.circle(meteor.x, meteor.y - 10, 8, 0xff6600, 0.6);
+                                trail.setBlendMode('ADD');
+                                this.tweens.add({
+                                    targets: trail,
+                                    alpha: 0,
+                                    scale: 0.3,
+                                    duration: 150,
+                                    onComplete: () => trail.destroy()
+                                });
+                            }
+                        }
+                    });
+
+                    this.projectiles.add(meteor);
+
+                    // Destroy on ground hit
+                    this.time.delayedCall(1000, () => {
+                        if (meteor.active) {
+                            // Impact explosion
+                            const impact = this.add.circle(meteor.x, meteor.y, 30, 0xff6600, 0.6);
+                            impact.setBlendMode('ADD');
+                            this.tweens.add({
+                                targets: impact,
+                                scale: 2,
+                                alpha: 0,
+                                duration: 200,
+                                onComplete: () => impact.destroy()
+                            });
+                            meteor.destroy();
+                        }
+                    });
+                });
+            }
+        });
     }
 
     // Default projectile for any unhandled types
