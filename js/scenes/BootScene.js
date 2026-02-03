@@ -106,30 +106,41 @@ class BootScene extends Phaser.Scene {
         const bx = Math.floor(cx / p);
         const by = Math.floor(cy / p);
 
-        // Animation modifiers
+        // Animation modifiers - enhanced for more dynamic movement
         let armSwing = 0, legSwing = 0, attackPunch = 0, glowIntensity = 0, shake = 0;
+        let bodyBob = 0, lean = 0;
 
         switch (animation) {
             case 'idle':
+                // Subtle breathing animation
                 glowIntensity = Math.sin(frame * Math.PI / 3) * 0.3 + 0.3;
+                bodyBob = Math.sin(frame * Math.PI / 3) * 0.5;
                 break;
             case 'walk':
-                legSwing = Math.sin(frame * Math.PI / 3) * 2;
-                armSwing = -legSwing;
+                // Dynamic walking with exaggerated leg/arm swing
+                legSwing = Math.sin(frame * Math.PI / 3) * 3; // Increased from 2 to 3
+                armSwing = -legSwing * 1.2; // Arms swing opposite, slightly more
+                bodyBob = Math.abs(Math.sin(frame * Math.PI / 3)) * 1; // Bounce while walking
+                lean = Math.sin(frame * Math.PI / 3) * 0.5; // Slight body lean
                 break;
             case 'jump':
                 glowIntensity = 0.5;
+                armSwing = -2; // Arms up during jump
+                legSwing = 1; // Legs tucked
                 break;
             case 'attack':
-                attackPunch = [0, 3, 5, 2][frame];
-                glowIntensity = [0.2, 0.6, 1.0, 0.4][frame];
+                attackPunch = [0, 4, 6, 3][frame]; // More punch extension
+                glowIntensity = [0.2, 0.7, 1.0, 0.5][frame];
+                shake = frame === 2 ? 1 : 0; // Impact shake on hit frame
                 break;
             case 'special':
-                attackPunch = [1, 3, 4, 2][frame];
-                glowIntensity = [0.4, 0.8, 1.0, 0.6][frame];
+                attackPunch = [1, 4, 5, 3][frame];
+                glowIntensity = [0.5, 0.9, 1.0, 0.7][frame];
+                shake = frame === 2 ? 2 : 0;
                 break;
             case 'hurt':
-                shake = frame === 0 ? -1 : 1;
+                shake = frame === 0 ? -2 : 2; // More dramatic knockback
+                bodyBob = -1; // Recoil
                 break;
         }
 
