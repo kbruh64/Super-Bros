@@ -1,3 +1,9 @@
+// Global error handler to catch any uncaught errors
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error('Game Error:', msg, 'at', url, lineNo, columnNo);
+    return false;
+};
+
 // Main Game Configuration and Initialization
 const config = {
     type: Phaser.AUTO,

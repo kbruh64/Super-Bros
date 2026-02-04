@@ -9,16 +9,34 @@ class BootScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
+        // Fill background first to prevent any rendering artifacts
+        const bg = this.add.graphics();
+        bg.fillStyle(0x1a1a2e, 1);
+        bg.fillRect(0, 0, width, height);
+
         const progressBox = this.add.graphics();
         progressBox.fillStyle(0x222222, 0.8);
         progressBox.fillRoundedRect(width / 2 - 160, height / 2 - 25, 320, 50, 10);
 
-        this.add.text(width / 2, height / 2 - 50, 'Loading...', {
+        this.loadingText = this.add.text(width / 2, height / 2 - 50, 'Loading...', {
             font: '24px Arial',
             fill: '#ffffff'
         }).setOrigin(0.5);
 
-        this.generateAssets();
+        try {
+            this.generateAssets();
+        } catch (error) {
+            console.error('Asset generation failed:', error);
+            this.loadingText.setText('Error loading assets. Retrying...');
+            // Retry once after a short delay
+            this.time.delayedCall(100, () => {
+                try {
+                    this.generateAssets();
+                } catch (e) {
+                    console.error('Asset generation failed on retry:', e);
+                }
+            });
+        }
     }
 
     generateAssets() {
