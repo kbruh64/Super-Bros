@@ -6,8 +6,13 @@ class BootScene extends Phaser.Scene {
     }
 
     preload() {
+        console.log('BootScene preload started');
+
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+
+        // Set camera background color explicitly
+        this.cameras.main.setBackgroundColor('#1a1a2e');
 
         // Fill background first to prevent any rendering artifacts
         const bg = this.add.graphics();
@@ -23,19 +28,17 @@ class BootScene extends Phaser.Scene {
             fill: '#ffffff'
         }).setOrigin(0.5);
 
+        // Hide HTML loading text
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+
         try {
+            console.log('Starting asset generation...');
             this.generateAssets();
+            console.log('Asset generation complete');
         } catch (error) {
             console.error('Asset generation failed:', error);
-            this.loadingText.setText('Error loading assets. Retrying...');
-            // Retry once after a short delay
-            this.time.delayedCall(100, () => {
-                try {
-                    this.generateAssets();
-                } catch (e) {
-                    console.error('Asset generation failed on retry:', e);
-                }
-            });
+            this.loadingText.setText('Error: ' + error.message);
         }
     }
 

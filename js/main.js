@@ -1,12 +1,19 @@
 // Global error handler to catch any uncaught errors
 window.onerror = function(msg, url, lineNo, columnNo, error) {
     console.error('Game Error:', msg, 'at', url, lineNo, columnNo);
+    document.getElementById('loading').textContent = 'Error: ' + msg;
     return false;
 };
 
+// Check if Phaser loaded
+if (typeof Phaser === 'undefined') {
+    console.error('Phaser failed to load!');
+    document.getElementById('loading').textContent = 'Error: Phaser failed to load';
+}
+
 // Main Game Configuration and Initialization
 const config = {
-    type: Phaser.AUTO,
+    type: Phaser.CANVAS,  // Force Canvas renderer instead of WebGL
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
     parent: 'game-container',
