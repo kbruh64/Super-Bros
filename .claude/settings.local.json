@@ -8,7 +8,9 @@
       "Bash(wc:*)",
       "Bash(npx serve -l 3000)",
       "mcp__ct-devmcp__do_tst",
-      "Bash(node --check:*)"
+      "Bash(node --check:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
