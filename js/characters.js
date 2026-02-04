@@ -114,15 +114,15 @@ const CHARACTERS = {
         name: 'Darknet',
         color: 0x8800ff,
         accentColor: 0x220044,
-        speed: 390,
-        weight: 0.65,
-        jumpPower: 1.35,
+        speed: 340,           // NERFED from 390
+        weight: 0.7,          // NERFED from 0.65 (easier to knock back)
+        jumpPower: 1.2,       // NERFED from 1.35
         size: { width: 30, height: 54 },
         bodyType: 'slim',
         attackEffect: 'void_dark',
         attacks: {
-            normal: { damage: 8, knockback: 0.7, range: 38, startup: 2, duration: 9 },
-            special: { damage: 20, knockback: 1.6, range: 160, startup: 5, duration: 18, type: 'shadow' }
+            normal: { damage: 7, knockback: 0.6, range: 36, startup: 3, duration: 10 },  // NERFED
+            special: { damage: 16, knockback: 1.3, range: 140, startup: 7, duration: 20, type: 'shadow' }  // NERFED
         },
         description: 'Phase through attacks with glitch teleport'
     },
@@ -131,15 +131,15 @@ const CHARACTERS = {
         name: 'Blitz',
         color: 0xffff00,
         accentColor: 0xff8800,
-        speed: 400,
-        weight: 0.75,
-        jumpPower: 1.3,
+        speed: 350,           // NERFED from 400
+        weight: 0.8,          // NERFED from 0.75 (easier to knock back)
+        jumpPower: 1.15,      // NERFED from 1.3
         size: { width: 35, height: 55 },
         bodyType: 'slim',
         attackEffect: 'spark_yellow',
         attacks: {
-            normal: { damage: 8, knockback: 0.65, range: 36, startup: 2, duration: 7 },
-            special: { damage: 18, knockback: 1.6, range: 90, startup: 4, duration: 16, type: 'lightning' }
+            normal: { damage: 6, knockback: 0.5, range: 34, startup: 3, duration: 8 },  // NERFED
+            special: { damage: 14, knockback: 1.3, range: 80, startup: 6, duration: 18, type: 'lightning' }  // NERFED
         },
         description: 'Electric speed demon with chain lightning'
     },
