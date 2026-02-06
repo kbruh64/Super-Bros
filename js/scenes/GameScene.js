@@ -1144,8 +1144,7 @@ class GameScene extends Phaser.Scene {
                 } else if (count === 0) {
                     countdownText.setText('FIGHT!');
                     countdownText.setFontSize(80);
-                    // Subtle flash - much gentler on the eyes
-                    this.cameras.main.flash(80, 255, 255, 255, true, 0.15);
+                    // Flash removed to prevent screen color issues
                 } else {
                     countdownText.destroy();
                     this.countdownActive = false;
