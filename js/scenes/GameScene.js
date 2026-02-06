@@ -997,16 +997,16 @@ class GameScene extends Phaser.Scene {
             specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
         };
 
-        // Player 2 controls (Arrows + Numpad keys)
+        // Player 2 controls (Arrows + Shift/Enter)
         this.p2Keys = {
             up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
             down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
             left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
             right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
-            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO),
-            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_ONE),
-            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_TWO),
-            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_THREE)
+            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
+            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PERIOD),
+            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
+            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FORWARD_SLASH)
         };
 
         // Pause
@@ -3431,8 +3431,7 @@ class GameScene extends Phaser.Scene {
             });
         }
 
-        // Subtle flash for lightning - reduced intensity
-        this.cameras.main.flash(30, 255, 255, 100, true, 0.1);
+        // Flash removed to prevent errors
     }
 
     createLightningBolt(x1, y1, x2, y2, color) {
@@ -4269,10 +4268,7 @@ class GameScene extends Phaser.Scene {
                         this.doHitstop(20);
                     }
 
-                    // Very subtle screen tint instead of flash (only on huge hits)
-                    if (damage >= 20) {
-                        this.cameras.main.flash(30, 255, 255, 255, 0.1);
-                    }
+                    // Flash removed to prevent errors
                 }
             } catch (e) {
                 // Silently fail if camera effects don't work
