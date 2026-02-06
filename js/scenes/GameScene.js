@@ -985,16 +985,16 @@ class GameScene extends Phaser.Scene {
             specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
         };
 
-        // Player 2 controls (Arrows + F/Shift, E/Right Ctrl)
+        // Player 2 controls (Arrows + Numpad keys)
         this.p2Keys = {
             up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
             down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
             left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
             right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
-            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F),
-            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
-            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
-            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
+            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO),
+            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_ONE),
+            special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_TWO),
+            specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_THREE)
         };
 
         // Pause
@@ -4450,9 +4450,6 @@ class GameScene extends Phaser.Scene {
     endGame(winner) {
         this.gameOver = true;
         this.physics.pause();
-
-        // Victory transition - gentle fade
-        this.cameras.main.flash(200, 255, 255, 255, true, 0.2);
 
         this.time.delayedCall(1000, () => {
             this.scene.start('VictoryScene', {
