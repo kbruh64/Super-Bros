@@ -16,15 +16,6 @@ class PauseScene extends Phaser.Scene {
             0x000000, 0.7
         );
 
-        // Blur effect simulation with multiple overlays
-        for (let i = 0; i < 3; i++) {
-            const blur = this.add.rectangle(
-                GAME_WIDTH / 2, GAME_HEIGHT / 2,
-                GAME_WIDTH, GAME_HEIGHT,
-                0x1a1a2e, 0.1
-            );
-        }
-
         // Pause panel
         this.createPanel();
 
@@ -37,56 +28,47 @@ class PauseScene extends Phaser.Scene {
     createPanel() {
         const panel = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
 
-        // Background
+        // Background - Minecraft-Cyber style matching HUD
         const bg = this.add.graphics();
-        bg.fillStyle(0x16213e, 0.95);
-        bg.fillRoundedRect(-200, -180, 400, 360, 20);
-        bg.lineStyle(4, 0xe94560, 1);
-        bg.strokeRoundedRect(-200, -180, 400, 360, 20);
 
-        // Decorative corner accents
-        const corners = this.add.graphics();
-        corners.lineStyle(3, 0xe94560, 0.5);
-        corners.moveTo(-180, -150);
-        corners.lineTo(-180, -130);
-        corners.moveTo(-180, -150);
-        corners.lineTo(-160, -150);
+        // Outer cyan glow
+        bg.fillStyle(0x00ffff, 0.15);
+        bg.fillRect(-202, -182, 404, 364);
 
-        corners.moveTo(180, -150);
-        corners.lineTo(180, -130);
-        corners.moveTo(180, -150);
-        corners.lineTo(160, -150);
+        // Dark background
+        bg.fillStyle(0x000000, 0.9);
+        bg.fillRect(-200, -180, 400, 360);
 
-        corners.moveTo(-180, 150);
-        corners.lineTo(-180, 130);
-        corners.moveTo(-180, 150);
-        corners.lineTo(-160, 150);
+        // Inner area
+        bg.fillStyle(0x0a0a15, 0.9);
+        bg.fillRect(-196, -176, 392, 352);
 
-        corners.moveTo(180, 150);
-        corners.lineTo(180, 130);
-        corners.moveTo(180, 150);
-        corners.lineTo(160, 150);
-        corners.strokePath();
+        // Neon cyan borders
+        bg.fillStyle(0x00ffff, 0.8);
+        bg.fillRect(-196, -176, 392, 2); // Top
+        bg.fillRect(-196, 174, 392, 2);   // Bottom
+        bg.fillRect(-196, -176, 2, 352);  // Left
+        bg.fillRect(194, -176, 2, 352);   // Right
 
-        // Title
+        // Title - Minecraft blocky style
         const title = this.add.text(0, -130, 'PAUSED', {
             fontSize: '48px',
-            fontFamily: 'Arial Black',
-            color: '#ffffff'
+            fontFamily: 'Courier New, monospace',
+            fontStyle: 'bold',
+            color: '#00ffff'
         }).setOrigin(0.5);
-        title.setStroke('#e94560', 6);
+        title.setStroke('#000000', 6);
 
         // Pulsing animation
         this.tweens.add({
             targets: title,
-            scaleX: 1.05,
-            scaleY: 1.05,
+            alpha: 0.7,
             duration: 800,
             yoyo: true,
             repeat: -1
         });
 
-        panel.add([bg, corners, title]);
+        panel.add([bg, title]);
 
         // Menu buttons
         const buttonY = -40;
@@ -99,8 +81,8 @@ class PauseScene extends Phaser.Scene {
         // Controls reminder
         const controlsText = this.add.text(0, 130, 'Press ESC to resume', {
             fontSize: '14px',
-            fontFamily: 'Arial',
-            color: '#888888'
+            fontFamily: 'Courier New, monospace',
+            color: '#00ffff'
         }).setOrigin(0.5);
 
         panel.add(controlsText);
@@ -109,25 +91,36 @@ class PauseScene extends Phaser.Scene {
     createButton(panel, x, y, text, callback) {
         const btn = this.add.container(x, y);
 
-        // Background
+        // Background - Minecraft style panel
         const bg = this.add.graphics();
-        bg.fillStyle(0xe94560, 1);
-        bg.fillRoundedRect(-120, -25, 240, 50, 10);
 
-        // Highlight
-        const highlight = this.add.graphics();
-        highlight.fillStyle(0xff6680, 0.5);
-        highlight.fillRoundedRect(-115, -22, 230, 20, 8);
+        // Outer glow
+        bg.fillStyle(0x00ffff, 0.15);
+        bg.fillRect(-122, -27, 244, 54);
+
+        // Dark background
+        bg.fillStyle(0x000000, 0.9);
+        bg.fillRect(-120, -25, 240, 50);
+
+        // Inner area
+        bg.fillStyle(0x0a0a15, 0.9);
+        bg.fillRect(-118, -23, 236, 46);
+
+        // Neon border
+        bg.fillStyle(0x00ffff, 0.6);
+        bg.fillRect(-118, -23, 236, 2); // Top
+        bg.fillRect(-118, 21, 236, 2);   // Bottom
 
         // Text
         const btnText = this.add.text(0, 0, text, {
-            fontSize: '22px',
-            fontFamily: 'Arial Black',
+            fontSize: '20px',
+            fontFamily: 'Courier New, monospace',
+            fontStyle: 'bold',
             color: '#ffffff'
         }).setOrigin(0.5);
         btnText.setStroke('#000000', 3);
 
-        btn.add([bg, highlight, btnText]);
+        btn.add([bg, btnText]);
         panel.add(btn);
 
         // Hit area
@@ -140,21 +133,40 @@ class PauseScene extends Phaser.Scene {
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
-            btn.setScale(1.1);
+            btn.setScale(1.05);
+            btnText.setColor('#00ffff');
             bg.clear();
-            bg.fillStyle(0xff6680, 1);
-            bg.fillRoundedRect(-120, -25, 240, 50, 10);
+
+            // Brighter on hover
+            bg.fillStyle(0x00ffff, 0.25);
+            bg.fillRect(-122, -27, 244, 54);
+            bg.fillStyle(0x000000, 0.9);
+            bg.fillRect(-120, -25, 240, 50);
+            bg.fillStyle(0x0a0a15, 0.9);
+            bg.fillRect(-118, -23, 236, 46);
+            bg.fillStyle(0x00ffff, 1);
+            bg.fillRect(-118, -23, 236, 2);
+            bg.fillRect(-118, 21, 236, 2);
         });
 
         hitArea.on('pointerout', () => {
             btn.setScale(1);
+            btnText.setColor('#ffffff');
             bg.clear();
-            bg.fillStyle(0xe94560, 1);
-            bg.fillRoundedRect(-120, -25, 240, 50, 10);
+
+            // Normal state
+            bg.fillStyle(0x00ffff, 0.15);
+            bg.fillRect(-122, -27, 244, 54);
+            bg.fillStyle(0x000000, 0.9);
+            bg.fillRect(-120, -25, 240, 50);
+            bg.fillStyle(0x0a0a15, 0.9);
+            bg.fillRect(-118, -23, 236, 46);
+            bg.fillStyle(0x00ffff, 0.6);
+            bg.fillRect(-118, -23, 236, 2);
+            bg.fillRect(-118, 21, 236, 2);
         });
 
         hitArea.on('pointerdown', () => {
-            this.cameras.main.flash(50);
             callback();
         });
     }
