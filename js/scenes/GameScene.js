@@ -997,14 +997,14 @@ class GameScene extends Phaser.Scene {
             specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
         };
 
-        // Player 2 controls (IJKL + O/H)
+        // Player 2 controls (IJKL + U/O for attack, H/Y for special)
         this.p2Keys = {
             up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I),
             down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K),
             left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J),
             right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L),
-            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.O),
-            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P),
+            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U),
+            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.O),
             special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H),
             specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y)
         };
