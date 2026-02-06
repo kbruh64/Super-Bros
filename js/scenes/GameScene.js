@@ -753,11 +753,23 @@ class GameScene extends Phaser.Scene {
     }
 
     createFighters() {
-        // Create Player 1 - spawn just above main platform (platform top is ~y=530)
-        this.player1 = this.createFighter(400, 500, this.player1Data, 1);
+        // Find main platform to calculate spawn positions
+        const mainPlatform = this.currentArena.platforms.find(p => p.type === 'main');
+        const spawnY = mainPlatform.y - 60; // Spawn 60 pixels above main platform
 
-        // Create Player 2
-        this.player2 = this.createFighter(800, 500, this.player2Data, 2);
+        // Calculate spawn X positions based on platform width
+        const platformLeft = mainPlatform.x - mainPlatform.width / 2;
+        const platformRight = mainPlatform.x + mainPlatform.width / 2;
+        const spawnOffset = Math.min(200, mainPlatform.width / 3); // Safe distance from edges
+
+        const p1SpawnX = platformLeft + spawnOffset;
+        const p2SpawnX = platformRight - spawnOffset;
+
+        // Create Player 1 - left side of platform
+        this.player1 = this.createFighter(p1SpawnX, spawnY, this.player1Data, 1);
+
+        // Create Player 2 - right side of platform
+        this.player2 = this.createFighter(p2SpawnX, spawnY, this.player2Data, 2);
 
         // Set up fighter references for combat
         this.player1.opponent = this.player2;
@@ -4386,9 +4398,17 @@ class GameScene extends Phaser.Scene {
     }
 
     respawnFighter(fighter) {
-        // Reset position - spawn just above main platform
-        fighter.x = fighter.playerNum === 1 ? 400 : 800;
-        fighter.y = 500;
+        // Calculate spawn position based on main platform
+        const mainPlatform = this.currentArena.platforms.find(p => p.type === 'main');
+        const spawnY = mainPlatform.y - 60;
+
+        const platformLeft = mainPlatform.x - mainPlatform.width / 2;
+        const platformRight = mainPlatform.x + mainPlatform.width / 2;
+        const spawnOffset = Math.min(200, mainPlatform.width / 3);
+
+        // Reset position - spawn on appropriate side of platform
+        fighter.x = fighter.playerNum === 1 ? platformLeft + spawnOffset : platformRight - spawnOffset;
+        fighter.y = spawnY;
         fighter.body.setVelocity(0, 0);
         fighter.damage = 0;
 
