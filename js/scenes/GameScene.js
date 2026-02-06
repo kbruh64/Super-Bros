@@ -997,14 +997,14 @@ class GameScene extends Phaser.Scene {
             specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT_CONTROL)
         };
 
-        // Player 2 controls (Arrows + Shift/Enter)
+        // Player 2 controls (Arrows + Period/Comma/Enter/Slash - NO conflicts with P1)
         this.p2Keys = {
             up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
             down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
             left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
             right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
-            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
-            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PERIOD),
+            attack: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PERIOD),
+            attackAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.COMMA),
             special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
             specialAlt: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FORWARD_SLASH)
         };
