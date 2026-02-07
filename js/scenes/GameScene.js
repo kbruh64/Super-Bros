@@ -6245,16 +6245,57 @@ class GameScene extends Phaser.Scene {
 
         fighter.stocks--;
 
-        // KO effect - subtle camera shake instead of bright flash
-        try {
-            this.cameras.main.shake(300, 0.015);
-        } catch (e) {}
-
-        // Check game over
+        // Check game over first
         if (fighter.stocks <= 0) {
+            // Final stock lost - trigger full KO cutscene
             this.endGame(fighter.opponent);
             return;
         }
+
+        // Stock lost but not game over - dramatic but shorter effect
+        try {
+            this.cameras.main.shake(400, 0.02);
+
+            // Flash effect
+            const flash = this.add.rectangle(
+                GAME_WIDTH / 2, GAME_HEIGHT / 2,
+                GAME_WIDTH, GAME_HEIGHT,
+                0xff4444, 0.5
+            );
+            flash.setDepth(1000);
+            flash.setScrollFactor(0);
+
+            this.tweens.add({
+                targets: flash,
+                alpha: 0,
+                duration: 150,
+                onComplete: () => flash.destroy()
+            });
+
+            // Explosion at fighter position
+            this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 30, 2, 6);
+            this.createPixelParticles(fighter.x, fighter.y, 0xffaa00, 20, 1.5, 5);
+
+            // "STOCK LOST" text
+            const lossText = this.add.text(fighter.x, fighter.y - 80, 'STOCK LOST!', {
+                fontSize: '32px',
+                fontFamily: 'Courier New, monospace',
+                fontStyle: 'bold',
+                color: '#ff0000',
+                stroke: '#ffffff',
+                strokeThickness: 4
+            }).setOrigin(0.5);
+            lossText.setDepth(1000);
+
+            this.tweens.add({
+                targets: lossText,
+                y: fighter.y - 120,
+                alpha: 0,
+                duration: 1000,
+                ease: 'Power2',
+                onComplete: () => lossText.destroy()
+            });
+        } catch (e) {}
 
         // Respawn
         this.respawnFighter(fighter);
@@ -6332,16 +6373,121 @@ class GameScene extends Phaser.Scene {
 
     endGame(winner) {
         this.gameOver = true;
-        this.physics.pause();
 
-        this.time.delayedCall(1000, () => {
-            this.scene.start('VictoryScene', {
-                winner: winner,
-                mode: this.gameMode,
-                player1: this.player1Data,
-                player2: this.player2Data,
-                arena: this.currentArena,
-                aiDifficulty: this.aiDifficulty
+        // Start dramatic KO cutscene
+        this.playKOCutscene(winner);
+    }
+
+    playKOCutscene(winner) {
+        const loser = winner === this.player1 ? this.player2 : this.player1;
+
+        // Freeze frame effect - slow down time
+        this.physics.world.timeScale = 0.2;
+
+        // Dramatic camera shake
+        this.cameras.main.shake(500, 0.03);
+
+        // Flash effect
+        const flash = this.add.rectangle(
+            GAME_WIDTH / 2, GAME_HEIGHT / 2,
+            GAME_WIDTH, GAME_HEIGHT,
+            0xffffff, 0.8
+        );
+        flash.setDepth(1000);
+        flash.setScrollFactor(0);
+
+        this.tweens.add({
+            targets: flash,
+            alpha: 0,
+            duration: 200,
+            onComplete: () => flash.destroy()
+        });
+
+        // Zoom to loser
+        this.cameras.main.pan(loser.x, loser.y, 300, 'Power2');
+        this.cameras.main.zoomTo(1.5, 300, 'Power2');
+
+        // Explosion particles at loser position
+        this.time.delayedCall(100, () => {
+            this.createPixelParticles(loser.x, loser.y, 0xff0000, 50, 3, 8);
+            this.createPixelParticles(loser.x, loser.y, 0xffff00, 40, 2.5, 7);
+            this.createPixelParticles(loser.x, loser.y, 0xffffff, 30, 2, 6);
+        });
+
+        // Pause physics after slow-mo effect
+        this.time.delayedCall(400, () => {
+            this.physics.pause();
+        });
+
+        // Display "K.O.!" text
+        this.time.delayedCall(500, () => {
+            // Create KO text with cyber/minecraft styling
+            const koContainer = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+            koContainer.setDepth(1001);
+            koContainer.setScrollFactor(0);
+
+            // Background panel
+            const bg = this.add.graphics();
+            bg.fillStyle(0x000000, 0.8);
+            bg.fillRect(-200, -80, 400, 160);
+
+            // Neon borders
+            bg.lineStyle(4, 0xff0000, 1);
+            bg.strokeRect(-200, -80, 400, 160);
+            bg.lineStyle(2, 0xffff00, 1);
+            bg.strokeRect(-204, -84, 408, 168);
+
+            // K.O. text
+            const koText = this.add.text(0, 0, 'K.O.!', {
+                fontSize: '120px',
+                fontFamily: 'Courier New, monospace',
+                fontStyle: 'bold',
+                color: '#ff0000',
+                stroke: '#ffffff',
+                strokeThickness: 8
+            }).setOrigin(0.5);
+
+            koContainer.add([bg, koText]);
+
+            // Animate KO text
+            koContainer.setScale(0);
+            koContainer.setAlpha(0);
+
+            this.tweens.add({
+                targets: koContainer,
+                scale: 1.2,
+                alpha: 1,
+                duration: 300,
+                ease: 'Back.easeOut'
+            });
+
+            // Pulse animation
+            this.tweens.add({
+                targets: koText,
+                scale: 1.1,
+                duration: 200,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+
+            // Screen shake with KO
+            this.cameras.main.shake(800, 0.02);
+
+            // Transition to victory scene
+            this.time.delayedCall(2500, () => {
+                this.cameras.main.fadeOut(500, 0, 0, 0);
+
+                this.cameras.main.once('camerafadeoutcomplete', () => {
+                    this.scene.start('VictoryScene', {
+                        winner: winner,
+                        mode: this.gameMode,
+                        player1: this.player1Data,
+                        player2: this.player2Data,
+                        arena: this.currentArena,
+                        aiDifficulty: this.aiDifficulty
+                    });
+                });
             });
         });
     }
