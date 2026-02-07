@@ -3097,6 +3097,97 @@ class GameScene extends Phaser.Scene {
             case 'titan':
                 this.createTitanAttack(fighter, attack, direction);
                 break;
+            // NEW CHARACTER SPECIALS (30 more)
+            case 'backstab':
+                this.createBackstabAttack(fighter, attack, direction);
+                break;
+            case 'meteor':
+                this.createMeteorAttack(fighter, attack, direction);
+                break;
+            case 'multishot':
+                this.createMultishotAttack(fighter, attack, direction);
+                break;
+            case 'summon':
+                this.createSummonAttack(fighter, attack, direction);
+                break;
+            case 'charge':
+                this.createChargeAttack(fighter, attack, direction);
+                break;
+            case 'chaos':
+                this.createChaosAttack(fighter, attack, direction);
+                break;
+            case 'palm':
+                this.createPalmAttack(fighter, attack, direction);
+                break;
+            case 'breath':
+                this.createBreathAttack(fighter, attack, direction);
+                break;
+            case 'potion':
+                this.createPotionAttack(fighter, attack, direction);
+                break;
+            case 'barrier':
+                this.createBarrierAttack(fighter, attack, direction);
+                break;
+            case 'reap':
+                this.createReapAttack(fighter, attack, direction);
+                break;
+            case 'slow':
+                this.createSlowAttack(fighter, attack, direction);
+                break;
+            case 'smite':
+                this.createSmiteAttack(fighter, attack, direction);
+                break;
+            case 'steal':
+                this.createStealAttack(fighter, attack, direction);
+                break;
+            case 'elements':
+                this.createElementsAttack(fighter, attack, direction);
+                break;
+            case 'rally':
+                this.createRallyAttack(fighter, attack, direction);
+                break;
+            case 'upgrade':
+                this.createUpgradeAttack(fighter, attack, direction);
+                break;
+            case 'totem':
+                this.createTotemAttack(fighter, attack, direction);
+                break;
+            case 'thrust':
+                this.createThrustAttack(fighter, attack, direction);
+                break;
+            case 'curse':
+                this.createCurseAttack(fighter, attack, direction);
+                break;
+            case 'riposte':
+                this.createRiposteAttack(fighter, attack, direction);
+                break;
+            case 'demon':
+                this.createDemonAttack(fighter, attack, direction);
+                break;
+            case 'sixshot':
+                this.createSixshotAttack(fighter, attack, direction);
+                break;
+            case 'plague':
+                this.createPlagueAttack(fighter, attack, direction);
+                break;
+            case 'joust':
+                this.createJoustAttack(fighter, attack, direction);
+                break;
+            case 'construct':
+                this.createConstructAttack(fighter, attack, direction);
+                break;
+            case 'demolish':
+                this.createDemolishAttack(fighter, attack, direction);
+                break;
+            case 'clone':
+                this.createCloneAttack(fighter, attack, direction);
+                break;
+            case 'whirlwind':
+                this.createWhirlwindAttack(fighter, attack, direction);
+                break;
+            case 'gravity':
+                this.createGravityAttack(fighter, attack, direction);
+                break;
             default:
                 this.createDefaultProjectile(fighter, attack, direction);
         }
@@ -4888,6 +4979,1022 @@ class GameScene extends Phaser.Scene {
                     });
                 });
             }
+        });
+    }
+
+    // BACKSTAB - Assassin teleport behind enemy
+    createBackstabAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+        const behindX = opponent.x + (opponent.facingRight ? -60 : 60);
+
+        // Smoke poof at start
+        this.createPixelParticles(fighter.x, fighter.y, 0x222222, 15, 1.5, 5);
+
+        // Teleport
+        fighter.setPosition(behindX, opponent.y);
+        fighter.facingRight = opponent.facingRight;
+
+        // Smoke poof at arrival
+        this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 15, 1.5, 5);
+
+        // Backstab damage
+        this.applyDamage(opponent, fighter, attack.damage * 2, attack.knockback, fighter.facingRight ? 1 : -1);
+    }
+
+    // METEOR - Wizard summons falling meteors
+    createMeteorAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // Summon 3 meteors above opponent
+        for (let i = 0; i < 3; i++) {
+            this.time.delayedCall(i * 200, () => {
+                const meteorX = opponent.x + (i - 1) * 80;
+                const meteorY = -50;
+
+                const meteor = this.add.graphics();
+                meteor.x = meteorX;
+                meteor.y = meteorY;
+                meteor.setBlendMode('ADD');
+
+                // Draw meteor
+                meteor.fillStyle(0xff6600, 1);
+                meteor.fillRect(-8, -8, 16, 16);
+                meteor.fillStyle(0xffaa00, 1);
+                meteor.fillRect(-6, -6, 12, 12);
+                meteor.fillStyle(0xffffaa, 1);
+                meteor.fillRect(-4, -4, 8, 8);
+
+                // Fall down
+                this.tweens.add({
+                    targets: meteor,
+                    y: GAME_HEIGHT + 50,
+                    duration: 600,
+                    onUpdate: () => {
+                        // Check collision with opponent
+                        const dist = Phaser.Math.Distance.Between(meteor.x, meteor.y, opponent.x, opponent.y);
+                        if (dist < 40 && !meteor.hasHit) {
+                            meteor.hasHit = true;
+                            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, 0);
+                            this.createPixelParticles(meteor.x, meteor.y, 0xff6600, 20, 2, 6);
+                        }
+                    },
+                    onComplete: () => meteor.destroy()
+                });
+            });
+        }
+    }
+
+    // MULTISHOT - Ranger fires multiple arrows
+    createMultishotAttack(fighter, attack, direction) {
+        const angles = [-20, -10, 0, 10, 20];
+
+        angles.forEach((angle, i) => {
+            this.time.delayedCall(i * 50, () => {
+                const arrow = this.add.graphics();
+                arrow.x = fighter.x + direction * 40;
+                arrow.y = fighter.y;
+                arrow.setBlendMode('ADD');
+
+                // Draw arrow
+                arrow.fillStyle(0x664422, 1);
+                arrow.fillRect(0, -1, 16, 2);
+                arrow.fillStyle(0x88ff44, 1);
+                arrow.fillRect(14, -2, 4, 4);
+
+                const rad = angle * Math.PI / 180;
+                const vx = Math.cos(rad) * direction * 400;
+                const vy = Math.sin(rad) * 400;
+
+                arrow.hasHit = false;
+
+                this.tweens.add({
+                    targets: arrow,
+                    x: arrow.x + vx,
+                    y: arrow.y + vy,
+                    duration: 1000,
+                    onUpdate: () => {
+                        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                        const dist = Phaser.Math.Distance.Between(arrow.x, arrow.y, opponent.x, opponent.y);
+                        if (dist < 30 && !arrow.hasHit) {
+                            arrow.hasHit = true;
+                            this.applyDamage(opponent, fighter, attack.damage / 2, attack.knockback / 2, direction);
+                        }
+                    },
+                    onComplete: () => arrow.destroy()
+                });
+            });
+        });
+    }
+
+    // SUMMON - Necromancer summons ghost minion
+    createSummonAttack(fighter, attack, direction) {
+        const ghost = this.add.graphics();
+        ghost.x = fighter.x + direction * 60;
+        ghost.y = fighter.y;
+        ghost.setBlendMode('ADD');
+
+        // Draw ghost
+        ghost.fillStyle(0x00ff44, 0.6);
+        ghost.fillRect(-6, -8, 12, 16);
+        ghost.fillStyle(0xffffff, 0.8);
+        ghost.fillRect(-4, -6, 3, 3);
+        ghost.fillRect(1, -6, 3, 3);
+
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // Home towards opponent
+        this.tweens.add({
+            targets: ghost,
+            x: opponent.x,
+            y: opponent.y,
+            duration: 800,
+            onUpdate: () => {
+                const dist = Phaser.Math.Distance.Between(ghost.x, ghost.y, opponent.x, opponent.y);
+                if (dist < 30 && !ghost.hasHit) {
+                    ghost.hasHit = true;
+                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+                    this.createPixelParticles(ghost.x, ghost.y, 0x00ff44, 15, 1.5, 5);
+                }
+            },
+            onComplete: () => ghost.destroy()
+        });
+    }
+
+    // CHARGE - Juggernaut charges forward
+    createChargeAttack(fighter, attack, direction) {
+        const startX = fighter.x;
+        const chargeDistance = attack.range;
+
+        // Charge forward with super armor
+        fighter.body.setVelocityX(direction * 600);
+
+        this.time.delayedCall(250, () => {
+            fighter.body.setVelocityX(0);
+        });
+
+        // Trail effect
+        for (let i = 0; i < 10; i++) {
+            this.time.delayedCall(i * 25, () => {
+                this.createPixelParticles(fighter.x, fighter.y, 0xff4444, 8, 1, 4);
+            });
+        }
+    }
+
+    // CHAOS - Trickster random effect
+    createChaosAttack(fighter, attack, direction) {
+        const effects = ['teleport', 'confuse', 'damage'];
+        const effect = Phaser.Utils.Array.GetRandom(effects);
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        if (effect === 'teleport') {
+            // Swap positions
+            const tempX = fighter.x;
+            const tempY = fighter.y;
+            fighter.setPosition(opponent.x, opponent.y);
+            opponent.setPosition(tempX, tempY);
+            this.createPixelParticles(fighter.x, fighter.y, 0xff88ff, 20, 1.5, 5);
+            this.createPixelParticles(opponent.x, opponent.y, 0xffff00, 20, 1.5, 5);
+        } else if (effect === 'confuse') {
+            // Reverse opponent controls briefly
+            this.createPixelParticles(opponent.x, opponent.y, 0xff00ff, 15, 1.5, 5);
+        } else {
+            // Random damage burst
+            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+            this.createPixelParticles(opponent.x, opponent.y, 0xffff00, 20, 2, 6);
+        }
+    }
+
+    // PALM - Monk chi blast
+    createPalmAttack(fighter, attack, direction) {
+        const palm = this.add.graphics();
+        palm.x = fighter.x + direction * 40;
+        palm.y = fighter.y;
+        palm.setBlendMode('ADD');
+
+        // Draw chi blast
+        palm.fillStyle(0xffffaa, 1);
+        palm.fillRect(-8, -8, 16, 16);
+        palm.fillStyle(0xff8800, 0.8);
+        palm.fillRect(-6, -6, 12, 12);
+        palm.fillStyle(0xffffff, 1);
+        palm.fillRect(-4, -4, 8, 8);
+
+        palm.hasHit = false;
+        fighter.projectiles.add(palm);
+
+        this.tweens.add({
+            targets: palm,
+            x: palm.x + direction * attack.range,
+            scaleX: 1.5,
+            scaleY: 1.5,
+            duration: 400,
+            onUpdate: () => {
+                const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                const dist = Phaser.Math.Distance.Between(palm.x, palm.y, opponent.x, opponent.y);
+                if (dist < 30 && !palm.hasHit) {
+                    palm.hasHit = true;
+                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+                    this.createPixelParticles(palm.x, palm.y, 0xffffaa, 15, 1.5, 5);
+                }
+            },
+            onComplete: () => palm.destroy()
+        });
+    }
+
+    // BREATH - Dragon fire breath
+    createBreathAttack(fighter, attack, direction) {
+        for (let i = 0; i < 15; i++) {
+            this.time.delayedCall(i * 30, () => {
+                const flame = this.add.graphics();
+                flame.x = fighter.x + direction * (40 + i * 15);
+                flame.y = fighter.y + (Math.random() - 0.5) * 40;
+                flame.setBlendMode('ADD');
+
+                const fireColors = [0xffff00, 0xff8800, 0xff4400];
+                const color = Phaser.Utils.Array.GetRandom(fireColors);
+                flame.fillStyle(color, 1);
+                flame.fillRect(-4, -4, 8, 8);
+
+                flame.hasHit = false;
+
+                this.tweens.add({
+                    targets: flame,
+                    alpha: 0,
+                    scaleX: 1.5,
+                    scaleY: 1.5,
+                    duration: 300,
+                    onUpdate: () => {
+                        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                        const dist = Phaser.Math.Distance.Between(flame.x, flame.y, opponent.x, opponent.y);
+                        if (dist < 25 && !flame.hasHit) {
+                            flame.hasHit = true;
+                            this.applyDamage(opponent, fighter, attack.damage / 5, attack.knockback / 5, direction);
+                        }
+                    },
+                    onComplete: () => flame.destroy()
+                });
+            });
+        }
+    }
+
+    // POTION - Alchemist throws explosive potion
+    createPotionAttack(fighter, attack, direction) {
+        const potion = this.add.graphics();
+        potion.x = fighter.x + direction * 40;
+        potion.y = fighter.y;
+        potion.setBlendMode('ADD');
+
+        // Draw potion bottle
+        potion.fillStyle(0x44ff88, 1);
+        potion.fillRect(-4, -6, 8, 12);
+        potion.fillStyle(0xff44ff, 0.7);
+        potion.fillRect(-3, -5, 6, 10);
+
+        potion.hasHit = false;
+
+        this.tweens.add({
+            targets: potion,
+            x: potion.x + direction * attack.range,
+            y: potion.y - 100,
+            duration: 600,
+            ease: 'Quad.easeOut',
+            onComplete: () => {
+                // Explosion
+                this.createPixelParticles(potion.x, potion.y, 0x44ff88, 25, 2, 7);
+
+                const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                const dist = Phaser.Math.Distance.Between(potion.x, potion.y, opponent.x, opponent.y);
+                if (dist < 80) {
+                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+                }
+
+                potion.destroy();
+            }
+        });
+
+        this.tweens.add({
+            targets: potion,
+            y: potion.y + 200,
+            duration: 600,
+            ease: 'Quad.easeIn',
+            delay: 600
+        });
+    }
+
+    // BARRIER - Sentinel creates shield
+    createBarrierAttack(fighter, attack, direction) {
+        const barrier = this.add.graphics();
+        barrier.x = fighter.x + direction * 50;
+        barrier.y = fighter.y;
+        barrier.setBlendMode('ADD');
+
+        // Draw hexagonal barrier
+        barrier.fillStyle(0x00ffff, 0.5);
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2;
+            const radius = 40;
+            barrier.fillRect(
+                Math.cos(angle) * radius - 4,
+                Math.sin(angle) * radius - 4,
+                8, 8
+            );
+        }
+        barrier.fillStyle(0x0088ff, 0.3);
+        barrier.fillRect(-35, -35, 70, 70);
+
+        // Lasts 2 seconds
+        this.time.delayedCall(2000, () => barrier.destroy());
+    }
+
+    // REAP - Reaper life drain scythe
+    createReapAttack(fighter, attack, direction) {
+        const arc = this.add.graphics();
+        arc.setBlendMode('ADD');
+
+        // Scythe arc animation
+        for (let a = 0; a < 8; a++) {
+            const angle = (a / 8) * Math.PI * direction;
+            const radius = attack.range;
+            arc.fillStyle(0x111111, 1 - a * 0.1);
+            arc.fillRect(
+                fighter.x + Math.cos(angle) * radius - 3,
+                fighter.y + Math.sin(angle) * radius - 3,
+                6, 6
+            );
+            arc.fillStyle(0x00ff00, 0.6);
+            arc.fillRect(
+                fighter.x + Math.cos(angle) * radius - 1,
+                fighter.y + Math.sin(angle) * radius - 1,
+                2, 2
+            );
+        }
+
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+        const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+        if (dist < attack.range) {
+            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+            // Heal fighter
+            fighter.health = Math.min(fighter.maxHealth, fighter.health + 10);
+        }
+
+        this.tweens.add({
+            targets: arc,
+            alpha: 0,
+            duration: 200,
+            onComplete: () => arc.destroy()
+        });
+    }
+
+    // SLOW - Chronomancer time slow
+    createSlowAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // Time bubble
+        const bubble = this.add.graphics();
+        bubble.x = opponent.x;
+        bubble.y = opponent.y;
+        bubble.setBlendMode('ADD');
+
+        // Clock rings
+        for (let r = 0; r < 3; r++) {
+            const radius = 20 + r * 15;
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                bubble.fillStyle(0x8844ff, 0.7 - r * 0.2);
+                bubble.fillRect(
+                    Math.cos(angle) * radius - 2,
+                    Math.sin(angle) * radius - 2,
+                    4, 4
+                );
+            }
+        }
+
+        // Slow opponent briefly
+        const originalSpeed = opponent.characterData.speed;
+        opponent.characterData.speed *= 0.5;
+
+        this.time.delayedCall(2000, () => {
+            opponent.characterData.speed = originalSpeed;
+            bubble.destroy();
+        });
+
+        this.applyDamage(opponent, fighter, attack.damage, attack.knockback, 0);
+    }
+
+    // SMITE - Crusader divine hammer
+    createSmiteAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // Hammer from above
+        const hammer = this.add.graphics();
+        hammer.x = opponent.x;
+        hammer.y = -50;
+        hammer.setBlendMode('ADD');
+
+        // Draw golden hammer
+        hammer.fillStyle(0xffdd00, 1);
+        hammer.fillRect(-8, -12, 16, 24);
+        hammer.fillStyle(0xffffaa, 1);
+        hammer.fillRect(-6, -10, 12, 20);
+        hammer.fillStyle(0xffffff, 1);
+        hammer.fillRect(-4, -6, 8, 12);
+
+        // Fall and smite
+        this.tweens.add({
+            targets: hammer,
+            y: opponent.y,
+            duration: 400,
+            ease: 'Quad.easeIn',
+            onComplete: () => {
+                const dist = Phaser.Math.Distance.Between(hammer.x, hammer.y, opponent.x, opponent.y);
+                if (dist < 50) {
+                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, 0);
+                }
+                this.createPixelParticles(hammer.x, hammer.y, 0xffffaa, 20, 2, 6);
+                hammer.destroy();
+            }
+        });
+    }
+
+    // STEAL - Bandit steals temp buff
+    createStealAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // Steal projectile
+        const steal = this.add.graphics();
+        steal.x = fighter.x + direction * 40;
+        steal.y = fighter.y;
+        steal.setBlendMode('ADD');
+
+        steal.fillStyle(0xff8800, 1);
+        steal.fillRect(-6, -6, 12, 12);
+        steal.fillStyle(0xffffff, 0.8);
+        steal.fillRect(-3, -3, 6, 6);
+
+        steal.hasHit = false;
+
+        this.tweens.add({
+            targets: steal,
+            x: opponent.x,
+            y: opponent.y,
+            duration: 300,
+            onUpdate: () => {
+                const dist = Phaser.Math.Distance.Between(steal.x, steal.y, opponent.x, opponent.y);
+                if (dist < 30 && !steal.hasHit) {
+                    steal.hasHit = true;
+                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+                    // Temp speed boost for fighter
+                    const origSpeed = fighter.characterData.speed;
+                    fighter.characterData.speed *= 1.5;
+                    this.time.delayedCall(3000, () => {
+                        fighter.characterData.speed = origSpeed;
+                    });
+                }
+            },
+            onComplete: () => steal.destroy()
+        });
+    }
+
+    // ELEMENTS - Elementalist cycling elements
+    createElementsAttack(fighter, attack, direction) {
+        const elements = [
+            { color: 0xff4444, name: 'fire' },
+            { color: 0x4444ff, name: 'ice' },
+            { color: 0xffff44, name: 'lightning' }
+        ];
+
+        elements.forEach((elem, i) => {
+            this.time.delayedCall(i * 200, () => {
+                const ball = this.add.graphics();
+                ball.x = fighter.x + direction * 40;
+                ball.y = fighter.y + (i - 1) * 30;
+                ball.setBlendMode('ADD');
+
+                ball.fillStyle(elem.color, 1);
+                ball.fillRect(-6, -6, 12, 12);
+                ball.fillStyle(0xffffff, 0.7);
+                ball.fillRect(-4, -4, 8, 8);
+
+                ball.hasHit = false;
+
+                this.tweens.add({
+                    targets: ball,
+                    x: ball.x + direction * attack.range,
+                    duration: 600,
+                    onUpdate: () => {
+                        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                        const dist = Phaser.Math.Distance.Between(ball.x, ball.y, opponent.x, opponent.y);
+                        if (dist < 30 && !ball.hasHit) {
+                            ball.hasHit = true;
+                            this.applyDamage(opponent, fighter, attack.damage / 3, attack.knockback / 3, direction);
+                        }
+                    },
+                    onComplete: () => ball.destroy()
+                });
+            });
+        });
+    }
+
+    // RALLY - Warlord war cry buff
+    createRallyAttack(fighter, attack, direction) {
+        // War cry visual
+        const cry = this.add.graphics();
+        cry.setBlendMode('ADD');
+
+        for (let r = 0; r < 4; r++) {
+            const radius = 30 + r * 20;
+            cry.lineStyle(3, 0xff0000, 1 - r * 0.2);
+            cry.strokeCircle(fighter.x, fighter.y, radius);
+        }
+
+        // Damage nearby opponent
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+        const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+        if (dist < attack.range) {
+            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+        }
+
+        // Temp attack boost
+        this.tweens.add({
+            targets: cry,
+            alpha: 0,
+            duration: 300,
+            onComplete: () => cry.destroy()
+        });
+    }
+
+    // UPGRADE - Cyborg weapon upgrade
+    createUpgradeAttack(fighter, attack, direction) {
+        // Laser barrage
+        for (let i = 0; i < 5; i++) {
+            this.time.delayedCall(i * 100, () => {
+                const laser = this.add.graphics();
+                laser.x = fighter.x + direction * 40;
+                laser.y = fighter.y;
+                laser.setBlendMode('ADD');
+
+                laser.fillStyle(0xff0000, 1);
+                for (let j = 0; j < 10; j++) {
+                    laser.fillRect(direction * (j * 8), -1, 6, 2);
+                }
+
+                laser.hasHit = false;
+
+                this.tweens.add({
+                    targets: laser,
+                    alpha: 0,
+                    duration: 150,
+                    onUpdate: () => {
+                        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                        const lx = laser.x + direction * 40;
+                        const dist = Phaser.Math.Distance.Between(lx, laser.y, opponent.x, opponent.y);
+                        if (dist < 40 && !laser.hasHit) {
+                            laser.hasHit = true;
+                            this.applyDamage(opponent, fighter, attack.damage / 5, attack.knockback / 5, direction);
+                        }
+                    },
+                    onComplete: () => laser.destroy()
+                });
+            });
+        }
+    }
+
+    // TOTEM - Shaman spirit totem
+    createTotemAttack(fighter, attack, direction) {
+        const totem = this.add.graphics();
+        totem.x = fighter.x + direction * 80;
+        totem.y = fighter.y + 20;
+        totem.setBlendMode('ADD');
+
+        // Draw totem
+        totem.fillStyle(0x664422, 1);
+        totem.fillRect(-4, -20, 8, 40);
+        totem.fillStyle(0xaaffaa, 1);
+        totem.fillRect(-6, -24, 12, 8);
+        totem.fillStyle(0x448866, 1);
+        totem.fillRect(-3, -22, 6, 4);
+
+        // Pulse healing/damage
+        for (let i = 0; i < 5; i++) {
+            this.time.delayedCall(i * 500, () => {
+                this.createPixelParticles(totem.x, totem.y - 10, 0xaaffaa, 10, 1, 3);
+
+                const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                const dist = Phaser.Math.Distance.Between(totem.x, totem.y, opponent.x, opponent.y);
+                if (dist < 100) {
+                    this.applyDamage(opponent, fighter, attack.damage / 5, 0.2, 0);
+                }
+            });
+        }
+
+        this.time.delayedCall(3000, () => totem.destroy());
+    }
+
+    // THRUST - Vanguard long spear thrust
+    createThrustAttack(fighter, attack, direction) {
+        fighter.body.setVelocityX(direction * 500);
+
+        // Long spear visual
+        const spear = this.add.graphics();
+        spear.setBlendMode('ADD');
+
+        spear.fillStyle(0x664422, 1);
+        spear.fillRect(fighter.x, fighter.y - 1, direction * 80, 2);
+        spear.fillStyle(0x888888, 1);
+        spear.fillRect(fighter.x + direction * 78, fighter.y - 4, 6, 8);
+        spear.fillStyle(0x4488ff, 0.8);
+        spear.fillRect(fighter.x + direction * 79, fighter.y - 3, 4, 6);
+
+        this.time.delayedCall(200, () => {
+            fighter.body.setVelocityX(0);
+            spear.destroy();
+        });
+    }
+
+    // CURSE - Warlock dark curse
+    createCurseAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        const curse = this.add.graphics();
+        curse.x = fighter.x + direction * 40;
+        curse.y = fighter.y;
+        curse.setBlendMode('ADD');
+
+        // Spiral curse
+        for (let s = 0; s < 12; s++) {
+            const angle = (s / 12) * Math.PI * 2;
+            const radius = 15;
+            curse.fillStyle(0xff00ff, 0.9 - s * 0.05);
+            curse.fillRect(
+                Math.cos(angle) * radius - 2,
+                Math.sin(angle) * radius - 2,
+                4, 4
+            );
+        }
+
+        curse.hasHit = false;
+
+        this.tweens.add({
+            targets: curse,
+            x: opponent.x,
+            y: opponent.y,
+            angle: -360,
+            duration: 800,
+            onUpdate: () => {
+                const dist = Phaser.Math.Distance.Between(curse.x, curse.y, opponent.x, opponent.y);
+                if (dist < 30 && !curse.hasHit) {
+                    curse.hasHit = true;
+                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+                    // Weaken opponent temporarily
+                }
+            },
+            onComplete: () => curse.destroy()
+        });
+    }
+
+    // RIPOSTE - Duelist counter stance
+    createRiposteAttack(fighter, attack, direction) {
+        // Counter stance visual
+        const stance = this.add.graphics();
+        stance.x = fighter.x;
+        stance.y = fighter.y;
+        stance.setBlendMode('ADD');
+
+        stance.lineStyle(2, 0xaaddff, 1);
+        stance.strokeCircle(0, 0, 40);
+        stance.strokeCircle(0, 0, 35);
+
+        // If opponent attacks during this window, counter
+        this.time.delayedCall(500, () => stance.destroy());
+
+        // Quick counter stab
+        this.time.delayedCall(100, () => {
+            const opponent = fighter === this.player1 ? this.player2 : this.player1;
+            const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+            if (dist < attack.range) {
+                this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+            }
+        });
+    }
+
+    // DEMON - Summoner demon ally
+    createDemonAttack(fighter, attack, direction) {
+        const demon = this.add.graphics();
+        demon.x = fighter.x + direction * 60;
+        demon.y = fighter.y;
+        demon.setBlendMode('ADD');
+
+        // Draw demon
+        demon.fillStyle(0x880088, 1);
+        demon.fillRect(-8, -12, 16, 24);
+        demon.fillStyle(0xcc88ff, 1);
+        demon.fillRect(-6, -10, 12, 20);
+        // Horns
+        demon.fillStyle(0xff0000, 1);
+        demon.fillRect(-10, -14, 4, 4);
+        demon.fillRect(6, -14, 4, 4);
+
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // Demon attacks multiple times
+        for (let i = 0; i < 3; i++) {
+            this.time.delayedCall(i * 400, () => {
+                const dist = Phaser.Math.Distance.Between(demon.x, demon.y, opponent.x, opponent.y);
+                if (dist < 100) {
+                    this.applyDamage(opponent, fighter, attack.damage / 3, attack.knockback / 3, direction);
+                    this.createPixelParticles(opponent.x, opponent.y, 0xcc88ff, 10, 1, 3);
+                }
+            });
+        }
+
+        this.time.delayedCall(1500, () => demon.destroy());
+    }
+
+    // SIXSHOT - Gunslinger rapid fire
+    createSixshotAttack(fighter, attack, direction) {
+        for (let i = 0; i < 6; i++) {
+            this.time.delayedCall(i * 80, () => {
+                // Muzzle flash
+                this.createPixelParticles(fighter.x + direction * 30, fighter.y, 0xffaa44, 8, 1, 3);
+
+                const bullet = this.add.graphics();
+                bullet.x = fighter.x + direction * 40;
+                bullet.y = fighter.y + (Math.random() - 0.5) * 20;
+                bullet.setBlendMode('ADD');
+
+                bullet.fillStyle(0xffaa44, 1);
+                bullet.fillRect(-2, -2, 4, 4);
+
+                bullet.hasHit = false;
+
+                this.tweens.add({
+                    targets: bullet,
+                    x: bullet.x + direction * attack.range,
+                    duration: 400,
+                    onUpdate: () => {
+                        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                        const dist = Phaser.Math.Distance.Between(bullet.x, bullet.y, opponent.x, opponent.y);
+                        if (dist < 25 && !bullet.hasHit) {
+                            bullet.hasHit = true;
+                            this.applyDamage(opponent, fighter, attack.damage / 6, attack.knockback / 6, direction);
+                        }
+                    },
+                    onComplete: () => bullet.destroy()
+                });
+            });
+        }
+    }
+
+    // PLAGUE - Disease cloud
+    createPlagueAttack(fighter, attack, direction) {
+        const cloud = this.add.graphics();
+        cloud.x = fighter.x + direction * 60;
+        cloud.y = fighter.y;
+        cloud.setBlendMode('ADD');
+
+        // Toxic cloud
+        for (let c = 0; c < 20; c++) {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = Math.random() * 40;
+            cloud.fillStyle(0x88ff44, 0.6);
+            cloud.fillRect(
+                Math.cos(angle) * radius - 4,
+                Math.sin(angle) * radius - 4,
+                8, 8
+            );
+        }
+
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // DoT effect
+        for (let i = 0; i < 5; i++) {
+            this.time.delayedCall(i * 300, () => {
+                const dist = Phaser.Math.Distance.Between(cloud.x, cloud.y, opponent.x, opponent.y);
+                if (dist < 60) {
+                    this.applyDamage(opponent, fighter, attack.damage / 5, 0, 0);
+                }
+            });
+        }
+
+        this.time.delayedCall(2000, () => cloud.destroy());
+    }
+
+    // JOUST - Lancer charging attack
+    createJoustAttack(fighter, attack, direction) {
+        fighter.body.setVelocityX(direction * 700);
+
+        // Long lance
+        const lance = this.add.graphics();
+        lance.setBlendMode('ADD');
+
+        lance.fillStyle(0x664422, 1);
+        lance.fillRect(fighter.x, fighter.y - 1, direction * 100, 2);
+        lance.fillStyle(0x888888, 1);
+        lance.fillRect(fighter.x + direction * 98, fighter.y - 5, 6, 10);
+        lance.fillStyle(0x9999ff, 0.8);
+        lance.fillRect(fighter.x + direction * 99, fighter.y - 4, 4, 8);
+
+        this.time.delayedCall(250, () => {
+            fighter.body.setVelocityX(0);
+            lance.destroy();
+        });
+    }
+
+    // CONSTRUCT - Artificer spawns construct
+    createConstructAttack(fighter, attack, direction) {
+        const construct = this.add.graphics();
+        construct.x = fighter.x + direction * 70;
+        construct.y = fighter.y;
+        construct.setBlendMode('ADD');
+
+        // Mechanical construct
+        construct.fillStyle(0x888888, 1);
+        construct.fillRect(-6, -10, 12, 20);
+        construct.fillStyle(0xff8844, 1);
+        construct.fillRect(-4, -8, 8, 4);
+        construct.fillStyle(0x44ffff, 1);
+        construct.fillRect(-5, -6, 3, 3);
+        construct.fillRect(2, -6, 3, 3);
+
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // Shoots laser
+        this.time.delayedCall(500, () => {
+            const laser = this.add.graphics();
+            laser.setBlendMode('ADD');
+
+            laser.fillStyle(0x44ffff, 1);
+            laser.fillRect(construct.x, construct.y, direction * 200, 2);
+
+            const dist = Phaser.Math.Distance.Between(construct.x, construct.y, opponent.x, opponent.y);
+            if (dist < 200) {
+                this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+            }
+
+            this.time.delayedCall(200, () => laser.destroy());
+        });
+
+        this.time.delayedCall(2000, () => construct.destroy());
+    }
+
+    // DEMOLISH - Destroyer massive explosion
+    createDemolishAttack(fighter, attack, direction) {
+        const explosion = this.add.graphics();
+        explosion.x = fighter.x + direction * 60;
+        explosion.y = fighter.y;
+        explosion.setBlendMode('ADD');
+
+        // Huge explosion
+        for (let layer = 0; layer < 5; layer++) {
+            const radius = 20 + layer * 15;
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                const dist = radius * (0.8 + Math.random() * 0.4);
+                const colors = [0xffffff, 0xff0000, 0xff6666, 0xff8888, 0xffaaaa];
+                explosion.fillStyle(colors[layer], 1 - layer * 0.15);
+                explosion.fillRect(
+                    Math.cos(angle) * dist - 6,
+                    Math.sin(angle) * dist - 6,
+                    12, 12
+                );
+            }
+        }
+
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+        const dist = Phaser.Math.Distance.Between(explosion.x, explosion.y, opponent.x, opponent.y);
+        if (dist < 120) {
+            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+        }
+
+        this.createPixelParticles(explosion.x, explosion.y, 0xff0000, 30, 2.5, 8);
+
+        this.tweens.add({
+            targets: explosion,
+            alpha: 0,
+            scaleX: 1.8,
+            scaleY: 1.8,
+            duration: 300,
+            onComplete: () => explosion.destroy()
+        });
+    }
+
+    // CLONE - Illusionist creates decoy
+    createCloneAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // Create 2 clones
+        for (let i = 0; i < 2; i++) {
+            const clone = this.add.graphics();
+            clone.x = fighter.x + (i === 0 ? -50 : 50);
+            clone.y = fighter.y;
+            clone.setBlendMode('ADD');
+
+            // Semi-transparent clone
+            clone.fillStyle(0xaa44ff, 0.5);
+            clone.fillRect(-4, -10, 8, 20);
+            clone.fillStyle(0xffffaa, 0.6);
+            clone.fillRect(-3, -9, 6, 18);
+
+            // Clones move toward opponent
+            this.tweens.add({
+                targets: clone,
+                x: opponent.x + (i === 0 ? -30 : 30),
+                y: opponent.y,
+                duration: 800,
+                onComplete: () => {
+                    const dist = Phaser.Math.Distance.Between(clone.x, clone.y, opponent.x, opponent.y);
+                    if (dist < 50) {
+                        this.applyDamage(opponent, fighter, attack.damage / 2, attack.knockback / 2, direction);
+                        this.createPixelParticles(clone.x, clone.y, 0xaa44ff, 15, 1.5, 5);
+                    }
+                    clone.destroy();
+                }
+            });
+        }
+    }
+
+    // WHIRLWIND - Barbarian spinning attack
+    createWhirlwindAttack(fighter, attack, direction) {
+        fighter.body.setAngularVelocity(720);
+
+        // Spinning slashes
+        for (let i = 0; i < 8; i++) {
+            this.time.delayedCall(i * 60, () => {
+                const angle = (i / 8) * Math.PI * 2;
+                const slash = this.add.graphics();
+                slash.setBlendMode('ADD');
+
+                slash.fillStyle(0x888888, 1);
+                const radius = 50;
+                for (let s = 0; s < 5; s++) {
+                    const sa = angle + (s * Math.PI / 20);
+                    slash.fillRect(
+                        fighter.x + Math.cos(sa) * radius - 2,
+                        fighter.y + Math.sin(sa) * radius - 2,
+                        4, 4
+                    );
+                }
+
+                const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
+                if (dist < 60 && i % 2 === 0) {
+                    this.applyDamage(opponent, fighter, attack.damage / 4, attack.knockback / 4, direction);
+                }
+
+                this.time.delayedCall(100, () => slash.destroy());
+            });
+        }
+
+        this.time.delayedCall(500, () => {
+            fighter.body.setAngularVelocity(0);
+            fighter.setAngle(0);
+        });
+    }
+
+    // GRAVITY - Astronaut gravity manipulation
+    createGravityAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+        // Gravity well
+        const well = this.add.graphics();
+        well.x = opponent.x;
+        well.y = opponent.y;
+        well.setBlendMode('ADD');
+
+        // Concentric rings
+        for (let r = 0; r < 4; r++) {
+            const radius = 20 + r * 15;
+            for (let i = 0; i < 16; i++) {
+                const angle = (i / 16) * Math.PI * 2;
+                well.fillStyle(r % 2 === 0 ? 0xffffff : 0x4444ff, 0.8 - r * 0.15);
+                well.fillRect(
+                    Math.cos(angle) * radius - 2,
+                    Math.sin(angle) * radius - 2,
+                    4, 4
+                );
+            }
+        }
+
+        // Pull opponent and slow
+        opponent.body.setVelocityY(-200);
+        this.time.delayedCall(100, () => {
+            opponent.body.setVelocityY(300);
+        });
+
+        this.time.delayedCall(200, () => {
+            const dist = Phaser.Math.Distance.Between(well.x, well.y, opponent.x, opponent.y);
+            if (dist < 80) {
+                this.applyDamage(opponent, fighter, attack.damage, attack.knockback, 0);
+            }
+        });
+
+        this.tweens.add({
+            targets: well,
+            alpha: 0,
+            scaleX: 1.5,
+            scaleY: 1.5,
+            duration: 500,
+            onComplete: () => well.destroy()
         });
     }
 
