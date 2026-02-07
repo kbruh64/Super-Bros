@@ -1069,6 +1069,9 @@ class GameScene extends Phaser.Scene {
 
     handleProjectileHit(obj1, obj2) {
         try {
+            // Safety check - make sure both objects exist
+            if (!obj1 || !obj2) return;
+
             // Phaser can swap arguments - identify which is which
             let projectile, fighter;
 
@@ -1083,8 +1086,10 @@ class GameScene extends Phaser.Scene {
                 return;
             }
 
+            // Extra safety checks
             if (!projectile || !projectile.active) return;
             if (!fighter || !fighter.body) return;
+            if (!fighter.active) return;
             if (projectile.hasHit) return;
 
             // Don't hit the owner of the projectile
@@ -1096,13 +1101,14 @@ class GameScene extends Phaser.Scene {
             // Check fighter has characterData (is actually a fighter)
             if (!fighter.characterData) return;
 
+            // Mark as hit BEFORE applying damage to prevent double-hits
             projectile.hasHit = true;
 
             try {
-                // Get attack data from projectile
-                const damage = projectile.attackDamage || 15;
-                const knockback = projectile.attackKnockback || 1.2;
-                const direction = projectile.x < fighter.x ? 1 : -1;
+                // Get attack data from projectile with safe defaults
+                const damage = (typeof projectile.attackDamage === 'number' && projectile.attackDamage > 0) ? projectile.attackDamage : 15;
+                const knockback = (typeof projectile.attackKnockback === 'number' && projectile.attackKnockback > 0) ? projectile.attackKnockback : 1.2;
+                const direction = (typeof projectile.x === 'number' && typeof fighter.x === 'number') ? (projectile.x < fighter.x ? 1 : -1) : 1;
 
                 // Apply damage properly
                 this.applyDamage(fighter, damage, knockback, direction);
@@ -1111,10 +1117,12 @@ class GameScene extends Phaser.Scene {
             }
 
             try {
-                if (projectile && projectile.active) {
+                if (projectile && projectile.active && projectile.destroy) {
                     projectile.destroy();
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.warn('Error destroying projectile:', e);
+            }
         } catch (e) {
             console.error('Collision error:', e);
         }
@@ -6066,10 +6074,11 @@ class GameScene extends Phaser.Scene {
     applyDamage(fighter, damage, knockbackMult, direction) {
         try {
             if (!fighter) return;
+            if (!fighter.active) return;
             if (!fighter.body) return;
             if (fighter.isInvincible) return;
             if (typeof damage !== 'number' || damage <= 0) return;
-            if (typeof knockbackMult !== 'number') knockbackMult = 1;
+            if (typeof knockbackMult !== 'number' || knockbackMult <= 0) knockbackMult = 1;
             if (typeof direction !== 'number') direction = 1;
 
             // Initialize damage if not set
@@ -6081,7 +6090,7 @@ class GameScene extends Phaser.Scene {
 
             // Combo tracking - update attacker's combo
             const attacker = fighter.opponent;
-            if (attacker) {
+            if (attacker && attacker.active && typeof attacker.comboCount !== 'undefined') {
                 const currentTime = this.time.now;
                 const COMBO_WINDOW = 2000; // 2 seconds to continue combo
 
@@ -6146,34 +6155,42 @@ class GameScene extends Phaser.Scene {
     }
 
     showComboText(attacker, target) {
-        // Only show combo text for combos of 2 or more
-        if (attacker.comboCount < 2) return;
+        try {
+            // Safety checks
+            if (!attacker || !target) return;
+            if (typeof attacker.comboCount !== 'number') return;
+            if (typeof target.x !== 'number' || typeof target.y !== 'number') return;
 
-        // Remove old combo text if exists
-        if (attacker.comboText && attacker.comboText.active) {
-            attacker.comboText.destroy();
-        }
+            // Only show combo text for combos of 2 or more
+            if (attacker.comboCount < 2) return;
 
-        // Determine combo text and color based on combo count
-        let comboLabel = '';
-        let comboColor = '#ffffff';
+            // Remove old combo text if exists
+            if (attacker.comboText && attacker.comboText.active) {
+                try {
+                    attacker.comboText.destroy();
+                } catch (e) {}
+            }
 
-        if (attacker.comboCount >= 10) {
-            comboLabel = 'UNSTOPPABLE!';
-            comboColor = '#ff0000';
-        } else if (attacker.comboCount >= 7) {
-            comboLabel = 'DOMINATING!';
-            comboColor = '#ff4400';
-        } else if (attacker.comboCount >= 5) {
-            comboLabel = 'BRUTAL!';
-            comboColor = '#ff8800';
-        } else if (attacker.comboCount >= 3) {
-            comboLabel = 'NICE!';
-            comboColor = '#ffff00';
-        }
+            // Determine combo text and color based on combo count
+            let comboLabel = '';
+            let comboColor = '#ffffff';
 
-        // Create combo counter text near the target - Minecraft style
-        const comboText = this.add.text(target.x, target.y - 60, `${attacker.comboCount} HIT COMBO!`, {
+            if (attacker.comboCount >= 10) {
+                comboLabel = 'UNSTOPPABLE!';
+                comboColor = '#ff0000';
+            } else if (attacker.comboCount >= 7) {
+                comboLabel = 'DOMINATING!';
+                comboColor = '#ff4400';
+            } else if (attacker.comboCount >= 5) {
+                comboLabel = 'BRUTAL!';
+                comboColor = '#ff8800';
+            } else if (attacker.comboCount >= 3) {
+                comboLabel = 'NICE!';
+                comboColor = '#ffff00';
+            }
+
+            // Create combo counter text near the target - Minecraft style
+            const comboText = this.add.text(target.x, target.y - 60, `${attacker.comboCount} HIT COMBO!`, {
             fontSize: '20px',
             fontFamily: 'Courier New, monospace',
             fontStyle: 'bold',
@@ -6219,10 +6236,13 @@ class GameScene extends Phaser.Scene {
             }
         });
 
-        // Bonus damage for high combos
-        if (attacker.comboCount >= 5) {
-            // Screen shake for big combos
-            this.cameras.main.shake(150, 0.01 * Math.min(attacker.comboCount, 10));
+            // Bonus damage for high combos
+            if (attacker.comboCount >= 5) {
+                // Screen shake for big combos
+                this.cameras.main.shake(150, 0.01 * Math.min(attacker.comboCount, 10));
+            }
+        } catch (e) {
+            console.warn('Error showing combo text:', e);
         }
     }
 
