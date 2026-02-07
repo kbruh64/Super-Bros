@@ -1443,7 +1443,7 @@ class GameScene extends Phaser.Scene {
         };
 
         const opponent = fighter.opponent;
-        if (this.checkHitbox(hitbox, opponent) && !opponent.isInvincible) {
+        if (opponent && this.checkHitbox(hitbox, opponent) && !opponent.isInvincible) {
             this.applyDamage(opponent, attack.damage, attack.knockback, direction);
         }
     }
@@ -3238,7 +3238,7 @@ class GameScene extends Phaser.Scene {
             repeat: 4,
             callback: () => {
                 const opponent = fighter.opponent;
-                if (!opponent.isInvincible && !opponent.dashHit) {
+                if (opponent && !opponent.isInvincible && !opponent.dashHit) {
                     const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
                     if (dist < 60) {
                         opponent.dashHit = true;
@@ -3300,7 +3300,7 @@ class GameScene extends Phaser.Scene {
 
                 // Damage in area
                 const opponent = fighter.opponent;
-                if (!opponent.isInvincible) {
+                if (opponent && !opponent.isInvincible) {
                     const dist = Math.abs(opponent.x - fighter.x);
                     if (dist < attack.range && opponent.y > fighter.y - 50) {
                         this.applyDamage(opponent, attack.damage, attack.knockback, opponent.x > fighter.x ? 1 : -1);
@@ -3347,7 +3347,7 @@ class GameScene extends Phaser.Scene {
             repeat: 5,
             callback: () => {
                 const opponent = fighter.opponent;
-                if (!opponent.isInvincible && !opponent.uppercutHit) {
+                if (opponent && !opponent.isInvincible && !opponent.uppercutHit) {
                     const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
                     if (dist < 70) {
                         opponent.uppercutHit = true;
@@ -3467,7 +3467,7 @@ class GameScene extends Phaser.Scene {
 
             // Damage nearby
             const opponent = fighter.opponent;
-            if (!opponent.isInvincible) {
+            if (opponent && !opponent.isInvincible) {
                 const dist = Phaser.Math.Distance.Between(fireball.x, fireball.y, opponent.x, opponent.y);
                 if (dist < 80) {
                     this.applyDamage(opponent, attack.damage * 0.5, attack.knockback * 0.8, direction);
@@ -3517,7 +3517,7 @@ class GameScene extends Phaser.Scene {
 
                 // Hit detection along beam
                 const opponent = fighter.opponent;
-                if (!opponent.isInvincible) {
+                if (opponent && !opponent.isInvincible) {
                     const inBeamX = direction > 0
                         ? (opponent.x > fighter.x && opponent.x < fighter.x + beamLength)
                         : (opponent.x < fighter.x && opponent.x > fighter.x - beamLength);
@@ -3675,7 +3675,7 @@ class GameScene extends Phaser.Scene {
 
                 // Damage in radius
                 const opponent = fighter.opponent;
-                if (!opponent.isInvincible) {
+                if (opponent && !opponent.isInvincible) {
                     const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
                     if (dist < attack.range) {
                         const knockDir = opponent.x > fighter.x ? 1 : -1;
@@ -3693,6 +3693,8 @@ class GameScene extends Phaser.Scene {
 
         // Light pillar on opponent
         const opponent = fighter.opponent;
+        if (!opponent) return;
+
         const targetX = opponent.x;
 
         // Warning circle
@@ -3716,7 +3718,7 @@ class GameScene extends Phaser.Scene {
                     duration: 200,
                     onComplete: () => {
                         // Hit check
-                        if (!opponent.isInvincible && Math.abs(opponent.x - targetX) < 50) {
+                        if (opponent && !opponent.isInvincible && Math.abs(opponent.x - targetX) < 50) {
                             this.applyDamage(opponent, attack.damage, attack.knockback, direction);
                         }
 
@@ -3788,7 +3790,7 @@ class GameScene extends Phaser.Scene {
             fighter.sprite.setFlipX(!fighter.facingRight);
 
             // Strike
-            if (!opponent.isInvincible) {
+            if (opponent && !opponent.isInvincible) {
                 const newDir = fighter.facingRight ? 1 : -1;
                 this.applyDamage(opponent, attack.damage, attack.knockback, newDir);
                 this.createHitSpark(opponent.x, opponent.y, 0x8800ff);
@@ -3820,7 +3822,7 @@ class GameScene extends Phaser.Scene {
 
         // Knockback in radius
         const opponent = fighter.opponent;
-        if (!opponent.isInvincible) {
+        if (opponent && !opponent.isInvincible) {
             const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
             if (dist < attack.range) {
                 const knockDir = opponent.x > fighter.x ? 1 : -1;
@@ -3889,7 +3891,7 @@ class GameScene extends Phaser.Scene {
                         repeat: 18,
                         callback: () => {
                             const opponent = fighter.opponent;
-                            if (!opponent.isInvincible && !opponent.vineHit) {
+                            if (opponent && !opponent.isInvincible && !opponent.vineHit) {
                                 if (Math.abs(opponent.x - seed.x) < 50 && opponent.y > 480) {
                                     opponent.vineHit = true;
                                     this.applyDamage(opponent, attack.damage, attack.knockback * 0.5, direction);
@@ -3970,7 +3972,7 @@ class GameScene extends Phaser.Scene {
                 onComplete: () => {
                     // Bash damage
                     const opponent = fighter.opponent;
-                    if (!opponent.isInvincible) {
+                    if (opponent && !opponent.isInvincible) {
                         const dist = Phaser.Math.Distance.Between(shield.x, shield.y, opponent.x, opponent.y);
                         if (dist < 70) {
                             this.applyDamage(opponent, attack.damage, attack.knockback, direction);
@@ -4027,7 +4029,7 @@ class GameScene extends Phaser.Scene {
                     repeat: 50,
                     callback: () => {
                         const opponent = fighter.opponent;
-                        if (!opponent.isInvincible && !opponent.hacked) {
+                        if (opponent && !opponent.isInvincible && !opponent.hacked) {
                             if (Math.abs(opponent.x - trapX) < 40 && opponent.y > 480) {
                                 opponent.hacked = true;
 
@@ -4137,7 +4139,7 @@ class GameScene extends Phaser.Scene {
 
                 // Instant hit check
                 const opponent = fighter.opponent;
-                if (!opponent.isInvincible) {
+                if (opponent && !opponent.isInvincible) {
                     const inBeam = direction > 0
                         ? opponent.x > fighter.x
                         : opponent.x < fighter.x;
@@ -4239,7 +4241,7 @@ class GameScene extends Phaser.Scene {
 
             // Area damage
             const opponent = fighter.opponent;
-            if (!opponent.isInvincible) {
+            if (opponent && !opponent.isInvincible) {
                 const dist = Phaser.Math.Distance.Between(bomb.x, bomb.y, opponent.x, opponent.y);
                 if (dist < 100) {
                     const knockDir = opponent.x > bomb.x ? 1 : -1;
@@ -4262,7 +4264,7 @@ class GameScene extends Phaser.Scene {
         this.createLightningBolt(fighter.x, fighter.y, opponent.x, opponent.y, 0xffff00);
 
         // Hit
-        if (!opponent.isInvincible) {
+        if (opponent && !opponent.isInvincible) {
             this.applyDamage(opponent, attack.damage, attack.knockback, direction);
         }
 
@@ -4379,7 +4381,7 @@ class GameScene extends Phaser.Scene {
 
             // Damage grounded opponents
             const opponent = fighter.opponent;
-            if (!opponent.isInvincible && opponent.isGrounded) {
+            if (opponent && !opponent.isInvincible && opponent.isGrounded) {
                 const dist = Math.abs(opponent.x - fighter.x);
                 if (dist < attack.range) {
                     opponent.body.setVelocityY(-350);
@@ -4445,7 +4447,7 @@ class GameScene extends Phaser.Scene {
 
         // Hit detection
         const opponent = fighter.opponent;
-        if (!opponent.isInvincible) {
+        if (opponent && !opponent.isInvincible) {
             const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
             if (dist < attack.range) {
                 this.applyDamage(opponent, attack.damage, attack.knockback, direction);
@@ -4497,7 +4499,7 @@ class GameScene extends Phaser.Scene {
 
         // Hit detection along the line
         const opponent = fighter.opponent;
-        if (!opponent.isInvincible) {
+        if (opponent && !opponent.isInvincible) {
             const oppX = opponent.x;
             if ((direction > 0 && oppX > startX && oppX < endX) ||
                 (direction < 0 && oppX < startX && oppX > endX)) {
@@ -4608,7 +4610,7 @@ class GameScene extends Phaser.Scene {
         });
 
         // Hit if passed through opponent
-        if (!opponent.isInvincible) {
+        if (opponent && !opponent.isInvincible) {
             const dist = Math.abs(opponent.x - targetX);
             if (dist < 60) {
                 this.applyDamage(opponent, attack.damage, attack.knockback, direction);
@@ -4642,7 +4644,7 @@ class GameScene extends Phaser.Scene {
 
                 // Hit detection
                 const opponent = fighter.opponent;
-                if (!opponent.isInvincible) {
+                if (opponent && !opponent.isInvincible) {
                     const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
                     if (dist < attack.range) {
                         this.applyDamage(opponent, attack.damage / hits, attack.knockback * 0.5, direction);
@@ -4740,7 +4742,7 @@ class GameScene extends Phaser.Scene {
         // Powerful hit
         this.time.delayedCall(100, () => {
             const opponent = fighter.opponent;
-            if (!opponent.isInvincible) {
+            if (opponent && !opponent.isInvincible) {
                 const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
                 if (dist < attack.range) {
                     // Damage bonus based on fighter's own damage
@@ -4837,7 +4839,7 @@ class GameScene extends Phaser.Scene {
 
         // Blood particles toward fighter
         const opponent = fighter.opponent;
-        if (!opponent.isInvincible) {
+        if (opponent && !opponent.isInvincible) {
             const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
             if (dist < attack.range) {
                 // Create blood drain effect
