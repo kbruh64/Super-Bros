@@ -6425,151 +6425,117 @@ class GameScene extends Phaser.Scene {
     playKOCutscene(winner) {
         const loser = winner === this.player1 ? this.player2 : this.player1;
 
-        // Freeze frame effect - slow down time
-        this.physics.world.timeScale = 0.15;
+        // Extreme slow motion for dramatic effect
+        this.physics.world.timeScale = 0.1;
 
-        // Dramatic camera shake
-        this.cameras.main.shake(600, 0.035);
+        // Intense camera shake
+        this.cameras.main.shake(800, 0.04);
 
-        // Golden flash effect for victory
+        // Dark red flash (not yellow/gold)
         const flash = this.add.rectangle(
             GAME_WIDTH / 2, GAME_HEIGHT / 2,
             GAME_WIDTH, GAME_HEIGHT,
-            0xffd700, 0.7
+            0xff0000, 0.5
         );
         flash.setDepth(1000);
         flash.setScrollFactor(0);
+        flash.setBlendMode('ADD');
 
         this.tweens.add({
             targets: flash,
             alpha: 0,
-            duration: 300,
+            duration: 400,
             onComplete: () => flash.destroy()
         });
 
-        // Zoom to winner (for victory pose)
-        this.cameras.main.pan(winner.x, winner.y, 400, 'Power2');
-        this.cameras.main.zoomTo(1.4, 400, 'Power2');
+        // Dramatic zoom to winner
+        this.cameras.main.pan(winner.x, winner.y - 30, 600, 'Power2');
+        this.cameras.main.zoomTo(1.6, 600, 'Power2');
 
-        // Massive explosion particles at loser position
+        // Massive explosion at loser
         this.time.delayedCall(100, () => {
-            this.createPixelParticles(loser.x, loser.y, 0xff0000, 60, 3.5, 10);
-            this.createPixelParticles(loser.x, loser.y, 0xffff00, 50, 3, 9);
-            this.createPixelParticles(loser.x, loser.y, 0xffffff, 40, 2.5, 8);
+            this.createPixelParticles(loser.x, loser.y, 0xff0000, 80, 4, 12);
+            this.createPixelParticles(loser.x, loser.y, 0x000000, 60, 3.5, 10);
+            this.createPixelParticles(loser.x, loser.y, 0xffffff, 40, 3, 8);
         });
 
-        // Victory sparkles around winner
+        // Dark energy particles around winner
         this.time.delayedCall(200, () => {
-            for (let i = 0; i < 5; i++) {
-                this.time.delayedCall(i * 100, () => {
-                    this.createPixelParticles(winner.x, winner.y - 50, 0xffd700, 30, 2, 6);
-                    this.createPixelParticles(winner.x, winner.y - 50, 0xffffff, 20, 1.5, 5);
+            for (let i = 0; i < 6; i++) {
+                this.time.delayedCall(i * 80, () => {
+                    this.createPixelParticles(winner.x, winner.y - 40, 0xff0000, 25, 2.5, 7);
+                    this.createPixelParticles(winner.x, winner.y - 40, 0x00ffff, 20, 2, 6);
+                    this.createPixelParticles(winner.x, winner.y - 40, 0x000000, 15, 1.5, 5);
                 });
             }
         });
 
-        // Pause physics after slow-mo effect
-        this.time.delayedCall(400, () => {
+        // Shockwave rings around winner
+        for (let i = 0; i < 4; i++) {
+            this.time.delayedCall(300 + i * 100, () => {
+                const ring = this.add.circle(winner.x, winner.y, 20, 0xff0000, 0);
+                ring.setStrokeStyle(3, 0xff0000, 0.8);
+                ring.setDepth(999);
+                ring.setBlendMode('ADD');
+
+                this.tweens.add({
+                    targets: ring,
+                    radius: 150 + i * 30,
+                    alpha: 0,
+                    duration: 700,
+                    ease: 'Power2',
+                    onComplete: () => ring.destroy()
+                });
+            });
+        }
+
+        // Freeze physics
+        this.time.delayedCall(500, () => {
             this.physics.pause();
         });
 
-        // Display "VICTORY!" text
-        this.time.delayedCall(500, () => {
-            // Golden victory confetti burst
-            for (let i = 0; i < 80; i++) {
-                this.time.delayedCall(Math.random() * 300, () => {
-                    const colors = [0xffff00, 0xffd700, 0xffa500, 0xffffff];
-                    const color = Phaser.Utils.Array.GetRandom(colors);
-                    const x = GAME_WIDTH / 2 + (Math.random() - 0.5) * 200;
-                    const y = GAME_HEIGHT / 2;
-                    this.createPixelParticles(x, y, color, 3, 3, 10, 300);
+        // Screen distortion effect (no text)
+        this.time.delayedCall(600, () => {
+            // Dark vignette
+            const vignette = this.add.graphics();
+            vignette.fillStyle(0x000000, 0);
+            vignette.fillCircle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 500);
+            vignette.setDepth(1001);
+            vignette.setScrollFactor(0);
+
+            this.tweens.add({
+                targets: vignette,
+                alpha: 0.7,
+                duration: 800,
+                ease: 'Power2'
+            });
+
+            // Glitch lines
+            for (let i = 0; i < 8; i++) {
+                this.time.delayedCall(i * 100, () => {
+                    const glitch = this.add.graphics();
+                    glitch.fillStyle(0xff0000, 0.3);
+                    glitch.fillRect(0, Math.random() * GAME_HEIGHT, GAME_WIDTH, 3);
+                    glitch.setDepth(1002);
+                    glitch.setScrollFactor(0);
+                    glitch.setBlendMode('ADD');
+
+                    this.tweens.add({
+                        targets: glitch,
+                        alpha: 0,
+                        duration: 150,
+                        onComplete: () => glitch.destroy()
+                    });
                 });
             }
 
-            // Create VICTORY text with epic cyber/minecraft styling
-            const victoryContainer = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
-            victoryContainer.setDepth(1001);
-            victoryContainer.setScrollFactor(0);
+            // Screen shake for emphasis
+            this.cameras.main.shake(1200, 0.01);
+        });
 
-            // Background panel with triple border
-            const bg = this.add.graphics();
-            bg.fillStyle(0x000000, 0.9);
-            bg.fillRect(-280, -100, 560, 200);
-
-            // Triple neon borders - gold/cyan/white
-            bg.lineStyle(5, 0xffd700, 1);
-            bg.strokeRect(-280, -100, 560, 200);
-            bg.lineStyle(3, 0x00ffff, 1);
-            bg.strokeRect(-285, -105, 570, 210);
-            bg.lineStyle(2, 0xffffff, 1);
-            bg.strokeRect(-290, -110, 580, 220);
-
-            // Inner glow effect
-            bg.fillStyle(0xffd700, 0.2);
-            bg.fillRect(-275, -95, 550, 190);
-
-            // VICTORY text - golden and epic
-            const victoryText = this.add.text(0, 0, 'VICTORY!', {
-                fontSize: '100px',
-                fontFamily: 'Courier New, monospace',
-                fontStyle: 'bold',
-                color: '#ffd700',
-                stroke: '#ffffff',
-                strokeThickness: 10
-            }).setOrigin(0.5);
-
-            // Add secondary shadow/glow layer
-            const shadowText = this.add.text(2, 2, 'VICTORY!', {
-                fontSize: '100px',
-                fontFamily: 'Courier New, monospace',
-                fontStyle: 'bold',
-                color: '#ff8800',
-                stroke: '#000000',
-                strokeThickness: 12
-            }).setOrigin(0.5);
-
-            victoryContainer.add([bg, shadowText, victoryText]);
-
-            // Animate VICTORY text - epic entrance
-            victoryContainer.setScale(0);
-            victoryContainer.setAlpha(0);
-
-            this.tweens.add({
-                targets: victoryContainer,
-                scale: 1.3,
-                alpha: 1,
-                duration: 400,
-                ease: 'Elastic.easeOut'
-            });
-
-            // Rainbow pulse animation
-            let hue = 0;
-            this.time.addEvent({
-                delay: 50,
-                callback: () => {
-                    hue = (hue + 10) % 360;
-                    const color = Phaser.Display.Color.HSVToRGB(hue / 360, 0.8, 1);
-                    victoryText.setTint(color.color);
-                },
-                repeat: -1
-            });
-
-            // Continuous dramatic pulse
-            this.tweens.add({
-                targets: [victoryText, shadowText],
-                scale: 1.15,
-                duration: 250,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut'
-            });
-
-            // Victory screen shake
-            this.cameras.main.shake(1000, 0.015);
-
-            // Transition to victory scene
-            this.time.delayedCall(2500, () => {
-                this.cameras.main.fadeOut(500, 0, 0, 0);
+        // Transition to victory scene
+        this.time.delayedCall(2200, () => {
+            this.cameras.main.fadeOut(600, 0, 0, 0);
 
                 this.cameras.main.once('camerafadeoutcomplete', () => {
                     this.scene.start('VictoryScene', {
