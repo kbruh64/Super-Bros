@@ -4982,23 +4982,16 @@ class GameScene extends Phaser.Scene {
         });
     }
 
-    // BACKSTAB - Assassin teleport behind enemy
+    // BACKSTAB - Assassin quick dash attack
     createBackstabAttack(fighter, attack, direction) {
-        const opponent = fighter === this.player1 ? this.player2 : this.player1;
-        const behindX = opponent.x + (opponent.facingRight ? -60 : 60);
-
-        // Smoke poof at start
+        // Quick dash forward
+        fighter.body.setVelocityX(direction * 600);
         this.createPixelParticles(fighter.x, fighter.y, 0x222222, 15, 1.5, 5);
 
-        // Teleport
-        fighter.setPosition(behindX, opponent.y);
-        fighter.facingRight = opponent.facingRight;
-
-        // Smoke poof at arrival
-        this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 15, 1.5, 5);
-
-        // Backstab damage
-        this.applyDamage(opponent, fighter, attack.damage * 2, attack.knockback, fighter.facingRight ? 1 : -1);
+        this.time.delayedCall(200, () => {
+            fighter.body.setVelocityX(0);
+            this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 15, 1.5, 5);
+        });
     }
 
     // METEOR - Wizard summons falling meteors
@@ -5008,37 +5001,25 @@ class GameScene extends Phaser.Scene {
         // Summon 3 meteors above opponent
         for (let i = 0; i < 3; i++) {
             this.time.delayedCall(i * 200, () => {
-                const meteorX = opponent.x + (i - 1) * 80;
-                const meteorY = -50;
-
-                const meteor = this.add.graphics();
-                meteor.x = meteorX;
-                meteor.y = meteorY;
+                const meteor = this.add.circle(
+                    opponent.x + (i - 1) * 80,
+                    -50,
+                    16,
+                    0xff6600
+                );
+                this.physics.add.existing(meteor);
                 meteor.setBlendMode('ADD');
+                meteor.isProjectile = true;
+                meteor.hasHit = false;
+                meteor.owner = fighter;
+                meteor.attackDamage = attack.damage;
+                meteor.attackKnockback = attack.knockback;
+                fighter.projectiles.add(meteor);
+                meteor.body.setVelocityY(400);
+                meteor.body.setAllowGravity(false);
 
-                // Draw meteor
-                meteor.fillStyle(0xff6600, 1);
-                meteor.fillRect(-8, -8, 16, 16);
-                meteor.fillStyle(0xffaa00, 1);
-                meteor.fillRect(-6, -6, 12, 12);
-                meteor.fillStyle(0xffffaa, 1);
-                meteor.fillRect(-4, -4, 8, 8);
-
-                // Fall down
-                this.tweens.add({
-                    targets: meteor,
-                    y: GAME_HEIGHT + 50,
-                    duration: 600,
-                    onUpdate: () => {
-                        // Check collision with opponent
-                        const dist = Phaser.Math.Distance.Between(meteor.x, meteor.y, opponent.x, opponent.y);
-                        if (dist < 40 && !meteor.hasHit) {
-                            meteor.hasHit = true;
-                            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, 0);
-                            this.createPixelParticles(meteor.x, meteor.y, 0xff6600, 20, 2, 6);
-                        }
-                    },
-                    onComplete: () => meteor.destroy()
+                this.time.delayedCall(2000, () => {
+                    if (meteor && meteor.active) meteor.destroy();
                 });
             });
         }
@@ -5046,41 +5027,33 @@ class GameScene extends Phaser.Scene {
 
     // MULTISHOT - Ranger fires multiple arrows
     createMultishotAttack(fighter, attack, direction) {
-        const angles = [-20, -10, 0, 10, 20];
+        const angles = [-15, -7, 0, 7, 15];
 
         angles.forEach((angle, i) => {
             this.time.delayedCall(i * 50, () => {
-                const arrow = this.add.graphics();
-                arrow.x = fighter.x + direction * 40;
-                arrow.y = fighter.y;
+                const arrow = this.add.rectangle(
+                    fighter.x + direction * 40,
+                    fighter.y,
+                    16, 4,
+                    0x88ff44
+                );
+                this.physics.add.existing(arrow);
                 arrow.setBlendMode('ADD');
-
-                // Draw arrow
-                arrow.fillStyle(0x664422, 1);
-                arrow.fillRect(0, -1, 16, 2);
-                arrow.fillStyle(0x88ff44, 1);
-                arrow.fillRect(14, -2, 4, 4);
+                arrow.isProjectile = true;
+                arrow.hasHit = false;
+                arrow.owner = fighter;
+                arrow.attackDamage = attack.damage / 3;
+                arrow.attackKnockback = attack.knockback / 3;
+                fighter.projectiles.add(arrow);
+                arrow.body.setAllowGravity(false);
 
                 const rad = angle * Math.PI / 180;
-                const vx = Math.cos(rad) * direction * 400;
-                const vy = Math.sin(rad) * 400;
+                const vx = Math.cos(rad) * direction * 500;
+                const vy = Math.sin(rad) * 500;
+                arrow.body.setVelocity(vx, vy);
 
-                arrow.hasHit = false;
-
-                this.tweens.add({
-                    targets: arrow,
-                    x: arrow.x + vx,
-                    y: arrow.y + vy,
-                    duration: 1000,
-                    onUpdate: () => {
-                        const opponent = fighter === this.player1 ? this.player2 : this.player1;
-                        const dist = Phaser.Math.Distance.Between(arrow.x, arrow.y, opponent.x, opponent.y);
-                        if (dist < 30 && !arrow.hasHit) {
-                            arrow.hasHit = true;
-                            this.applyDamage(opponent, fighter, attack.damage / 2, attack.knockback / 2, direction);
-                        }
-                    },
-                    onComplete: () => arrow.destroy()
+                this.time.delayedCall(2000, () => {
+                    if (arrow && arrow.active) arrow.destroy();
                 });
             });
         });
@@ -5088,35 +5061,31 @@ class GameScene extends Phaser.Scene {
 
     // SUMMON - Necromancer summons ghost minion
     createSummonAttack(fighter, attack, direction) {
-        const ghost = this.add.graphics();
-        ghost.x = fighter.x + direction * 60;
-        ghost.y = fighter.y;
-        ghost.setBlendMode('ADD');
-
-        // Draw ghost
-        ghost.fillStyle(0x00ff44, 0.6);
-        ghost.fillRect(-6, -8, 12, 16);
-        ghost.fillStyle(0xffffff, 0.8);
-        ghost.fillRect(-4, -6, 3, 3);
-        ghost.fillRect(1, -6, 3, 3);
-
         const opponent = fighter === this.player1 ? this.player2 : this.player1;
 
-        // Home towards opponent
-        this.tweens.add({
-            targets: ghost,
-            x: opponent.x,
-            y: opponent.y,
-            duration: 800,
-            onUpdate: () => {
-                const dist = Phaser.Math.Distance.Between(ghost.x, ghost.y, opponent.x, opponent.y);
-                if (dist < 30 && !ghost.hasHit) {
-                    ghost.hasHit = true;
-                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
-                    this.createPixelParticles(ghost.x, ghost.y, 0x00ff44, 15, 1.5, 5);
-                }
-            },
-            onComplete: () => ghost.destroy()
+        const ghost = this.add.circle(
+            fighter.x + direction * 60,
+            fighter.y,
+            12,
+            0x440088
+        );
+        this.physics.add.existing(ghost);
+        ghost.setBlendMode('ADD');
+        ghost.setAlpha(0.7);
+        ghost.isProjectile = true;
+        ghost.hasHit = false;
+        ghost.owner = fighter;
+        ghost.attackDamage = attack.damage;
+        ghost.attackKnockback = attack.knockback;
+        fighter.projectiles.add(ghost);
+        ghost.body.setAllowGravity(false);
+
+        // Move toward opponent
+        const angle = Phaser.Math.Angle.Between(ghost.x, ghost.y, opponent.x, opponent.y);
+        ghost.body.setVelocity(Math.cos(angle) * 300, Math.sin(angle) * 300);
+
+        this.time.delayedCall(2000, () => {
+            if (ghost && ghost.active) ghost.destroy();
         });
     }
 
@@ -5166,72 +5135,69 @@ class GameScene extends Phaser.Scene {
 
     // PALM - Monk chi blast
     createPalmAttack(fighter, attack, direction) {
-        const palm = this.add.graphics();
-        palm.x = fighter.x + direction * 40;
-        palm.y = fighter.y;
+        const palm = this.add.circle(
+            fighter.x + direction * 40,
+            fighter.y,
+            14,
+            0xffffaa
+        );
+        this.physics.add.existing(palm);
         palm.setBlendMode('ADD');
-
-        // Draw chi blast
-        palm.fillStyle(0xffffaa, 1);
-        palm.fillRect(-8, -8, 16, 16);
-        palm.fillStyle(0xff8800, 0.8);
-        palm.fillRect(-6, -6, 12, 12);
-        palm.fillStyle(0xffffff, 1);
-        palm.fillRect(-4, -4, 8, 8);
-
+        palm.isProjectile = true;
         palm.hasHit = false;
+        palm.owner = fighter;
+        palm.attackDamage = attack.damage;
+        palm.attackKnockback = attack.knockback;
         fighter.projectiles.add(palm);
+        palm.body.setAllowGravity(false);
+        palm.body.setVelocityX(direction * 400);
 
         this.tweens.add({
             targets: palm,
-            x: palm.x + direction * attack.range,
             scaleX: 1.5,
             scaleY: 1.5,
-            duration: 400,
-            onUpdate: () => {
-                const opponent = fighter === this.player1 ? this.player2 : this.player1;
-                const dist = Phaser.Math.Distance.Between(palm.x, palm.y, opponent.x, opponent.y);
-                if (dist < 30 && !palm.hasHit) {
-                    palm.hasHit = true;
-                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
-                    this.createPixelParticles(palm.x, palm.y, 0xffffaa, 15, 1.5, 5);
-                }
-            },
-            onComplete: () => palm.destroy()
+            duration: 400
+        });
+
+        this.time.delayedCall(1500, () => {
+            if (palm && palm.active) palm.destroy();
         });
     }
 
     // BREATH - Dragon fire breath
     createBreathAttack(fighter, attack, direction) {
-        for (let i = 0; i < 15; i++) {
-            this.time.delayedCall(i * 30, () => {
-                const flame = this.add.graphics();
-                flame.x = fighter.x + direction * (40 + i * 15);
-                flame.y = fighter.y + (Math.random() - 0.5) * 40;
-                flame.setBlendMode('ADD');
-
+        for (let i = 0; i < 10; i++) {
+            this.time.delayedCall(i * 40, () => {
                 const fireColors = [0xffff00, 0xff8800, 0xff4400];
                 const color = Phaser.Utils.Array.GetRandom(fireColors);
-                flame.fillStyle(color, 1);
-                flame.fillRect(-4, -4, 8, 8);
 
+                const flame = this.add.circle(
+                    fighter.x + direction * 50,
+                    fighter.y + (Math.random() - 0.5) * 30,
+                    8,
+                    color
+                );
+                this.physics.add.existing(flame);
+                flame.setBlendMode('ADD');
+                flame.isProjectile = true;
                 flame.hasHit = false;
+                flame.owner = fighter;
+                flame.attackDamage = attack.damage / 5;
+                flame.attackKnockback = attack.knockback / 5;
+                fighter.projectiles.add(flame);
+                flame.body.setAllowGravity(false);
+                flame.body.setVelocityX(direction * 400);
 
                 this.tweens.add({
                     targets: flame,
                     alpha: 0,
                     scaleX: 1.5,
                     scaleY: 1.5,
-                    duration: 300,
-                    onUpdate: () => {
-                        const opponent = fighter === this.player1 ? this.player2 : this.player1;
-                        const dist = Phaser.Math.Distance.Between(flame.x, flame.y, opponent.x, opponent.y);
-                        if (dist < 25 && !flame.hasHit) {
-                            flame.hasHit = true;
-                            this.applyDamage(opponent, fighter, attack.damage / 5, attack.knockback / 5, direction);
-                        }
-                    },
-                    onComplete: () => flame.destroy()
+                    duration: 400
+                });
+
+                this.time.delayedCall(500, () => {
+                    if (flame && flame.active) flame.destroy();
                 });
             });
         }
@@ -5239,45 +5205,29 @@ class GameScene extends Phaser.Scene {
 
     // POTION - Alchemist throws explosive potion
     createPotionAttack(fighter, attack, direction) {
-        const potion = this.add.graphics();
-        potion.x = fighter.x + direction * 40;
-        potion.y = fighter.y;
+        const potion = this.add.circle(
+            fighter.x + direction * 40,
+            fighter.y,
+            10,
+            0x44ff88
+        );
+        this.physics.add.existing(potion);
         potion.setBlendMode('ADD');
-
-        // Draw potion bottle
-        potion.fillStyle(0x44ff88, 1);
-        potion.fillRect(-4, -6, 8, 12);
-        potion.fillStyle(0xff44ff, 0.7);
-        potion.fillRect(-3, -5, 6, 10);
-
+        potion.isProjectile = true;
         potion.hasHit = false;
+        potion.owner = fighter;
+        potion.attackDamage = attack.damage;
+        potion.attackKnockback = attack.knockback;
+        fighter.projectiles.add(potion);
+        potion.body.setVelocity(direction * 350, -200);
+        potion.body.setAllowGravity(true);
+        potion.body.setGravityY(600);
 
-        this.tweens.add({
-            targets: potion,
-            x: potion.x + direction * attack.range,
-            y: potion.y - 100,
-            duration: 600,
-            ease: 'Quad.easeOut',
-            onComplete: () => {
-                // Explosion
-                this.createPixelParticles(potion.x, potion.y, 0x44ff88, 25, 2, 7);
-
-                const opponent = fighter === this.player1 ? this.player2 : this.player1;
-                const dist = Phaser.Math.Distance.Between(potion.x, potion.y, opponent.x, opponent.y);
-                if (dist < 80) {
-                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
-                }
-
+        this.time.delayedCall(1200, () => {
+            if (potion && potion.active) {
+                this.createPixelParticles(potion.x, potion.y, 0x44ff88, 20, 2, 6);
                 potion.destroy();
             }
-        });
-
-        this.tweens.add({
-            targets: potion,
-            y: potion.y + 200,
-            duration: 600,
-            ease: 'Quad.easeIn',
-            delay: 600
         });
     }
 
@@ -5714,32 +5664,27 @@ class GameScene extends Phaser.Scene {
     createSixshotAttack(fighter, attack, direction) {
         for (let i = 0; i < 6; i++) {
             this.time.delayedCall(i * 80, () => {
-                // Muzzle flash
                 this.createPixelParticles(fighter.x + direction * 30, fighter.y, 0xffaa44, 8, 1, 3);
 
-                const bullet = this.add.graphics();
-                bullet.x = fighter.x + direction * 40;
-                bullet.y = fighter.y + (Math.random() - 0.5) * 20;
+                const bullet = this.add.circle(
+                    fighter.x + direction * 40,
+                    fighter.y + (Math.random() - 0.5) * 20,
+                    5,
+                    0xffaa44
+                );
+                this.physics.add.existing(bullet);
                 bullet.setBlendMode('ADD');
-
-                bullet.fillStyle(0xffaa44, 1);
-                bullet.fillRect(-2, -2, 4, 4);
-
+                bullet.isProjectile = true;
                 bullet.hasHit = false;
+                bullet.owner = fighter;
+                bullet.attackDamage = attack.damage / 6;
+                bullet.attackKnockback = attack.knockback / 6;
+                fighter.projectiles.add(bullet);
+                bullet.body.setAllowGravity(false);
+                bullet.body.setVelocityX(direction * 600);
 
-                this.tweens.add({
-                    targets: bullet,
-                    x: bullet.x + direction * attack.range,
-                    duration: 400,
-                    onUpdate: () => {
-                        const opponent = fighter === this.player1 ? this.player2 : this.player1;
-                        const dist = Phaser.Math.Distance.Between(bullet.x, bullet.y, opponent.x, opponent.y);
-                        if (dist < 25 && !bullet.hasHit) {
-                            bullet.hasHit = true;
-                            this.applyDamage(opponent, fighter, attack.damage / 6, attack.knockback / 6, direction);
-                        }
-                    },
-                    onComplete: () => bullet.destroy()
+                this.time.delayedCall(1000, () => {
+                    if (bullet && bullet.active) bullet.destroy();
                 });
             });
         }
