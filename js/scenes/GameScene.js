@@ -2247,6 +2247,752 @@ class GameScene extends Phaser.Scene {
                 });
                 break;
 
+            case 'dagger_black':
+                // ASSASSIN - Black dagger with blood trail
+                const daggerG = this.add.graphics();
+                daggerG.setBlendMode('ADD');
+
+                // Dagger blade
+                for (let i = 0; i < 5; i++) {
+                    daggerG.fillStyle(i < 2 ? 0x222222 : 0xff0000, 1 - i * 0.15);
+                    daggerG.fillRect(x + direction * (i * 4), y - 2, 4, 4);
+                }
+                // Red trail
+                this.createPixelParticles(x, y, 0xff0000, 8, 1, 2);
+
+                this.tweens.add({
+                    targets: daggerG,
+                    x: direction * 40,
+                    alpha: 0,
+                    duration: 120,
+                    onComplete: () => daggerG.destroy()
+                });
+                break;
+
+            case 'arcane_blue':
+                // WIZARD - Mystical arcane energy
+                const arcaneG = this.add.graphics();
+                arcaneG.setBlendMode('ADD');
+
+                // Floating runes
+                for (let r = 0; r < 4; r++) {
+                    const rx = x + direction * (r * 10);
+                    const ry = y + Math.sin(r) * 8;
+                    arcaneG.fillStyle(0x4444ff, 1);
+                    arcaneG.fillRect(rx - 3, ry - 3, 6, 6);
+                    arcaneG.fillStyle(0xffffaa, 1);
+                    arcaneG.fillRect(rx - 1, ry - 1, 2, 2);
+                }
+                this.createPixelParticles(x, y, 0x4444ff, 10, 1.2, 4);
+
+                this.tweens.add({
+                    targets: arcaneG,
+                    x: direction * 35,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => arcaneG.destroy()
+                });
+                break;
+
+            case 'arrow_green':
+                // RANGER - Green arrow
+                const arrowG = this.add.graphics();
+                arrowG.setBlendMode('ADD');
+
+                // Arrow shaft
+                arrowG.fillStyle(0x664422, 1);
+                arrowG.fillRect(x, y - 1, 16 * direction, 2);
+                // Arrowhead
+                arrowG.fillStyle(0x888888, 1);
+                arrowG.fillRect(x + direction * 16, y - 2, 4, 4);
+                // Green glow
+                arrowG.fillStyle(0x88ff44, 0.6);
+                arrowG.fillRect(x + direction * 14, y - 1, 6, 2);
+
+                this.tweens.add({
+                    targets: arrowG,
+                    x: direction * 60,
+                    alpha: 0,
+                    duration: 140,
+                    onComplete: () => arrowG.destroy()
+                });
+                break;
+
+            case 'skull_purple':
+                // NECROMANCER - Floating skull
+                const skullG = this.add.graphics();
+                skullG.setBlendMode('ADD');
+
+                // Skull shape
+                skullG.fillStyle(0xcccccc, 1);
+                skullG.fillRect(x - 4, y - 4, 8, 8);
+                skullG.fillStyle(0x00ff44, 1);
+                skullG.fillRect(x - 3, y - 3, 2, 2);
+                skullG.fillRect(x + 1, y - 3, 2, 2);
+                skullG.fillStyle(0x000000, 1);
+                skullG.fillRect(x - 1, y + 1, 2, 2);
+                this.createPixelParticles(x, y, 0x440088, 6, 0.8, 3);
+
+                this.tweens.add({
+                    targets: skullG,
+                    x: direction * 30,
+                    y: -10,
+                    alpha: 0,
+                    duration: 180,
+                    onComplete: () => skullG.destroy()
+                });
+                break;
+
+            case 'charge_red':
+                // JUGGERNAUT - Charging impact
+                const chargeG = this.add.graphics();
+                chargeG.setBlendMode('ADD');
+
+                // Impact shockwave
+                chargeG.fillStyle(0xff4444, 1);
+                chargeG.fillRect(x - 8, y - 12, 16, 24);
+                chargeG.fillStyle(0xff8844, 1);
+                chargeG.fillRect(x - 6, y - 10, 12, 20);
+                chargeG.fillStyle(0xffffff, 1);
+                chargeG.fillRect(x - 4, y - 6, 8, 12);
+                this.createPixelParticles(x, y, 0xff4444, 12, 1.5, 5);
+
+                this.tweens.add({
+                    targets: chargeG,
+                    scaleX: 1.5,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => chargeG.destroy()
+                });
+                break;
+
+            case 'trick_rainbow':
+                // TRICKSTER - Rainbow sparkles
+                const trickG = this.add.graphics();
+                trickG.setBlendMode('ADD');
+
+                const rainbowColors = [0xff0000, 0xff8800, 0xffff00, 0x00ff00, 0x0088ff, 0xff00ff];
+                for (let i = 0; i < 6; i++) {
+                    const tx = x + direction * (i * 5);
+                    const ty = y + Math.sin(i * 0.8) * 10;
+                    trickG.fillStyle(rainbowColors[i], 1);
+                    trickG.fillRect(tx - 3, ty - 3, 6, 6);
+                }
+                this.createPixelParticles(x, y, 0xff88ff, 8, 1, 4);
+
+                this.tweens.add({
+                    targets: trickG,
+                    x: direction * 30,
+                    alpha: 0,
+                    angle: 360,
+                    duration: 160,
+                    onComplete: () => trickG.destroy()
+                });
+                break;
+
+            case 'chi_orange':
+                // MONK - Chi energy burst
+                const chiG = this.add.graphics();
+                chiG.setBlendMode('ADD');
+
+                // Radiating chi waves
+                for (let w = 0; w < 3; w++) {
+                    const radius = 8 + w * 8;
+                    chiG.fillStyle(0xff8800, 0.8 - w * 0.2);
+                    chiG.fillRect(x + direction * radius - 3, y - 3, 6, 6);
+                }
+                chiG.fillStyle(0xffffaa, 1);
+                chiG.fillRect(x - 4, y - 4, 8, 8);
+                this.createPixelParticles(x, y, 0xffffaa, 10, 1.2, 3);
+
+                this.tweens.add({
+                    targets: chiG,
+                    scale: 1.5,
+                    alpha: 0,
+                    duration: 130,
+                    onComplete: () => chiG.destroy()
+                });
+                break;
+
+            case 'flame_red':
+                // DRAGON - Fire breath (reuse fire_red style)
+                const dragonFireG = this.add.graphics();
+                dragonFireG.setBlendMode('ADD');
+
+                const dragonFireColors = [0xffff00, 0xffaa00, 0xff6600, 0xff2200];
+                for (let layer = 0; layer < 4; layer++) {
+                    for (let f = 0; f < 6; f++) {
+                        const fx = x + direction * (f * 8 + layer * 4);
+                        const fy = y - 8 + Math.random() * 16;
+                        dragonFireG.fillStyle(dragonFireColors[layer], 1 - layer * 0.15);
+                        dragonFireG.fillRect(fx - 2, fy - 2, 4, 4);
+                    }
+                }
+                this.createPixelParticles(x, y, 0xff6600, 12, 1.3, 4);
+
+                this.tweens.add({
+                    targets: dragonFireG,
+                    x: direction * 40,
+                    alpha: 0,
+                    duration: 140,
+                    onComplete: () => dragonFireG.destroy()
+                });
+                break;
+
+            case 'potion_green':
+                // ALCHEMIST - Potion splash
+                const potionG = this.add.graphics();
+                potionG.setBlendMode('ADD');
+
+                // Potion bottle
+                potionG.fillStyle(0x44ff88, 1);
+                potionG.fillRect(x - 3, y - 4, 6, 8);
+                potionG.fillStyle(0xff44ff, 0.7);
+                potionG.fillRect(x - 2, y - 3, 4, 6);
+                // Splash particles
+                for (let s = 0; s < 8; s++) {
+                    const angle = (s / 8) * Math.PI * 2;
+                    potionG.fillStyle(0x44ff88, 0.8);
+                    potionG.fillRect(x + Math.cos(angle) * 12 - 1, y + Math.sin(angle) * 12 - 1, 2, 2);
+                }
+                this.createPixelParticles(x, y, 0x44ff88, 10, 1.2, 4);
+
+                this.tweens.add({
+                    targets: potionG,
+                    scale: 1.4,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => potionG.destroy()
+                });
+                break;
+
+            case 'shield_cyan':
+                // SENTINEL - Energy shield
+                const sentinelG = this.add.graphics();
+                sentinelG.setBlendMode('ADD');
+
+                // Hexagonal shield pattern
+                sentinelG.fillStyle(0x00ffff, 0.7);
+                sentinelG.fillRect(x + direction * 5 - 6, y - 10, 12, 20);
+                sentinelG.fillStyle(0x0088ff, 0.8);
+                sentinelG.fillRect(x + direction * 5 - 4, y - 8, 8, 16);
+                sentinelG.fillStyle(0x00ffff, 1);
+                sentinelG.fillRect(x + direction * 5 - 2, y - 6, 4, 12);
+                this.createPixelParticles(x, y, 0x00ffff, 8, 0.8, 3);
+
+                this.tweens.add({
+                    targets: sentinelG,
+                    alpha: 0,
+                    duration: 140,
+                    onComplete: () => sentinelG.destroy()
+                });
+                break;
+
+            case 'scythe_black':
+                // REAPER - Dark scythe swing
+                const scytheG = this.add.graphics();
+                scytheG.setBlendMode('ADD');
+
+                // Scythe arc
+                for (let a = 0; a < 6; a++) {
+                    const angle = (a / 6) * Math.PI;
+                    const radius = 20;
+                    scytheG.fillStyle(0x111111, 1);
+                    scytheG.fillRect(x + Math.cos(angle) * radius - 2, y + Math.sin(angle) * radius - 10 - 2, 4, 4);
+                }
+                scytheG.fillStyle(0x00ff00, 0.7);
+                for (let a = 0; a < 6; a++) {
+                    const angle = (a / 6) * Math.PI;
+                    const radius = 18;
+                    scytheG.fillRect(x + Math.cos(angle) * radius - 1, y + Math.sin(angle) * radius - 10 - 1, 2, 2);
+                }
+                this.createPixelParticles(x, y, 0x00ff00, 10, 1, 3);
+
+                this.tweens.add({
+                    targets: scytheG,
+                    angle: direction * 90,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => scytheG.destroy()
+                });
+                break;
+
+            case 'time_purple':
+                // CHRONOMANCER - Time distortion
+                const timeG = this.add.graphics();
+                timeG.setBlendMode('ADD');
+
+                // Clock face with hands
+                for (let h = 0; h < 12; h++) {
+                    const angle = (h / 12) * Math.PI * 2;
+                    const radius = 12;
+                    timeG.fillStyle(0x44ffff, 0.8);
+                    timeG.fillRect(x + Math.cos(angle) * radius - 1, y + Math.sin(angle) * radius - 1, 2, 2);
+                }
+                timeG.fillStyle(0x8844ff, 1);
+                timeG.fillRect(x - 4, y - 4, 8, 8);
+                timeG.fillStyle(0x44ffff, 1);
+                timeG.fillRect(x - 1, y - 1, 2, 6);
+                this.createPixelParticles(x, y, 0x8844ff, 8, 0.9, 3);
+
+                this.tweens.add({
+                    targets: timeG,
+                    angle: -360,
+                    alpha: 0,
+                    duration: 180,
+                    onComplete: () => timeG.destroy()
+                });
+                break;
+
+            case 'hammer_gold':
+                // CRUSADER - Holy hammer
+                const hammerG = this.add.graphics();
+                hammerG.setBlendMode('ADD');
+
+                // Hammer head
+                hammerG.fillStyle(0xffdd00, 1);
+                hammerG.fillRect(x + direction * 10 - 6, y - 8, 12, 6);
+                hammerG.fillStyle(0xffffaa, 1);
+                hammerG.fillRect(x + direction * 10 - 4, y - 6, 8, 2);
+                // Handle
+                hammerG.fillStyle(0x664422, 1);
+                hammerG.fillRect(x, y - 2, direction * 10, 2);
+                // Divine glow
+                hammerG.fillStyle(0xffffff, 0.8);
+                hammerG.fillRect(x + direction * 10 - 5, y - 7, 10, 4);
+                this.createPixelParticles(x, y, 0xffffaa, 8, 1, 3);
+
+                this.tweens.add({
+                    targets: hammerG,
+                    angle: direction * 180,
+                    alpha: 0,
+                    duration: 140,
+                    onComplete: () => hammerG.destroy()
+                });
+                break;
+
+            case 'dual_brown':
+                // BANDIT - Dual daggers
+                const dualG = this.add.graphics();
+                dualG.setBlendMode('ADD');
+
+                // Two crossing blades
+                dualG.fillStyle(0x888888, 1);
+                dualG.fillRect(x + direction * 8 - 2, y - 8, 4, 16);
+                dualG.fillRect(x + direction * 12 - 2, y - 6, 4, 12);
+                dualG.fillStyle(0xff8800, 0.6);
+                dualG.fillRect(x + direction * 8 - 1, y - 6, 2, 12);
+                dualG.fillRect(x + direction * 12 - 1, y - 4, 2, 8);
+                this.createPixelParticles(x, y, 0x664422, 8, 1, 3);
+
+                this.tweens.add({
+                    targets: dualG,
+                    x: direction * 25,
+                    alpha: 0,
+                    duration: 120,
+                    onComplete: () => dualG.destroy()
+                });
+                break;
+
+            case 'element_rainbow':
+                // ELEMENTALIST - Cycling elements
+                const elemG = this.add.graphics();
+                elemG.setBlendMode('ADD');
+
+                const elemColors = [0xff4444, 0x4444ff, 0xffff44];
+                for (let e = 0; e < 3; e++) {
+                    const ex = x + direction * (e * 10);
+                    elemG.fillStyle(elemColors[e], 1);
+                    elemG.fillRect(ex - 4, y - 4, 8, 8);
+                    elemG.fillStyle(0xffffff, 0.7);
+                    elemG.fillRect(ex - 2, y - 2, 4, 4);
+                }
+                this.createPixelParticles(x, y, 0xff44ff, 12, 1.2, 4);
+
+                this.tweens.add({
+                    targets: elemG,
+                    x: direction * 35,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => elemG.destroy()
+                });
+                break;
+
+            case 'axe_red':
+                // WARLORD - Battle axe
+                const warlordAxeG = this.add.graphics();
+                warlordAxeG.setBlendMode('ADD');
+
+                // Axe blade
+                warlordAxeG.fillStyle(0x888888, 1);
+                warlordAxeG.fillRect(x + direction * 10 - 8, y - 8, 12, 8);
+                warlordAxeG.fillStyle(0xff0000, 0.7);
+                warlordAxeG.fillRect(x + direction * 10 - 6, y - 6, 8, 4);
+                // Handle
+                warlordAxeG.fillStyle(0x664422, 1);
+                warlordAxeG.fillRect(x, y - 1, direction * 10, 2);
+                this.createPixelParticles(x, y, 0xff0000, 10, 1.3, 4);
+
+                this.tweens.add({
+                    targets: warlordAxeG,
+                    angle: direction * 180,
+                    alpha: 0,
+                    duration: 140,
+                    onComplete: () => warlordAxeG.destroy()
+                });
+                break;
+
+            case 'cyber_gray':
+                // CYBORG - Laser beam
+                const cyberG = this.add.graphics();
+                cyberG.setBlendMode('ADD');
+
+                // Laser beam
+                for (let i = 0; i < 8; i++) {
+                    cyberG.fillStyle(i % 2 === 0 ? 0xff4444 : 0xffffff, 1);
+                    cyberG.fillRect(x + direction * (i * 6), y - 1, 6, 2);
+                }
+                cyberG.fillStyle(0xff0000, 1);
+                cyberG.fillRect(x - 2, y - 2, 4, 4);
+                this.createPixelParticles(x, y, 0xff0000, 8, 0.8, 2);
+
+                this.tweens.add({
+                    targets: cyberG,
+                    alpha: 0,
+                    duration: 100,
+                    onComplete: () => cyberG.destroy()
+                });
+                break;
+
+            case 'spirit_green':
+                // SHAMAN - Spirit energy
+                const spiritG = this.add.graphics();
+                spiritG.setBlendMode('ADD');
+
+                // Floating spirits
+                for (let s = 0; s < 3; s++) {
+                    const sx = x + direction * (s * 12);
+                    const sy = y + Math.sin(s * 1.5) * 8;
+                    spiritG.fillStyle(0xaaffaa, 0.8);
+                    spiritG.fillRect(sx - 4, sy - 4, 8, 8);
+                    spiritG.fillStyle(0x448866, 1);
+                    spiritG.fillRect(sx - 2, sy - 2, 4, 4);
+                }
+                this.createPixelParticles(x, y, 0xaaffaa, 10, 1, 3);
+
+                this.tweens.add({
+                    targets: spiritG,
+                    x: direction * 30,
+                    y: -15,
+                    alpha: 0,
+                    duration: 170,
+                    onComplete: () => spiritG.destroy()
+                });
+                break;
+
+            case 'spear_blue':
+                // VANGUARD - Spear thrust
+                const spearG = this.add.graphics();
+                spearG.setBlendMode('ADD');
+
+                // Spear shaft
+                spearG.fillStyle(0x664422, 1);
+                spearG.fillRect(x, y - 1, direction * 20, 2);
+                // Spearhead
+                spearG.fillStyle(0x888888, 1);
+                spearG.fillRect(x + direction * 18, y - 3, 6, 6);
+                spearG.fillStyle(0x4488ff, 0.8);
+                spearG.fillRect(x + direction * 19, y - 2, 4, 4);
+                this.createPixelParticles(x, y, 0x4488ff, 6, 0.8, 2);
+
+                this.tweens.add({
+                    targets: spearG,
+                    x: direction * 40,
+                    alpha: 0,
+                    duration: 120,
+                    onComplete: () => spearG.destroy()
+                });
+                break;
+
+            case 'curse_purple':
+                // WARLOCK - Dark curse
+                const curseG = this.add.graphics();
+                curseG.setBlendMode('ADD');
+
+                // Spiraling curse
+                for (let c = 0; c < 8; c++) {
+                    const angle = (c / 8) * Math.PI * 2;
+                    const radius = 10 + c * 2;
+                    curseG.fillStyle(0xff00ff, 0.9 - c * 0.1);
+                    curseG.fillRect(x + Math.cos(angle) * radius - 2, y + Math.sin(angle) * radius - 2, 4, 4);
+                }
+                curseG.fillStyle(0x440044, 1);
+                curseG.fillRect(x - 4, y - 4, 8, 8);
+                this.createPixelParticles(x, y, 0xff00ff, 10, 1, 3);
+
+                this.tweens.add({
+                    targets: curseG,
+                    angle: -180,
+                    alpha: 0,
+                    duration: 160,
+                    onComplete: () => curseG.destroy()
+                });
+                break;
+
+            case 'rapier_blue':
+                // DUELIST - Quick rapier thrust
+                const rapierG = this.add.graphics();
+                rapierG.setBlendMode('ADD');
+
+                // Thin rapier
+                rapierG.fillStyle(0xaaaaaa, 1);
+                rapierG.fillRect(x, y, direction * 24, 1);
+                rapierG.fillStyle(0xaaddff, 1);
+                rapierG.fillRect(x + direction * 22, y - 1, 2, 3);
+                // Speed lines
+                for (let i = 0; i < 4; i++) {
+                    rapierG.fillStyle(0xffffff, 0.6 - i * 0.1);
+                    rapierG.fillRect(x + direction * (i * 6), y - 1, 4, 1);
+                }
+                this.createPixelParticles(x, y, 0xaaddff, 6, 0.7, 2);
+
+                this.tweens.add({
+                    targets: rapierG,
+                    x: direction * 30,
+                    alpha: 0,
+                    duration: 100,
+                    onComplete: () => rapierG.destroy()
+                });
+                break;
+
+            case 'summon_purple':
+                // SUMMONER - Portal/summon effect
+                const summonG = this.add.graphics();
+                summonG.setBlendMode('ADD');
+
+                // Portal rings
+                for (let r = 0; r < 3; r++) {
+                    const radius = 8 + r * 6;
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i / 8) * Math.PI * 2 + r * 0.5;
+                        summonG.fillStyle(0xcc88ff, 0.9 - r * 0.2);
+                        summonG.fillRect(x + Math.cos(angle) * radius - 2, y + Math.sin(angle) * radius - 2, 4, 4);
+                    }
+                }
+                summonG.fillStyle(0x8844aa, 1);
+                summonG.fillRect(x - 4, y - 4, 8, 8);
+                this.createPixelParticles(x, y, 0xcc88ff, 12, 1, 4);
+
+                this.tweens.add({
+                    targets: summonG,
+                    scale: 1.6,
+                    angle: 180,
+                    alpha: 0,
+                    duration: 170,
+                    onComplete: () => summonG.destroy()
+                });
+                break;
+
+            case 'revolver_orange':
+                // GUNSLINGER - Bullet with muzzle flash
+                const revolverG = this.add.graphics();
+                revolverG.setBlendMode('ADD');
+
+                // Muzzle flash
+                revolverG.fillStyle(0xffffff, 1);
+                revolverG.fillRect(x - 4, y - 4, 8, 8);
+                revolverG.fillStyle(0xffaa44, 1);
+                revolverG.fillRect(x - 6, y - 2, 12, 4);
+                // Bullet trail
+                for (let i = 0; i < 6; i++) {
+                    revolverG.fillStyle(0xffaa44, 0.9 - i * 0.1);
+                    revolverG.fillRect(x + direction * (i * 6), y - 1, 4, 2);
+                }
+                this.createPixelParticles(x, y, 0xffaa44, 8, 1, 3);
+
+                this.tweens.add({
+                    targets: revolverG,
+                    alpha: 0,
+                    duration: 90,
+                    onComplete: () => revolverG.destroy()
+                });
+                break;
+
+            case 'disease_green':
+                // PLAGUE - Toxic cloud
+                const plagueG = this.add.graphics();
+                plagueG.setBlendMode('ADD');
+
+                // Expanding toxic cloud
+                for (let c = 0; c < 12; c++) {
+                    const angle = (c / 12) * Math.PI * 2;
+                    const radius = 8 + Math.random() * 8;
+                    plagueG.fillStyle(0x88ff44, 0.7);
+                    plagueG.fillRect(x + Math.cos(angle) * radius - 3, y + Math.sin(angle) * radius - 3, 6, 6);
+                }
+                plagueG.fillStyle(0x448844, 0.9);
+                plagueG.fillRect(x - 6, y - 6, 12, 12);
+                this.createPixelParticles(x, y, 0x88ff44, 10, 1, 4);
+
+                this.tweens.add({
+                    targets: plagueG,
+                    scale: 1.5,
+                    alpha: 0,
+                    duration: 160,
+                    onComplete: () => plagueG.destroy()
+                });
+                break;
+
+            case 'lance_purple':
+                // LANCER - Long lance
+                const lanceG = this.add.graphics();
+                lanceG.setBlendMode('ADD');
+
+                // Lance shaft (extra long)
+                lanceG.fillStyle(0x664422, 1);
+                lanceG.fillRect(x, y - 1, direction * 28, 2);
+                // Lance tip
+                lanceG.fillStyle(0x888888, 1);
+                lanceG.fillRect(x + direction * 26, y - 4, 6, 8);
+                lanceG.fillStyle(0x9999ff, 0.8);
+                lanceG.fillRect(x + direction * 27, y - 3, 4, 6);
+                this.createPixelParticles(x, y, 0x9999ff, 6, 0.8, 2);
+
+                this.tweens.add({
+                    targets: lanceG,
+                    x: direction * 45,
+                    alpha: 0,
+                    duration: 130,
+                    onComplete: () => lanceG.destroy()
+                });
+                break;
+
+            case 'construct_orange':
+                // ARTIFICER - Mechanical construct
+                const constructG = this.add.graphics();
+                constructG.setBlendMode('ADD');
+
+                // Blocky construct
+                constructG.fillStyle(0x888888, 1);
+                constructG.fillRect(x - 4, y - 6, 8, 12);
+                constructG.fillStyle(0xff8844, 1);
+                constructG.fillRect(x - 2, y - 4, 4, 2);
+                constructG.fillStyle(0x44ffff, 1);
+                constructG.fillRect(x - 3, y - 2, 2, 2);
+                constructG.fillRect(x + 1, y - 2, 2, 2);
+                this.createPixelParticles(x, y, 0xff8844, 8, 1, 3);
+
+                this.tweens.add({
+                    targets: constructG,
+                    x: direction * 25,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => constructG.destroy()
+                });
+                break;
+
+            case 'demolish_red':
+                // DESTROYER - Massive impact
+                const demolishG = this.add.graphics();
+                demolishG.setBlendMode('ADD');
+
+                // Huge explosion
+                demolishG.fillStyle(0xff0000, 1);
+                demolishG.fillRect(x - 12, y - 12, 24, 24);
+                demolishG.fillStyle(0xff6666, 1);
+                demolishG.fillRect(x - 10, y - 10, 20, 20);
+                demolishG.fillStyle(0xffffff, 1);
+                demolishG.fillRect(x - 6, y - 6, 12, 12);
+                this.createPixelParticles(x, y, 0xff0000, 20, 2, 6);
+
+                this.tweens.add({
+                    targets: demolishG,
+                    scale: 1.8,
+                    alpha: 0,
+                    duration: 180,
+                    onComplete: () => demolishG.destroy()
+                });
+                break;
+
+            case 'illusion_purple':
+                // ILLUSIONIST - Shimmering illusion
+                const illusionG = this.add.graphics();
+                illusionG.setBlendMode('ADD');
+
+                // Multiple overlapping images
+                for (let i = 0; i < 4; i++) {
+                    const offset = i * 6;
+                    illusionG.fillStyle(0xaa44ff, 0.6 - i * 0.1);
+                    illusionG.fillRect(x + direction * offset - 3, y - 6, 6, 12);
+                }
+                illusionG.fillStyle(0xffffaa, 0.8);
+                illusionG.fillRect(x - 4, y - 6, 8, 12);
+                this.createPixelParticles(x, y, 0xaa44ff, 12, 1.2, 4);
+
+                this.tweens.add({
+                    targets: illusionG,
+                    x: direction * 30,
+                    alpha: 0,
+                    duration: 140,
+                    onComplete: () => illusionG.destroy()
+                });
+                break;
+
+            case 'cleave_brown':
+                // BARBARIAN - Wide cleave
+                const cleaveG = this.add.graphics();
+                cleaveG.setBlendMode('ADD');
+
+                // Wide arc swing
+                for (let a = 0; a < 8; a++) {
+                    const angle = (a / 8) * Math.PI - Math.PI / 2;
+                    const radius = 22;
+                    cleaveG.fillStyle(0x888888, 1 - a * 0.1);
+                    cleaveG.fillRect(x + Math.cos(angle) * radius - 2, y + Math.sin(angle) * radius - 2, 4, 4);
+                }
+                cleaveG.fillStyle(0xff9944, 0.7);
+                for (let a = 0; a < 8; a++) {
+                    const angle = (a / 8) * Math.PI - Math.PI / 2;
+                    const radius = 20;
+                    cleaveG.fillRect(x + Math.cos(angle) * radius - 1, y + Math.sin(angle) * radius - 1, 2, 2);
+                }
+                this.createPixelParticles(x, y, 0xff9944, 12, 1.5, 5);
+
+                this.tweens.add({
+                    targets: cleaveG,
+                    angle: direction * 120,
+                    alpha: 0,
+                    duration: 150,
+                    onComplete: () => cleaveG.destroy()
+                });
+                break;
+
+            case 'zero_g_white':
+                // ASTRONAUT - Zero gravity effect
+                const zeroGG = this.add.graphics();
+                zeroGG.setBlendMode('ADD');
+
+                // Gravity waves
+                for (let w = 0; w < 4; w++) {
+                    const waveY = y - 12 + w * 8;
+                    zeroGG.fillStyle(0xffffff, 0.8 - w * 0.15);
+                    zeroGG.fillRect(x - 10, waveY, 20, 2);
+                    zeroGG.fillStyle(0x4444ff, 0.6 - w * 0.1);
+                    zeroGG.fillRect(x - 8, waveY + 2, 16, 2);
+                }
+                zeroGG.fillStyle(0xeeeeee, 1);
+                zeroGG.fillRect(x - 4, y - 4, 8, 8);
+                this.createPixelParticles(x, y, 0x4444ff, 10, 1, 3);
+
+                this.tweens.add({
+                    targets: zeroGG,
+                    y: -20,
+                    alpha: 0,
+                    duration: 160,
+                    onComplete: () => zeroGG.destroy()
+                });
+                break;
+
             default:
                 // PIXELATED DEFAULT SLASH - universal attack
                 this.createPixelSlash(x, y, direction, color, 35);
