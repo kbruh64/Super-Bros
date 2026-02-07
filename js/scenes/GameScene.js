@@ -6254,30 +6254,36 @@ class GameScene extends Phaser.Scene {
 
         // Stock lost but not game over - CINEMATIC KO ZOOM
         try {
-            // Dramatic slow motion
-            this.physics.world.timeScale = 0.2;
+            // Capture fighter position before any changes
+            const koX = fighter.x;
+            const koY = fighter.y;
 
-            // Cinematic zoom and pan to defeated fighter
-            this.cameras.main.pan(fighter.x, fighter.y, 400, 'Power2');
-            this.cameras.main.zoomTo(2.0, 400, 'Power2');
+            // Extreme slow motion
+            this.physics.world.timeScale = 0.15;
 
-            // Cyber glitch flash effect
-            this.cameras.main.flash(100, 255, 0, 0, true);
-            this.time.delayedCall(120, () => {
-                this.cameras.main.flash(80, 255, 0, 0, true);
-            });
+            // Slow, dramatic zoom and pan to defeated fighter
+            this.cameras.main.pan(koX, koY, 1000, 'Power2');
+            this.cameras.main.zoomTo(1.8, 1000, 'Power2');
+
+            // Cyber glitch flash effect (staggered)
             this.time.delayedCall(200, () => {
-                this.cameras.main.flash(60, 255, 0, 0, true);
+                this.cameras.main.flash(120, 255, 0, 0, true);
+            });
+            this.time.delayedCall(350, () => {
+                this.cameras.main.flash(100, 255, 0, 0, true);
+            });
+            this.time.delayedCall(500, () => {
+                this.cameras.main.flash(80, 255, 0, 0, true);
             });
 
             // Massive impact shockwaves
             for (let r = 0; r < 5; r++) {
-                this.time.delayedCall(r * 60, () => {
-                    const ring1 = this.add.circle(fighter.x, fighter.y, 15, 0x00ffff, 0);
+                this.time.delayedCall(r * 80, () => {
+                    const ring1 = this.add.circle(koX, koY, 15, 0x00ffff, 0);
                     ring1.setStrokeStyle(3, 0x00ffff, 0.9);
                     ring1.setDepth(998);
 
-                    const ring2 = this.add.circle(fighter.x, fighter.y, 15, 0xff0000, 0);
+                    const ring2 = this.add.circle(koX, koY, 15, 0xff0000, 0);
                     ring2.setStrokeStyle(2, 0xff0000, 0.7);
                     ring2.setDepth(998);
 
@@ -6285,7 +6291,7 @@ class GameScene extends Phaser.Scene {
                         targets: ring1,
                         radius: 120 + r * 25,
                         alpha: 0,
-                        duration: 500,
+                        duration: 600,
                         ease: 'Power2',
                         onComplete: () => ring1.destroy()
                     });
@@ -6294,7 +6300,7 @@ class GameScene extends Phaser.Scene {
                         targets: ring2,
                         radius: 130 + r * 25,
                         alpha: 0,
-                        duration: 550,
+                        duration: 650,
                         ease: 'Power2',
                         onComplete: () => ring2.destroy()
                     });
@@ -6303,35 +6309,35 @@ class GameScene extends Phaser.Scene {
 
             // Pixel disintegration effect
             for (let i = 0; i < 8; i++) {
-                this.time.delayedCall(i * 40, () => {
-                    this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 25, 2.5 + i * 0.2, 7);
-                    this.createPixelParticles(fighter.x, fighter.y, 0x00ffff, 20, 2.2 + i * 0.2, 6);
-                    this.createPixelParticles(fighter.x, fighter.y, 0xffffff, 15, 1.8 + i * 0.2, 5);
+                this.time.delayedCall(i * 50, () => {
+                    this.createPixelParticles(koX, koY, 0xff0000, 25, 2.5 + i * 0.2, 7);
+                    this.createPixelParticles(koX, koY, 0x00ffff, 20, 2.2 + i * 0.2, 6);
+                    this.createPixelParticles(koX, koY, 0xffffff, 15, 1.8 + i * 0.2, 5);
                 });
             }
 
             // Lightning strike effect
-            this.time.delayedCall(150, () => {
+            this.time.delayedCall(250, () => {
                 const lightning = this.add.graphics();
                 lightning.setDepth(999);
                 lightning.lineStyle(4, 0x00ffff, 0.9);
-                lightning.lineBetween(fighter.x, fighter.y - 200, fighter.x, fighter.y + 50);
+                lightning.lineBetween(koX, koY - 200, koX, koY + 50);
                 lightning.lineStyle(2, 0xffffff, 1);
-                lightning.lineBetween(fighter.x, fighter.y - 200, fighter.x, fighter.y + 50);
+                lightning.lineBetween(koX, koY - 200, koX, koY + 50);
 
                 this.tweens.add({
                     targets: lightning,
                     alpha: 0,
-                    duration: 300,
+                    duration: 400,
                     onComplete: () => lightning.destroy()
                 });
             });
 
-            // Reset camera and time after effect
-            this.time.delayedCall(600, () => {
+            // Reset camera and time after effect (longer duration)
+            this.time.delayedCall(1200, () => {
                 this.physics.world.timeScale = 1;
-                this.cameras.main.pan(GAME_WIDTH / 2, GAME_HEIGHT / 2, 300, 'Power2');
-                this.cameras.main.zoomTo(1.0, 300, 'Power2');
+                this.cameras.main.pan(GAME_WIDTH / 2, GAME_HEIGHT / 2, 500, 'Power2');
+                this.cameras.main.zoomTo(1.0, 500, 'Power2');
             });
         } catch (e) {}
 
