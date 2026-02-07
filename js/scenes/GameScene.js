@@ -6252,48 +6252,98 @@ class GameScene extends Phaser.Scene {
             return;
         }
 
-        // Stock lost but not game over - dramatic but shorter effect
+        // Stock lost but not game over - COOL KO ANIMATION
         try {
-            this.cameras.main.shake(400, 0.02);
-
-            // Flash effect
-            const flash = this.add.rectangle(
-                GAME_WIDTH / 2, GAME_HEIGHT / 2,
-                GAME_WIDTH, GAME_HEIGHT,
-                0xff4444, 0.5
-            );
-            flash.setDepth(1000);
-            flash.setScrollFactor(0);
-
-            this.tweens.add({
-                targets: flash,
-                alpha: 0,
-                duration: 150,
-                onComplete: () => flash.destroy()
+            // Slow motion effect (brief)
+            this.physics.world.timeScale = 0.3;
+            this.time.delayedCall(300, () => {
+                this.physics.world.timeScale = 1;
             });
 
-            // Explosion at fighter position
-            this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 30, 2, 6);
-            this.createPixelParticles(fighter.x, fighter.y, 0xffaa00, 20, 1.5, 5);
+            // Dramatic camera shake and zoom
+            this.cameras.main.shake(600, 0.025);
+            this.cameras.main.flash(200, 255, 50, 50);
 
-            // "STOCK LOST" text
-            const lossText = this.add.text(fighter.x, fighter.y - 80, 'STOCK LOST!', {
-                fontSize: '32px',
-                fontFamily: 'Courier New, monospace',
-                fontStyle: 'bold',
-                color: '#ff0000',
-                stroke: '#ffffff',
-                strokeThickness: 4
-            }).setOrigin(0.5);
-            lossText.setDepth(1000);
+            // Multi-layered explosion
+            for (let i = 0; i < 5; i++) {
+                this.time.delayedCall(i * 50, () => {
+                    this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 40, 2 + i * 0.3, 8);
+                    this.createPixelParticles(fighter.x, fighter.y, 0xffff00, 30, 1.8 + i * 0.3, 7);
+                    this.createPixelParticles(fighter.x, fighter.y, 0xffffff, 20, 1.5 + i * 0.3, 6);
+                });
+            }
 
-            this.tweens.add({
-                targets: lossText,
-                y: fighter.y - 120,
-                alpha: 0,
-                duration: 1000,
-                ease: 'Power2',
-                onComplete: () => lossText.destroy()
+            // Shockwave rings
+            for (let r = 0; r < 3; r++) {
+                this.time.delayedCall(r * 80, () => {
+                    const ring = this.add.circle(fighter.x, fighter.y, 20, 0xff0000, 0);
+                    ring.setStrokeStyle(4, 0xff0000, 0.8);
+                    ring.setDepth(999);
+
+                    this.tweens.add({
+                        targets: ring,
+                        radius: 150 + r * 30,
+                        alpha: 0,
+                        duration: 600,
+                        ease: 'Power2',
+                        onComplete: () => ring.destroy()
+                    });
+                });
+            }
+
+            // "K.O.!" text with style
+            this.time.delayedCall(100, () => {
+                const koContainer = this.add.container(fighter.x, fighter.y - 100);
+                koContainer.setDepth(1001);
+
+                // Background panel
+                const bg = this.add.graphics();
+                bg.fillStyle(0x000000, 0.9);
+                bg.fillRect(-120, -50, 240, 100);
+                bg.lineStyle(3, 0xff0000, 1);
+                bg.strokeRect(-120, -50, 240, 100);
+                bg.lineStyle(2, 0xffff00, 1);
+                bg.strokeRect(-123, -53, 246, 106);
+
+                const koText = this.add.text(0, 0, 'K.O.!', {
+                    fontSize: '72px',
+                    fontFamily: 'Courier New, monospace',
+                    fontStyle: 'bold',
+                    color: '#ff0000',
+                    stroke: '#ffffff',
+                    strokeThickness: 6
+                }).setOrigin(0.5);
+
+                koContainer.add([bg, koText]);
+                koContainer.setScale(0);
+
+                // Animate in
+                this.tweens.add({
+                    targets: koContainer,
+                    scale: 1,
+                    duration: 200,
+                    ease: 'Back.easeOut'
+                });
+
+                // Pulse
+                this.tweens.add({
+                    targets: koText,
+                    scale: 1.1,
+                    duration: 150,
+                    yoyo: true,
+                    repeat: 2
+                });
+
+                // Animate out
+                this.tweens.add({
+                    targets: koContainer,
+                    y: fighter.y - 150,
+                    alpha: 0,
+                    duration: 800,
+                    delay: 400,
+                    ease: 'Power2',
+                    onComplete: () => koContainer.destroy()
+                });
             });
         } catch (e) {}
 
@@ -6382,16 +6432,16 @@ class GameScene extends Phaser.Scene {
         const loser = winner === this.player1 ? this.player2 : this.player1;
 
         // Freeze frame effect - slow down time
-        this.physics.world.timeScale = 0.2;
+        this.physics.world.timeScale = 0.15;
 
         // Dramatic camera shake
-        this.cameras.main.shake(500, 0.03);
+        this.cameras.main.shake(600, 0.035);
 
-        // Flash effect
+        // Golden flash effect for victory
         const flash = this.add.rectangle(
             GAME_WIDTH / 2, GAME_HEIGHT / 2,
             GAME_WIDTH, GAME_HEIGHT,
-            0xffffff, 0.8
+            0xffd700, 0.7
         );
         flash.setDepth(1000);
         flash.setScrollFactor(0);
@@ -6399,19 +6449,29 @@ class GameScene extends Phaser.Scene {
         this.tweens.add({
             targets: flash,
             alpha: 0,
-            duration: 200,
+            duration: 300,
             onComplete: () => flash.destroy()
         });
 
-        // Zoom to loser
-        this.cameras.main.pan(loser.x, loser.y, 300, 'Power2');
-        this.cameras.main.zoomTo(1.5, 300, 'Power2');
+        // Zoom to winner (for victory pose)
+        this.cameras.main.pan(winner.x, winner.y, 400, 'Power2');
+        this.cameras.main.zoomTo(1.4, 400, 'Power2');
 
-        // Explosion particles at loser position
+        // Massive explosion particles at loser position
         this.time.delayedCall(100, () => {
-            this.createPixelParticles(loser.x, loser.y, 0xff0000, 50, 3, 8);
-            this.createPixelParticles(loser.x, loser.y, 0xffff00, 40, 2.5, 7);
-            this.createPixelParticles(loser.x, loser.y, 0xffffff, 30, 2, 6);
+            this.createPixelParticles(loser.x, loser.y, 0xff0000, 60, 3.5, 10);
+            this.createPixelParticles(loser.x, loser.y, 0xffff00, 50, 3, 9);
+            this.createPixelParticles(loser.x, loser.y, 0xffffff, 40, 2.5, 8);
+        });
+
+        // Victory sparkles around winner
+        this.time.delayedCall(200, () => {
+            for (let i = 0; i < 5; i++) {
+                this.time.delayedCall(i * 100, () => {
+                    this.createPixelParticles(winner.x, winner.y - 50, 0xffd700, 30, 2, 6);
+                    this.createPixelParticles(winner.x, winner.y - 50, 0xffffff, 20, 1.5, 5);
+                });
+            }
         });
 
         // Pause physics after slow-mo effect
@@ -6419,60 +6479,99 @@ class GameScene extends Phaser.Scene {
             this.physics.pause();
         });
 
-        // Display "K.O.!" text
+        // Display "VICTORY!" text
         this.time.delayedCall(500, () => {
-            // Create KO text with cyber/minecraft styling
-            const koContainer = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
-            koContainer.setDepth(1001);
-            koContainer.setScrollFactor(0);
+            // Golden victory confetti burst
+            for (let i = 0; i < 80; i++) {
+                this.time.delayedCall(Math.random() * 300, () => {
+                    const colors = [0xffff00, 0xffd700, 0xffa500, 0xffffff];
+                    const color = Phaser.Utils.Array.GetRandom(colors);
+                    const x = GAME_WIDTH / 2 + (Math.random() - 0.5) * 200;
+                    const y = GAME_HEIGHT / 2;
+                    this.createPixelParticles(x, y, color, 3, 3, 10, 300);
+                });
+            }
 
-            // Background panel
+            // Create VICTORY text with epic cyber/minecraft styling
+            const victoryContainer = this.add.container(GAME_WIDTH / 2, GAME_HEIGHT / 2);
+            victoryContainer.setDepth(1001);
+            victoryContainer.setScrollFactor(0);
+
+            // Background panel with triple border
             const bg = this.add.graphics();
-            bg.fillStyle(0x000000, 0.8);
-            bg.fillRect(-200, -80, 400, 160);
+            bg.fillStyle(0x000000, 0.9);
+            bg.fillRect(-280, -100, 560, 200);
 
-            // Neon borders
-            bg.lineStyle(4, 0xff0000, 1);
-            bg.strokeRect(-200, -80, 400, 160);
-            bg.lineStyle(2, 0xffff00, 1);
-            bg.strokeRect(-204, -84, 408, 168);
+            // Triple neon borders - gold/cyan/white
+            bg.lineStyle(5, 0xffd700, 1);
+            bg.strokeRect(-280, -100, 560, 200);
+            bg.lineStyle(3, 0x00ffff, 1);
+            bg.strokeRect(-285, -105, 570, 210);
+            bg.lineStyle(2, 0xffffff, 1);
+            bg.strokeRect(-290, -110, 580, 220);
 
-            // K.O. text
-            const koText = this.add.text(0, 0, 'K.O.!', {
-                fontSize: '120px',
+            // Inner glow effect
+            bg.fillStyle(0xffd700, 0.2);
+            bg.fillRect(-275, -95, 550, 190);
+
+            // VICTORY text - golden and epic
+            const victoryText = this.add.text(0, 0, 'VICTORY!', {
+                fontSize: '100px',
                 fontFamily: 'Courier New, monospace',
                 fontStyle: 'bold',
-                color: '#ff0000',
+                color: '#ffd700',
                 stroke: '#ffffff',
-                strokeThickness: 8
+                strokeThickness: 10
             }).setOrigin(0.5);
 
-            koContainer.add([bg, koText]);
+            // Add secondary shadow/glow layer
+            const shadowText = this.add.text(2, 2, 'VICTORY!', {
+                fontSize: '100px',
+                fontFamily: 'Courier New, monospace',
+                fontStyle: 'bold',
+                color: '#ff8800',
+                stroke: '#000000',
+                strokeThickness: 12
+            }).setOrigin(0.5);
 
-            // Animate KO text
-            koContainer.setScale(0);
-            koContainer.setAlpha(0);
+            victoryContainer.add([bg, shadowText, victoryText]);
+
+            // Animate VICTORY text - epic entrance
+            victoryContainer.setScale(0);
+            victoryContainer.setAlpha(0);
 
             this.tweens.add({
-                targets: koContainer,
-                scale: 1.2,
+                targets: victoryContainer,
+                scale: 1.3,
                 alpha: 1,
-                duration: 300,
-                ease: 'Back.easeOut'
+                duration: 400,
+                ease: 'Elastic.easeOut'
             });
 
-            // Pulse animation
+            // Rainbow pulse animation
+            let hue = 0;
+            this.time.addEvent({
+                delay: 50,
+                callback: () => {
+                    hue = (hue + 10) % 360;
+                    const color = Phaser.Display.Color.HSVToRGB(hue / 360, 0.8, 1);
+                    victoryText.setTint(color.color);
+                },
+                repeat: -1
+            });
+
+            // Continuous dramatic pulse
             this.tweens.add({
-                targets: koText,
-                scale: 1.1,
-                duration: 200,
+                targets: [victoryText, shadowText],
+                scale: 1.15,
+                duration: 250,
                 yoyo: true,
                 repeat: -1,
                 ease: 'Sine.easeInOut'
             });
 
-            // Screen shake with KO
-            this.cameras.main.shake(800, 0.02);
+            // Victory screen shake
+            this.cameras.main.shake(1000, 0.015);
 
             // Transition to victory scene
             this.time.delayedCall(2500, () => {
