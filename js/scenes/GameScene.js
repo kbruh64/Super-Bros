@@ -1096,6 +1096,7 @@ class GameScene extends Phaser.Scene {
             // Check fighter has characterData (is actually a fighter)
             if (!fighter.characterData) return;
 
+            console.log('PROJECTILE HIT!', projectile.attackDamage, fighter.characterData.name);
             projectile.hasHit = true;
 
             try {
@@ -5008,15 +5009,17 @@ class GameScene extends Phaser.Scene {
                     0xff6600
                 );
                 this.physics.add.existing(meteor);
-                meteor.setBlendMode('ADD');
+
                 meteor.isProjectile = true;
                 meteor.hasHit = false;
                 meteor.owner = fighter;
                 meteor.attackDamage = attack.damage;
                 meteor.attackKnockback = attack.knockback;
+                meteor.setBlendMode('ADD');
+
                 fighter.projectiles.add(meteor);
-                meteor.body.setVelocityY(400);
                 meteor.body.setAllowGravity(false);
+                meteor.body.setVelocityY(400);
 
                 this.time.delayedCall(2000, () => {
                     if (meteor && meteor.active) meteor.destroy();
@@ -5038,12 +5041,14 @@ class GameScene extends Phaser.Scene {
                     0x88ff44
                 );
                 this.physics.add.existing(arrow);
-                arrow.setBlendMode('ADD');
+
                 arrow.isProjectile = true;
                 arrow.hasHit = false;
                 arrow.owner = fighter;
                 arrow.attackDamage = attack.damage / 3;
                 arrow.attackKnockback = attack.knockback / 3;
+                arrow.setBlendMode('ADD');
+
                 fighter.projectiles.add(arrow);
                 arrow.body.setAllowGravity(false);
 
@@ -5070,13 +5075,15 @@ class GameScene extends Phaser.Scene {
             0x440088
         );
         this.physics.add.existing(ghost);
-        ghost.setBlendMode('ADD');
-        ghost.setAlpha(0.7);
+
         ghost.isProjectile = true;
         ghost.hasHit = false;
         ghost.owner = fighter;
         ghost.attackDamage = attack.damage;
         ghost.attackKnockback = attack.knockback;
+        ghost.setBlendMode('ADD');
+        ghost.setAlpha(0.7);
+
         fighter.projectiles.add(ghost);
         ghost.body.setAllowGravity(false);
 
@@ -5142,12 +5149,14 @@ class GameScene extends Phaser.Scene {
             0xffffaa
         );
         this.physics.add.existing(palm);
-        palm.setBlendMode('ADD');
+
         palm.isProjectile = true;
         palm.hasHit = false;
         palm.owner = fighter;
         palm.attackDamage = attack.damage;
         palm.attackKnockback = attack.knockback;
+        palm.setBlendMode('ADD');
+
         fighter.projectiles.add(palm);
         palm.body.setAllowGravity(false);
         palm.body.setVelocityX(direction * 400);
@@ -5178,12 +5187,14 @@ class GameScene extends Phaser.Scene {
                     color
                 );
                 this.physics.add.existing(flame);
-                flame.setBlendMode('ADD');
+
                 flame.isProjectile = true;
                 flame.hasHit = false;
                 flame.owner = fighter;
                 flame.attackDamage = attack.damage / 5;
                 flame.attackKnockback = attack.knockback / 5;
+                flame.setBlendMode('ADD');
+
                 fighter.projectiles.add(flame);
                 flame.body.setAllowGravity(false);
                 flame.body.setVelocityX(direction * 400);
@@ -5212,16 +5223,18 @@ class GameScene extends Phaser.Scene {
             0x44ff88
         );
         this.physics.add.existing(potion);
-        potion.setBlendMode('ADD');
+
         potion.isProjectile = true;
         potion.hasHit = false;
         potion.owner = fighter;
         potion.attackDamage = attack.damage;
         potion.attackKnockback = attack.knockback;
+        potion.setBlendMode('ADD');
+
         fighter.projectiles.add(potion);
-        potion.body.setVelocity(direction * 350, -200);
         potion.body.setAllowGravity(true);
         potion.body.setGravityY(600);
+        potion.body.setVelocity(direction * 350, -200);
 
         this.time.delayedCall(1200, () => {
             if (potion && potion.active) {
@@ -5673,12 +5686,14 @@ class GameScene extends Phaser.Scene {
                     0xffaa44
                 );
                 this.physics.add.existing(bullet);
-                bullet.setBlendMode('ADD');
+
                 bullet.isProjectile = true;
                 bullet.hasHit = false;
                 bullet.owner = fighter;
                 bullet.attackDamage = attack.damage / 6;
                 bullet.attackKnockback = attack.knockback / 6;
+                bullet.setBlendMode('ADD');
+
                 fighter.projectiles.add(bullet);
                 bullet.body.setAllowGravity(false);
                 bullet.body.setVelocityX(direction * 600);
