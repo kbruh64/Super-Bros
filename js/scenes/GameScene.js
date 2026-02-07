@@ -6537,15 +6537,14 @@ class GameScene extends Phaser.Scene {
         this.time.delayedCall(2200, () => {
             this.cameras.main.fadeOut(600, 0, 0, 0);
 
-                this.cameras.main.once('camerafadeoutcomplete', () => {
-                    this.scene.start('VictoryScene', {
-                        winner: winner,
-                        mode: this.gameMode,
-                        player1: this.player1Data,
-                        player2: this.player2Data,
-                        arena: this.currentArena,
-                        aiDifficulty: this.aiDifficulty
-                    });
+            this.cameras.main.once('camerafadeoutcomplete', () => {
+                this.scene.start('VictoryScene', {
+                    winner: winner,
+                    mode: this.gameMode,
+                    player1: this.player1Data,
+                    player2: this.player2Data,
+                    arena: this.currentArena,
+                    aiDifficulty: this.aiDifficulty
                 });
             });
         });
