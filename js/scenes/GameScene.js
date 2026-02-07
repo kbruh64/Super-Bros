@@ -1096,7 +1096,6 @@ class GameScene extends Phaser.Scene {
             // Check fighter has characterData (is actually a fighter)
             if (!fighter.characterData) return;
 
-            console.log('PROJECTILE HIT!', projectile.attackDamage, fighter.characterData.name);
             projectile.hasHit = true;
 
             try {
@@ -1447,6 +1446,15 @@ class GameScene extends Phaser.Scene {
         if (this.checkHitbox(hitbox, opponent) && !opponent.isInvincible) {
             this.applyDamage(opponent, attack.damage, attack.knockback, direction);
         }
+    }
+
+    // Check if two fighters overlap
+    checkOverlap(fighter1, fighter2) {
+        if (!fighter1 || !fighter2 || !fighter1.body || !fighter2.body) return false;
+        return Phaser.Geom.Rectangle.Overlaps(
+            fighter1.body.getBounds(),
+            fighter2.body.getBounds()
+        );
     }
 
     // Create pixelated particles
@@ -4985,13 +4993,31 @@ class GameScene extends Phaser.Scene {
 
     // BACKSTAB - Assassin quick dash attack
     createBackstabAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
         // Quick dash forward
         fighter.body.setVelocityX(direction * 600);
         this.createPixelParticles(fighter.x, fighter.y, 0x222222, 15, 1.5, 5);
 
+        // Check for collision during dash
+        const checkCollision = () => {
+            if (fighter.isAttacking && this.checkOverlap(fighter, opponent)) {
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                fighter.isAttacking = false; // Only hit once
+            }
+        };
+
+        // Check every frame during dash
+        const collisionCheck = this.time.addEvent({
+            delay: 16,
+            callback: checkCollision,
+            repeat: 12
+        });
+
         this.time.delayedCall(200, () => {
             fighter.body.setVelocityX(0);
             this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 15, 1.5, 5);
+            collisionCheck.remove();
         });
     }
 
@@ -5098,14 +5124,32 @@ class GameScene extends Phaser.Scene {
 
     // CHARGE - Juggernaut charges forward
     createChargeAttack(fighter, attack, direction) {
+        const opponent = fighter === this.player1 ? this.player2 : this.player1;
         const startX = fighter.x;
         const chargeDistance = attack.range;
 
         // Charge forward with super armor
         fighter.body.setVelocityX(direction * 600);
 
+        // Check for collision during charge
+        let hasHit = false;
+        const checkCollision = () => {
+            if (!hasHit && fighter.isAttacking && this.checkOverlap(fighter, opponent)) {
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                hasHit = true;
+            }
+        };
+
+        // Check every frame during charge
+        const collisionCheck = this.time.addEvent({
+            delay: 16,
+            callback: checkCollision,
+            repeat: 15
+        });
+
         this.time.delayedCall(250, () => {
             fighter.body.setVelocityX(0);
+            collisionCheck.remove();
         });
 
         // Trail effect
