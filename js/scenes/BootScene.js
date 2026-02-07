@@ -11,22 +11,35 @@ class BootScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
-        // Set camera background color explicitly
-        this.cameras.main.setBackgroundColor('#1a1a2e');
+        // Set camera background color explicitly - BRIGHTER
+        this.cameras.main.setBackgroundColor('#2a2a4e');
 
         // Fill background first to prevent any rendering artifacts
         const bg = this.add.graphics();
-        bg.fillStyle(0x1a1a2e, 1);
+        bg.fillStyle(0x2a2a4e, 1);
         bg.fillRect(0, 0, width, height);
 
         const progressBox = this.add.graphics();
-        progressBox.fillStyle(0x222222, 0.8);
+        progressBox.fillStyle(0x00ffff, 0.3);
         progressBox.fillRoundedRect(width / 2 - 160, height / 2 - 25, 320, 50, 10);
+        progressBox.lineStyle(3, 0x00ffff, 1);
+        progressBox.strokeRoundedRect(width / 2 - 160, height / 2 - 25, 320, 50, 10);
 
         this.loadingText = this.add.text(width / 2, height / 2 - 50, 'Loading...', {
-            font: '24px Arial',
-            fill: '#ffffff'
+            font: 'bold 28px Arial',
+            fill: '#00ffff'
         }).setOrigin(0.5);
+        this.loadingText.setStroke('#ff00ff', 4);
+
+        // Add pulsing animation to loading text
+        this.tweens.add({
+            targets: this.loadingText,
+            alpha: 0.6,
+            scale: 1.1,
+            duration: 1000,
+            yoyo: true,
+            repeat: -1
+        });
 
         // Hide HTML loading text
         const loadingEl = document.getElementById('loading');

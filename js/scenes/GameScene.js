@@ -913,35 +913,43 @@ class GameScene extends Phaser.Scene {
     }
 
     drawMinecraftHUDPanel(graphics, x, y, width, height) {
-        // Cyber-Minecraft style panel
-        const bgColor = 0x0a0a15;
+        // BRIGHTER Cyber-Minecraft style panel
+        const bgColor = 0x2a2a4e;  // Much brighter!
         const borderColor = 0x00ffff;
 
-        // Outer glow
-        graphics.fillStyle(borderColor, 0.15);
+        // Outer BRIGHT glow - multiple layers
+        graphics.fillStyle(borderColor, 0.3);
+        graphics.fillRect(x - 4, y - 4, width + 8, height + 8);
+        graphics.fillStyle(borderColor, 0.2);
+        graphics.fillRect(x - 3, y - 3, width + 6, height + 6);
+        graphics.fillStyle(borderColor, 0.1);
         graphics.fillRect(x - 2, y - 2, width + 4, height + 4);
 
-        // Dark background
-        graphics.fillStyle(0x000000, 0.9);
+        // Brighter background
+        graphics.fillStyle(0x1a1a3e, 0.9);
         graphics.fillRect(x, y, width, height);
 
-        // Inner area
-        graphics.fillStyle(bgColor, 0.9);
+        // BRIGHT inner area
+        graphics.fillStyle(bgColor, 0.95);
         graphics.fillRect(x + 2, y + 2, width - 4, height - 4);
 
-        // Neon border
-        graphics.fillStyle(borderColor, 0.8);
-        graphics.fillRect(x + 2, y + 2, width - 4, 2);
-        graphics.fillRect(x + 2, y + height - 4, width - 4, 2);
-        graphics.fillRect(x + 2, y + 2, 2, height - 4);
-        graphics.fillRect(x + width - 4, y + 2, 2, height - 4);
+        // BRIGHT neon border
+        graphics.fillStyle(borderColor, 1);
+        graphics.fillRect(x + 2, y + 2, width - 4, 3);  // Thicker
+        graphics.fillRect(x + 2, y + height - 5, width - 4, 3);
+        graphics.fillRect(x + 2, y + 2, 3, height - 4);
+        graphics.fillRect(x + width - 5, y + 2, 3, height - 4);
 
-        // Corner accents
+        // BRIGHT corner accents
         graphics.fillStyle(0xff00ff, 1);
-        graphics.fillRect(x, y, 4, 4);
-        graphics.fillRect(x + width - 4, y, 4, 4);
-        graphics.fillRect(x, y + height - 4, 4, 4);
-        graphics.fillRect(x + width - 4, y + height - 4, 4, 4);
+        graphics.fillRect(x, y, 6, 6);  // Bigger
+        graphics.fillRect(x + width - 6, y, 6, 6);
+        graphics.fillRect(x, y + height - 6, 6, 6);
+        graphics.fillRect(x + width - 6, y + height - 6, 6, 6);
+
+        // Add inner glow
+        graphics.fillStyle(0xffffff, 0.1);
+        graphics.fillRect(x + 4, y + 4, width - 8, height - 8);
     }
 
     drawPixelHeart(graphics, x, y, color) {
