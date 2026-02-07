@@ -6252,98 +6252,86 @@ class GameScene extends Phaser.Scene {
             return;
         }
 
-        // Stock lost but not game over - COOL KO ANIMATION
+        // Stock lost but not game over - CINEMATIC KO ZOOM
         try {
-            // Slow motion effect (brief)
-            this.physics.world.timeScale = 0.3;
-            this.time.delayedCall(300, () => {
-                this.physics.world.timeScale = 1;
+            // Dramatic slow motion
+            this.physics.world.timeScale = 0.2;
+
+            // Cinematic zoom and pan to defeated fighter
+            this.cameras.main.pan(fighter.x, fighter.y, 400, 'Power2');
+            this.cameras.main.zoomTo(2.0, 400, 'Power2');
+
+            // Cyber glitch flash effect
+            this.cameras.main.flash(100, 255, 0, 0, true);
+            this.time.delayedCall(120, () => {
+                this.cameras.main.flash(80, 255, 0, 0, true);
+            });
+            this.time.delayedCall(200, () => {
+                this.cameras.main.flash(60, 255, 0, 0, true);
             });
 
-            // Dramatic camera shake and zoom
-            this.cameras.main.shake(600, 0.025);
-            this.cameras.main.flash(200, 255, 50, 50);
+            // Massive impact shockwaves
+            for (let r = 0; r < 5; r++) {
+                this.time.delayedCall(r * 60, () => {
+                    const ring1 = this.add.circle(fighter.x, fighter.y, 15, 0x00ffff, 0);
+                    ring1.setStrokeStyle(3, 0x00ffff, 0.9);
+                    ring1.setDepth(998);
 
-            // Multi-layered explosion
-            for (let i = 0; i < 5; i++) {
-                this.time.delayedCall(i * 50, () => {
-                    this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 40, 2 + i * 0.3, 8);
-                    this.createPixelParticles(fighter.x, fighter.y, 0xffff00, 30, 1.8 + i * 0.3, 7);
-                    this.createPixelParticles(fighter.x, fighter.y, 0xffffff, 20, 1.5 + i * 0.3, 6);
-                });
-            }
-
-            // Shockwave rings
-            for (let r = 0; r < 3; r++) {
-                this.time.delayedCall(r * 80, () => {
-                    const ring = this.add.circle(fighter.x, fighter.y, 20, 0xff0000, 0);
-                    ring.setStrokeStyle(4, 0xff0000, 0.8);
-                    ring.setDepth(999);
+                    const ring2 = this.add.circle(fighter.x, fighter.y, 15, 0xff0000, 0);
+                    ring2.setStrokeStyle(2, 0xff0000, 0.7);
+                    ring2.setDepth(998);
 
                     this.tweens.add({
-                        targets: ring,
-                        radius: 150 + r * 30,
+                        targets: ring1,
+                        radius: 120 + r * 25,
                         alpha: 0,
-                        duration: 600,
+                        duration: 500,
                         ease: 'Power2',
-                        onComplete: () => ring.destroy()
+                        onComplete: () => ring1.destroy()
+                    });
+
+                    this.tweens.add({
+                        targets: ring2,
+                        radius: 130 + r * 25,
+                        alpha: 0,
+                        duration: 550,
+                        ease: 'Power2',
+                        onComplete: () => ring2.destroy()
                     });
                 });
             }
 
-            // "K.O.!" text with style
-            this.time.delayedCall(100, () => {
-                const koContainer = this.add.container(fighter.x, fighter.y - 100);
-                koContainer.setDepth(1001);
-
-                // Background panel
-                const bg = this.add.graphics();
-                bg.fillStyle(0x000000, 0.9);
-                bg.fillRect(-120, -50, 240, 100);
-                bg.lineStyle(3, 0xff0000, 1);
-                bg.strokeRect(-120, -50, 240, 100);
-                bg.lineStyle(2, 0xffff00, 1);
-                bg.strokeRect(-123, -53, 246, 106);
-
-                const koText = this.add.text(0, 0, 'K.O.!', {
-                    fontSize: '72px',
-                    fontFamily: 'Courier New, monospace',
-                    fontStyle: 'bold',
-                    color: '#ff0000',
-                    stroke: '#ffffff',
-                    strokeThickness: 6
-                }).setOrigin(0.5);
-
-                koContainer.add([bg, koText]);
-                koContainer.setScale(0);
-
-                // Animate in
-                this.tweens.add({
-                    targets: koContainer,
-                    scale: 1,
-                    duration: 200,
-                    ease: 'Back.easeOut'
+            // Pixel disintegration effect
+            for (let i = 0; i < 8; i++) {
+                this.time.delayedCall(i * 40, () => {
+                    this.createPixelParticles(fighter.x, fighter.y, 0xff0000, 25, 2.5 + i * 0.2, 7);
+                    this.createPixelParticles(fighter.x, fighter.y, 0x00ffff, 20, 2.2 + i * 0.2, 6);
+                    this.createPixelParticles(fighter.x, fighter.y, 0xffffff, 15, 1.8 + i * 0.2, 5);
                 });
+            }
 
-                // Pulse
-                this.tweens.add({
-                    targets: koText,
-                    scale: 1.1,
-                    duration: 150,
-                    yoyo: true,
-                    repeat: 2
-                });
+            // Lightning strike effect
+            this.time.delayedCall(150, () => {
+                const lightning = this.add.graphics();
+                lightning.setDepth(999);
+                lightning.lineStyle(4, 0x00ffff, 0.9);
+                lightning.lineBetween(fighter.x, fighter.y - 200, fighter.x, fighter.y + 50);
+                lightning.lineStyle(2, 0xffffff, 1);
+                lightning.lineBetween(fighter.x, fighter.y - 200, fighter.x, fighter.y + 50);
 
-                // Animate out
                 this.tweens.add({
-                    targets: koContainer,
-                    y: fighter.y - 150,
+                    targets: lightning,
                     alpha: 0,
-                    duration: 800,
-                    delay: 400,
-                    ease: 'Power2',
-                    onComplete: () => koContainer.destroy()
+                    duration: 300,
+                    onComplete: () => lightning.destroy()
                 });
+            });
+
+            // Reset camera and time after effect
+            this.time.delayedCall(600, () => {
+                this.physics.world.timeScale = 1;
+                this.cameras.main.pan(GAME_WIDTH / 2, GAME_HEIGHT / 2, 300, 'Power2');
+                this.cameras.main.zoomTo(1.0, 300, 'Power2');
             });
         } catch (e) {}
 
