@@ -5179,7 +5179,7 @@ class GameScene extends Phaser.Scene {
             this.createPixelParticles(opponent.x, opponent.y, 0xff00ff, 15, 1.5, 5);
         } else {
             // Random damage burst
-            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+            this.applyDamage(opponent, attack.damage, attack.knockback, direction);
             this.createPixelParticles(opponent.x, opponent.y, 0xffff00, 20, 2, 6);
         }
     }
@@ -5339,7 +5339,7 @@ class GameScene extends Phaser.Scene {
         const opponent = fighter === this.player1 ? this.player2 : this.player1;
         const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
         if (dist < attack.range) {
-            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+            this.applyDamage(opponent, attack.damage, attack.knockback, direction);
             // Heal fighter
             fighter.health = Math.min(fighter.maxHealth, fighter.health + 10);
         }
@@ -5385,7 +5385,7 @@ class GameScene extends Phaser.Scene {
             bubble.destroy();
         });
 
-        this.applyDamage(opponent, fighter, attack.damage, attack.knockback, 0);
+        this.applyDamage(opponent, attack.damage, attack.knockback, 0);
     }
 
     // SMITE - Crusader divine hammer
@@ -5415,7 +5415,7 @@ class GameScene extends Phaser.Scene {
             onComplete: () => {
                 const dist = Phaser.Math.Distance.Between(hammer.x, hammer.y, opponent.x, opponent.y);
                 if (dist < 50) {
-                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, 0);
+                    this.applyDamage(opponent, attack.damage, attack.knockback, 0);
                 }
                 this.createPixelParticles(hammer.x, hammer.y, 0xffffaa, 20, 2, 6);
                 hammer.destroy();
@@ -5449,7 +5449,7 @@ class GameScene extends Phaser.Scene {
                 const dist = Phaser.Math.Distance.Between(steal.x, steal.y, opponent.x, opponent.y);
                 if (dist < 30 && !steal.hasHit) {
                     steal.hasHit = true;
-                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+                    this.applyDamage(opponent, attack.damage, attack.knockback, direction);
                     // Temp speed boost for fighter
                     const origSpeed = fighter.characterData.speed;
                     fighter.characterData.speed *= 1.5;
@@ -5493,7 +5493,7 @@ class GameScene extends Phaser.Scene {
                         const dist = Phaser.Math.Distance.Between(ball.x, ball.y, opponent.x, opponent.y);
                         if (dist < 30 && !ball.hasHit) {
                             ball.hasHit = true;
-                            this.applyDamage(opponent, fighter, attack.damage / 3, attack.knockback / 3, direction);
+                            this.applyDamage(opponent, attack.damage / 3, attack.knockback / 3, direction);
                         }
                     },
                     onComplete: () => ball.destroy()
@@ -5518,7 +5518,7 @@ class GameScene extends Phaser.Scene {
         const opponent = fighter === this.player1 ? this.player2 : this.player1;
         const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
         if (dist < attack.range) {
-            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+            this.applyDamage(opponent, attack.damage, attack.knockback, direction);
         }
 
         // Temp attack boost
@@ -5557,7 +5557,7 @@ class GameScene extends Phaser.Scene {
                         const dist = Phaser.Math.Distance.Between(lx, laser.y, opponent.x, opponent.y);
                         if (dist < 40 && !laser.hasHit) {
                             laser.hasHit = true;
-                            this.applyDamage(opponent, fighter, attack.damage / 5, attack.knockback / 5, direction);
+                            this.applyDamage(opponent, attack.damage / 5, attack.knockback / 5, direction);
                         }
                     },
                     onComplete: () => laser.destroy()
@@ -5589,7 +5589,7 @@ class GameScene extends Phaser.Scene {
                 const opponent = fighter === this.player1 ? this.player2 : this.player1;
                 const dist = Phaser.Math.Distance.Between(totem.x, totem.y, opponent.x, opponent.y);
                 if (dist < 100) {
-                    this.applyDamage(opponent, fighter, attack.damage / 5, 0.2, 0);
+                    this.applyDamage(opponent, attack.damage / 5, 0.2, 0);
                 }
             });
         }
@@ -5651,7 +5651,7 @@ class GameScene extends Phaser.Scene {
                 const dist = Phaser.Math.Distance.Between(curse.x, curse.y, opponent.x, opponent.y);
                 if (dist < 30 && !curse.hasHit) {
                     curse.hasHit = true;
-                    this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+                    this.applyDamage(opponent, attack.damage, attack.knockback, direction);
                     // Weaken opponent temporarily
                 }
             },
@@ -5679,7 +5679,7 @@ class GameScene extends Phaser.Scene {
             const opponent = fighter === this.player1 ? this.player2 : this.player1;
             const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
             if (dist < attack.range) {
-                this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
             }
         });
     }
@@ -5708,7 +5708,7 @@ class GameScene extends Phaser.Scene {
             this.time.delayedCall(i * 400, () => {
                 const dist = Phaser.Math.Distance.Between(demon.x, demon.y, opponent.x, opponent.y);
                 if (dist < 100) {
-                    this.applyDamage(opponent, fighter, attack.damage / 3, attack.knockback / 3, direction);
+                    this.applyDamage(opponent, attack.damage / 3, attack.knockback / 3, direction);
                     this.createPixelParticles(opponent.x, opponent.y, 0xcc88ff, 10, 1, 3);
                 }
             });
@@ -5775,7 +5775,7 @@ class GameScene extends Phaser.Scene {
             this.time.delayedCall(i * 300, () => {
                 const dist = Phaser.Math.Distance.Between(cloud.x, cloud.y, opponent.x, opponent.y);
                 if (dist < 60) {
-                    this.applyDamage(opponent, fighter, attack.damage / 5, 0, 0);
+                    this.applyDamage(opponent, attack.damage / 5, 0, 0);
                 }
             });
         }
@@ -5832,7 +5832,7 @@ class GameScene extends Phaser.Scene {
 
             const dist = Phaser.Math.Distance.Between(construct.x, construct.y, opponent.x, opponent.y);
             if (dist < 200) {
-                this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
             }
 
             this.time.delayedCall(200, () => laser.destroy());
@@ -5867,7 +5867,7 @@ class GameScene extends Phaser.Scene {
         const opponent = fighter === this.player1 ? this.player2 : this.player1;
         const dist = Phaser.Math.Distance.Between(explosion.x, explosion.y, opponent.x, opponent.y);
         if (dist < 120) {
-            this.applyDamage(opponent, fighter, attack.damage, attack.knockback, direction);
+            this.applyDamage(opponent, attack.damage, attack.knockback, direction);
         }
 
         this.createPixelParticles(explosion.x, explosion.y, 0xff0000, 30, 2.5, 8);
@@ -5908,7 +5908,7 @@ class GameScene extends Phaser.Scene {
                 onComplete: () => {
                     const dist = Phaser.Math.Distance.Between(clone.x, clone.y, opponent.x, opponent.y);
                     if (dist < 50) {
-                        this.applyDamage(opponent, fighter, attack.damage / 2, attack.knockback / 2, direction);
+                        this.applyDamage(opponent, attack.damage / 2, attack.knockback / 2, direction);
                         this.createPixelParticles(clone.x, clone.y, 0xaa44ff, 15, 1.5, 5);
                     }
                     clone.destroy();
@@ -5942,7 +5942,7 @@ class GameScene extends Phaser.Scene {
                 const opponent = fighter === this.player1 ? this.player2 : this.player1;
                 const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
                 if (dist < 60 && i % 2 === 0) {
-                    this.applyDamage(opponent, fighter, attack.damage / 4, attack.knockback / 4, direction);
+                    this.applyDamage(opponent, attack.damage / 4, attack.knockback / 4, direction);
                 }
 
                 this.time.delayedCall(100, () => slash.destroy());
@@ -5988,7 +5988,7 @@ class GameScene extends Phaser.Scene {
         this.time.delayedCall(200, () => {
             const dist = Phaser.Math.Distance.Between(well.x, well.y, opponent.x, opponent.y);
             if (dist < 80) {
-                this.applyDamage(opponent, fighter, attack.damage, attack.knockback, 0);
+                this.applyDamage(opponent, attack.damage, attack.knockback, 0);
             }
         });
 
