@@ -5134,63 +5134,93 @@ class GameScene extends Phaser.Scene {
 
     // CHARGE - Juggernaut charges forward
     createChargeAttack(fighter, attack, direction) {
-        const opponent = fighter === this.player1 ? this.player2 : this.player1;
-        const startX = fighter.x;
-        const chargeDistance = attack.range;
+        try {
+            if (!fighter || !fighter.body) return;
 
-        // Charge forward with super armor
-        fighter.body.setVelocityX(direction * 600);
+            const opponent = fighter === this.player1 ? this.player2 : this.player1;
+            if (!opponent || !opponent.body) return;
 
-        // Check for collision during charge
-        let hasHit = false;
-        const checkCollision = () => {
-            if (!hasHit && fighter.isAttacking && this.checkOverlap(fighter, opponent)) {
-                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
-                hasHit = true;
-            }
-        };
+            const startX = fighter.x;
+            const chargeDistance = attack.range;
 
-        // Check every frame during charge
-        const collisionCheck = this.time.addEvent({
-            delay: 16,
-            callback: checkCollision,
-            repeat: 15
-        });
+            // Charge forward with super armor
+            fighter.body.setVelocityX(direction * 600);
 
-        this.time.delayedCall(250, () => {
-            fighter.body.setVelocityX(0);
-            collisionCheck.remove();
-        });
+            // Check for collision during charge
+            let hasHit = false;
+            const checkCollision = () => {
+                try {
+                    if (!hasHit && fighter && fighter.isAttacking && opponent && opponent.active && this.checkOverlap(fighter, opponent)) {
+                        this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                        hasHit = true;
+                    }
+                } catch (e) {
+                    console.warn('Charge collision check error:', e);
+                }
+            };
 
-        // Trail effect
-        for (let i = 0; i < 10; i++) {
-            this.time.delayedCall(i * 25, () => {
-                this.createPixelParticles(fighter.x, fighter.y, 0xff4444, 8, 1, 4);
+            // Check every frame during charge
+            const collisionCheck = this.time.addEvent({
+                delay: 16,
+                callback: checkCollision,
+                repeat: 15
             });
+
+            this.time.delayedCall(250, () => {
+                try {
+                    if (fighter && fighter.body) {
+                        fighter.body.setVelocityX(0);
+                    }
+                    if (collisionCheck) {
+                        collisionCheck.remove();
+                    }
+                } catch (e) {}
+            });
+
+            // Trail effect
+            for (let i = 0; i < 10; i++) {
+                this.time.delayedCall(i * 25, () => {
+                    try {
+                        if (fighter && typeof fighter.x === 'number' && typeof fighter.y === 'number') {
+                            this.createPixelParticles(fighter.x, fighter.y, 0xff4444, 8, 1, 4);
+                        }
+                    } catch (e) {}
+                });
+            }
+        } catch (e) {
+            console.error('Charge attack error:', e);
         }
     }
 
     // CHAOS - Trickster random effect
     createChaosAttack(fighter, attack, direction) {
-        const effects = ['teleport', 'confuse', 'damage'];
-        const effect = Phaser.Utils.Array.GetRandom(effects);
-        const opponent = fighter === this.player1 ? this.player2 : this.player1;
+        try {
+            if (!fighter) return;
 
-        if (effect === 'teleport') {
-            // Swap positions
-            const tempX = fighter.x;
-            const tempY = fighter.y;
-            fighter.setPosition(opponent.x, opponent.y);
-            opponent.setPosition(tempX, tempY);
-            this.createPixelParticles(fighter.x, fighter.y, 0xff88ff, 20, 1.5, 5);
-            this.createPixelParticles(opponent.x, opponent.y, 0xffff00, 20, 1.5, 5);
-        } else if (effect === 'confuse') {
-            // Reverse opponent controls briefly
-            this.createPixelParticles(opponent.x, opponent.y, 0xff00ff, 15, 1.5, 5);
-        } else {
-            // Random damage burst
-            this.applyDamage(opponent, attack.damage, attack.knockback, direction);
-            this.createPixelParticles(opponent.x, opponent.y, 0xffff00, 20, 2, 6);
+            const effects = ['teleport', 'confuse', 'damage'];
+            const effect = Phaser.Utils.Array.GetRandom(effects);
+            const opponent = fighter === this.player1 ? this.player2 : this.player1;
+
+            if (!opponent) return;
+
+            if (effect === 'teleport') {
+                // Swap positions
+                const tempX = fighter.x;
+                const tempY = fighter.y;
+                fighter.setPosition(opponent.x, opponent.y);
+                opponent.setPosition(tempX, tempY);
+                this.createPixelParticles(fighter.x, fighter.y, 0xff88ff, 20, 1.5, 5);
+                this.createPixelParticles(opponent.x, opponent.y, 0xffff00, 20, 1.5, 5);
+            } else if (effect === 'confuse') {
+                // Reverse opponent controls briefly
+                this.createPixelParticles(opponent.x, opponent.y, 0xff00ff, 15, 1.5, 5);
+            } else {
+                // Random damage burst
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
+                this.createPixelParticles(opponent.x, opponent.y, 0xffff00, 20, 2, 6);
+            }
+        } catch (e) {
+            console.error('Chaos attack error:', e);
         }
     }
 
