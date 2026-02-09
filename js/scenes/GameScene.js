@@ -6400,16 +6400,25 @@ class GameScene extends Phaser.Scene {
                 });
             });
 
-            // Reset camera and time after effect (longer duration)
+            // Reset camera and time after effect, THEN respawn
             this.time.delayedCall(1200, () => {
                 this.physics.world.timeScale = 1;
                 this.cameras.main.pan(GAME_WIDTH / 2, GAME_HEIGHT / 2, 500, 'Power2');
                 this.cameras.main.zoomTo(1.0, 500, 'Power2');
-            });
-        } catch (e) {}
 
-        // Respawn
-        this.respawnFighter(fighter);
+                // Respawn AFTER animation and physics are back to normal
+                this.respawnFighter(fighter);
+            });
+        } catch (e) {
+            // If animation fails, still respawn
+            this.physics.world.timeScale = 1;
+            this.respawnFighter(fighter);
+        }
+
+        // Make fighter temporarily invincible and hidden during KO animation
+        fighter.isInvincible = true;
+        fighter.body.enable = false;
+        fighter.setAlpha(0);
     }
 
     respawnFighter(fighter) {
