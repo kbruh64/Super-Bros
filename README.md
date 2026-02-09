@@ -1,18 +1,10 @@
 # Super Bros - Platform Fighter
 
-A Super Smash Bros-inspired platform fighting game built with Phaser.js. Battle with 8 unique fighters across 8 stunning arenas!
+A Super Smash Bros-inspired platform fighting game built with Phaser.js. Battle with 60 unique fighters across 8 stunning arenas!
 
 ## Features
 
-- **8 Unique Characters** - All unlocked from the start!
-  - Warrior - Balanced fighter with strong melee attacks
-  - Speedster - Fast and agile, but lightweight
-  - Tank - Heavy hitter that's hard to launch
-  - Ninja - Quick with ranged special attacks
-  - Brawler - Street fighter with powerful combos
-  - Mage - Powerful ranged attacks but fragile
-  - Robot - Mechanical fighter with laser attacks
-  - Pirate - Swashbuckler with a trusty pistol
+- **60 Unique Characters** - All unlocked from the start! Each with unique visuals, attacks, and special abilities including Warrior, Speedster, Tank, Ninja, Brawler, Mage, Robot, Pirate, Assassin, Paladin, Necromancer, Samurai, Monk, Gunslinger, Alchemist, Reaper, and many more!
 
 - **8 Beautiful Arenas**
   - Battlefield - Classic floating platforms
@@ -29,10 +21,10 @@ A Super Smash Bros-inspired platform fighting game built with Phaser.js. Battle 
   - **2 Players** - Local multiplayer battles
 
 - **Amazing Graphics**
+  - Procedural pixel art characters with unique designs
   - Particle effects and dynamic backgrounds
   - Theme-specific visual effects per arena
-  - Smooth animations and hit effects
-  - Victory celebrations with confetti
+  - Cinematic KO animations and victory cutscenes
 
 ## Controls
 
@@ -40,15 +32,15 @@ A Super Smash Bros-inspired platform fighting game built with Phaser.js. Battle 
 | Action | Key |
 |--------|-----|
 | Move | W A S D |
-| Attack | G |
-| Special | H |
+| Attack | F / Shift |
+| Special | E / Right Ctrl |
 
 ### Player 2
 | Action | Key |
 |--------|-----|
-| Move | Arrow Keys |
-| Attack | Numpad 1 |
-| Special | Numpad 2 |
+| Move | I J K L |
+| Attack | U / O |
+| Special | H / Y |
 
 ### General
 | Action | Key |
