@@ -1458,11 +1458,21 @@ class GameScene extends Phaser.Scene {
 
     // Check if two fighters overlap
     checkOverlap(fighter1, fighter2) {
-        if (!fighter1 || !fighter2 || !fighter1.body || !fighter2.body) return false;
-        return Phaser.Geom.Rectangle.Overlaps(
-            fighter1.body.getBounds(),
-            fighter2.body.getBounds()
-        );
+        try {
+            if (!fighter1 || !fighter2) return false;
+            if (!fighter1.body || !fighter2.body) return false;
+            if (!fighter1.active || !fighter2.active) return false;
+
+            const bounds1 = fighter1.body.getBounds();
+            const bounds2 = fighter2.body.getBounds();
+
+            if (!bounds1 || !bounds2) return false;
+
+            return Phaser.Geom.Rectangle.Overlaps(bounds1, bounds2);
+        } catch (e) {
+            console.warn('checkOverlap error:', e);
+            return false;
+        }
     }
 
     // Create pixelated particles
@@ -3018,11 +3028,15 @@ class GameScene extends Phaser.Scene {
     }
 
     createSpecialAttack(fighter, attack) {
-        const direction = fighter.facingRight ? 1 : -1;
-        const attackType = attack.type || 'default';
+        try {
+            if (!fighter || !attack) return;
+            if (!fighter.body) return;
 
-        // Execute unique attack based on type
-        switch (attackType) {
+            const direction = fighter.facingRight ? 1 : -1;
+            const attackType = attack.type || 'default';
+
+            // Execute unique attack based on type
+            switch (attackType) {
             case 'dash':
                 this.createDashAttack(fighter, attack, direction);
                 break;
@@ -3207,6 +3221,9 @@ class GameScene extends Phaser.Scene {
                 break;
             default:
                 this.createDefaultProjectile(fighter, attack, direction);
+            }
+        } catch (e) {
+            console.error('Error creating special attack:', e);
         }
     }
 
