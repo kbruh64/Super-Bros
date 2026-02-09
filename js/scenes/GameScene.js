@@ -6439,7 +6439,8 @@ class GameScene extends Phaser.Scene {
         // Reset combo
         fighter.comboCount = 0;
 
-        // Ensure fighter is active and physics body works
+        // Ensure fighter is active, visible, and physics body works
+        fighter.setAlpha(1);
         fighter.body.enable = true;
         fighter.body.setAllowGravity(true);
 
