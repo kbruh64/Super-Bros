@@ -1161,6 +1161,7 @@ class GameScene extends Phaser.Scene {
             callback: () => {
                 count--;
                 if (count > 0) {
+                    SFX.countdown();
                     countdownText.setText(count.toString());
                     this.tweens.add({
                         targets: countdownText,
@@ -1170,6 +1171,7 @@ class GameScene extends Phaser.Scene {
                         yoyo: true
                     });
                 } else if (count === 0) {
+                    SFX.countdownGo();
                     countdownText.setText('FIGHT!');
                     countdownText.setFontSize(80);
                 } else {
@@ -1336,11 +1338,13 @@ class GameScene extends Phaser.Scene {
             if (fighter.isGrounded) {
                 fighter.body.setVelocityY(JUMP_VELOCITY * char.jumpPower);
                 fighter.isGrounded = false;
+                SFX.jump();
                 this.createJumpEffect(fighter);
                 this.playAnimation(fighter, 'jump');
             } else if (fighter.canDoubleJump) {
                 fighter.body.setVelocityY(DOUBLE_JUMP_VELOCITY * char.jumpPower);
                 fighter.canDoubleJump = false;
+                SFX.doubleJump();
                 this.createJumpEffect(fighter);
                 this.playAnimation(fighter, 'jump');
             }
@@ -1421,10 +1425,12 @@ class GameScene extends Phaser.Scene {
         if (type === 'normal') {
             fighter.attackCooldown = ATTACK_COOLDOWN;
             this.playAnimation(fighter, 'attack');
+            SFX.attack();
             this.createMeleeAttack(fighter, attack);
         } else {
             fighter.specialCooldown = SPECIAL_COOLDOWN;
             this.playAnimation(fighter, 'special');
+            SFX.special();
             this.createSpecialAttack(fighter, attack);
         }
 
@@ -6134,6 +6140,7 @@ class GameScene extends Phaser.Scene {
             }
 
             fighter.damage += damage;
+            SFX.hit(fighter.damage);
 
             // Combo tracking - update attacker's combo
             const attacker = fighter.opponent;
@@ -6311,6 +6318,7 @@ class GameScene extends Phaser.Scene {
         if (fighter.isInvincible) return;
 
         fighter.stocks--;
+        SFX.ko();
 
         // Check game over first
         if (fighter.stocks <= 0) {
@@ -6441,6 +6449,7 @@ class GameScene extends Phaser.Scene {
 
         // Ensure fighter is active, visible, and physics body works
         fighter.setAlpha(1);
+        SFX.respawn();
         fighter.body.enable = true;
         fighter.body.setAllowGravity(true);
 
