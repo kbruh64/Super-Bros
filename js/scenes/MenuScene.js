@@ -189,6 +189,7 @@ class MenuScene extends Phaser.Scene {
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
+            SFX.menuHover();
             bg.clear();
             this.drawCyberButton(bg, -width/2, -height/2, width, height, true);
             btnText.setColor('#ffffff');
@@ -203,6 +204,7 @@ class MenuScene extends Phaser.Scene {
         });
 
         hitArea.on('pointerdown', () => {
+            SFX.menuClick();
             this.cameras.main.flash(100, 0, 255, 255);
             callback();
         });
@@ -337,6 +339,7 @@ class MenuScene extends Phaser.Scene {
         closeHit.setInteractive({ useHandCursor: true });
 
         closeHit.on('pointerover', () => {
+            SFX.menuHover();
             closeBg.clear();
             this.drawCyberButton(closeBg, -60, -18, 120, 36, true);
             closeText.setColor('#ffffff');
@@ -349,6 +352,7 @@ class MenuScene extends Phaser.Scene {
         });
 
         closeHit.on('pointerdown', () => {
+            SFX.close();
             panel.destroy();
             overlay.destroy();
             closeHit.destroy();

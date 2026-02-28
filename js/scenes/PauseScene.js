@@ -133,6 +133,7 @@ class PauseScene extends Phaser.Scene {
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
+            SFX.menuHover();
             btn.setScale(1.05);
             btnText.setColor('#00ffff');
             bg.clear();
@@ -167,11 +168,13 @@ class PauseScene extends Phaser.Scene {
         });
 
         hitArea.on('pointerdown', () => {
+            SFX.menuClick();
             callback();
         });
     }
 
     resumeGame() {
+        SFX.resume();
         this.scene.get('GameScene').togglePause();
     }
 

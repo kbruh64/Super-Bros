@@ -149,8 +149,8 @@ class CharacterSelectScene extends Phaser.Scene {
             color: '#00ffff'
         }).setOrigin(0.5);
         this.upArrow.setInteractive({ useHandCursor: true });
-        this.upArrow.on('pointerdown', () => this.scrollGrid(-50));
-        this.upArrow.on('pointerover', () => this.upArrow.setColor('#ffffff'));
+        this.upArrow.on('pointerdown', () => { SFX.click(); this.scrollGrid(-50); });
+        this.upArrow.on('pointerover', () => { SFX.hover(); this.upArrow.setColor('#ffffff'); });
         this.upArrow.on('pointerout', () => this.upArrow.setColor('#00ffff'));
 
         // Down arrow
@@ -160,8 +160,8 @@ class CharacterSelectScene extends Phaser.Scene {
             color: '#00ffff'
         }).setOrigin(0.5);
         this.downArrow.setInteractive({ useHandCursor: true });
-        this.downArrow.on('pointerdown', () => this.scrollGrid(50));
-        this.downArrow.on('pointerover', () => this.downArrow.setColor('#ffffff'));
+        this.downArrow.on('pointerdown', () => { SFX.click(); this.scrollGrid(50); });
+        this.downArrow.on('pointerover', () => { SFX.hover(); this.downArrow.setColor('#ffffff'); });
         this.downArrow.on('pointerout', () => this.downArrow.setColor('#00ffff'));
 
         // Scroll indicator bar
@@ -238,6 +238,7 @@ class CharacterSelectScene extends Phaser.Scene {
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
+            SFX.menuHover();
             container.setScale(1.08);
             this.showCharacterInfo(character);
         });
@@ -247,6 +248,7 @@ class CharacterSelectScene extends Phaser.Scene {
         });
 
         hitArea.on('pointerdown', () => {
+            SFX.select();
             this.selectCharacter(character);
         });
 
@@ -516,12 +518,13 @@ class CharacterSelectScene extends Phaser.Scene {
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
+            SFX.menuHover();
             text.setColor('#ffffff');
         });
         hitArea.on('pointerout', () => {
             text.setColor('#00ffff');
         });
-        hitArea.on('pointerdown', () => this.confirmSelection());
+        hitArea.on('pointerdown', () => { SFX.menuClick(); this.confirmSelection(); });
     }
 
     createBackButton() {
@@ -531,9 +534,9 @@ class CharacterSelectScene extends Phaser.Scene {
             color: '#666666'
         }).setInteractive({ useHandCursor: true });
 
-        btn.on('pointerover', () => btn.setColor('#00ffff'));
+        btn.on('pointerover', () => { SFX.menuHover(); btn.setColor('#00ffff'); });
         btn.on('pointerout', () => btn.setColor('#666666'));
-        btn.on('pointerdown', () => this.scene.start('MenuScene'));
+        btn.on('pointerdown', () => { SFX.back(); this.scene.start('MenuScene'); });
     }
 
     setupInput() {
@@ -563,6 +566,7 @@ class CharacterSelectScene extends Phaser.Scene {
 
     confirmSelection() {
         if (!this.player1Selection) {
+            SFX.reject();
             this.cameras.main.shake(100, 0.01);
             return;
         }
@@ -572,10 +576,12 @@ class CharacterSelectScene extends Phaser.Scene {
                 this.player2Selection = CHARACTER_LIST[Math.floor(Math.random() * CHARACTER_LIST.length)];
             }
         } else if (!this.player2Selection) {
+            SFX.reject();
             this.cameras.main.shake(100, 0.01);
             return;
         }
 
+        SFX.confirm();
         this.cameras.main.flash(200, 0, 255, 255);
         this.time.delayedCall(200, () => {
             this.scene.start('StageSelectScene', {

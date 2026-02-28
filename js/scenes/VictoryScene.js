@@ -305,6 +305,8 @@ class VictoryScene extends Phaser.Scene {
     }
 
     playVictoryAnimation() {
+        // Victory fanfare
+        SFX.victory();
         // Screen flash
         this.cameras.main.flash(500, 0, 255, 255);
 
@@ -387,6 +389,7 @@ class VictoryScene extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         menuBtn.on('pointerover', () => {
+            SFX.menuHover();
             menuBtn.setColor('#00ffff');
             menuBtn.setScale(1.1);
         });
@@ -395,6 +398,7 @@ class VictoryScene extends Phaser.Scene {
             menuBtn.setScale(1);
         });
         menuBtn.on('pointerdown', () => {
+            SFX.back();
             this.cameras.main.fade(300, 0, 0, 0);
             this.time.delayedCall(300, () => {
                 this.scene.start('MenuScene');
@@ -448,6 +452,7 @@ class VictoryScene extends Phaser.Scene {
         hitArea.setInteractive({ useHandCursor: true });
 
         hitArea.on('pointerover', () => {
+            SFX.menuHover();
             container.setScale(1.05);
             glow.clear();
             glow.fillStyle(0x00ffff, 0.3);
@@ -464,6 +469,7 @@ class VictoryScene extends Phaser.Scene {
         });
 
         hitArea.on('pointerdown', () => {
+            SFX.menuClick();
             this.cameras.main.flash(50, 0, 255, 255);
             callback();
         });
