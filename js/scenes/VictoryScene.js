@@ -14,6 +14,7 @@ class VictoryScene extends Phaser.Scene {
     }
 
     create() {
+        Music.stop();
         this.createCyberBackground();
         this.createDigitalRain();
         this.createGlitchOverlay();

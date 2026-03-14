@@ -15,6 +15,7 @@ class CharacterSelectScene extends Phaser.Scene {
     }
 
     create() {
+        Music.play('menu');
         this.createBackground();
         this.createTitle();
         this.createCharacterGrid();

@@ -5,6 +5,7 @@ class MenuScene extends Phaser.Scene {
     }
 
     create() {
+        Music.play('menu');
         // Cyber-Minecraft background
         this.createCyberBackground();
 
