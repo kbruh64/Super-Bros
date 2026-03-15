@@ -681,62 +681,70 @@ class GameScene extends Phaser.Scene {
         });
     }
 
-    createPlatform(x, y, width, height, isMain = false) {
-        const g = this.add.graphics();
+    createPlatform(data) {
+        const { x, y, width, height, type } = data;
         const S = 8; // pixel block size
+        const isMain = type === 'main';
+
+        // Draw pixel-art graphics (centered at x, y like the zone below)
+        const g = this.add.graphics();
+        const ox = -width / 2; // offset so drawing is centered
+        const oy = -height / 2;
 
         if (isMain) {
             // Grass top row
             const grassColors = [0x4caf50, 0x43a047, 0x388e3c];
             for (let bx = 0; bx < width; bx += S) {
                 g.fillStyle(grassColors[Math.floor(bx / S) % grassColors.length], 1);
-                g.fillRect(x + bx, y, Math.min(S, width - bx), S);
+                g.fillRect(ox + bx, oy, Math.min(S, width - bx), S);
             }
             // Dirt rows
             const dirtColors = [0x8d6e63, 0x795548, 0x6d4c41];
             for (let by = S; by < height; by += S) {
                 for (let bx = 0; bx < width; bx += S) {
                     g.fillStyle(dirtColors[Math.floor((bx + by) / S) % dirtColors.length], 1);
-                    g.fillRect(x + bx, y + by, Math.min(S, width - bx), Math.min(S, height - by));
+                    g.fillRect(ox + bx, oy + by, Math.min(S, width - bx), Math.min(S, height - by));
                 }
             }
-            // Stone brick pattern (every 2 rows, staggered)
+            // Stone brick lines
             for (let row = 1; row * S * 2 < height; row++) {
                 const by = row * S * 2;
                 const offset = (row % 2) * S * 2;
                 for (let bx = -offset; bx < width; bx += S * 4) {
                     g.lineStyle(1, 0x4a3728, 0.35);
-                    g.strokeRect(x + bx, y + by, S * 4, S * 2);
+                    g.strokeRect(ox + bx, oy + by, S * 4, S * 2);
                 }
             }
         } else {
-            // Floating platform: cyan shimmer top + blue crystal blocks
+            // Floating platform: cyan top + blue crystal blocks
             const topColors = [0x00e5ff, 0x00bcd4, 0x0097a7];
             for (let bx = 0; bx < width; bx += S) {
                 g.fillStyle(topColors[Math.floor(bx / S) % topColors.length], 1);
-                g.fillRect(x + bx, y, Math.min(S, width - bx), S);
+                g.fillRect(ox + bx, oy, Math.min(S, width - bx), S);
             }
             const blockColors = [0x1565c0, 0x1976d2, 0x1e88e5, 0x2196f3];
             for (let by = S; by < height; by += S) {
                 for (let bx = 0; bx < width; bx += S) {
                     g.fillStyle(blockColors[Math.floor((bx / S + by / S)) % blockColors.length], 1);
-                    g.fillRect(x + bx, y + by, Math.min(S, width - bx), Math.min(S, height - by));
+                    g.fillRect(ox + bx, oy + by, Math.min(S, width - bx), Math.min(S, height - by));
                 }
             }
-            // Shimmer highlight dots
             g.fillStyle(0xffffff, 0.55);
             for (let bx = S; bx < width; bx += S * 3) {
-                g.fillRect(x + bx, y + 2, 3, 3);
+                g.fillRect(ox + bx, oy + 2, 3, 3);
             }
         }
 
-        // Physics body
-        const body = this.physics.add.staticGroup();
-        const rect = body.create(x + width / 2, y + height / 2, null, null, false);
-        rect.setVisible(false);
-        rect.body.setSize(width, height);
-        rect.body.reset(x + width / 2, y + height / 2);
-        return body;
+        g.setPosition(x, y);
+
+        // Physics zone (same as original)
+        const platform = this.add.zone(x, y, width, height);
+        this.physics.add.existing(platform, true);
+
+        platform.graphics = g;
+        platform.isPassthrough = type === 'floating';
+
+        return platform;
     }
 
     createParticleEffects() {
@@ -1181,6 +1189,7 @@ class GameScene extends Phaser.Scene {
                     });
                 } else if (count === 0) {
                     SFX.countdownGo();
+                    if (typeof Music !== 'undefined') Music.play('battle');
                     countdownText.setText('FIGHT!');
                     countdownText.setFontSize(80);
                 } else {
@@ -1544,8 +1553,8 @@ class GameScene extends Phaser.Scene {
 
     // Create pixelated slash trail
     createPixelSlash(fighter, direction) {
-        const x = fighter.sprite.x + direction * 60;
-        const y = fighter.sprite.y - 20;
+        const x = fighter.x + direction * 60;
+        const y = fighter.y - 20;
         const g = this.add.graphics();
 
         // Three arc layers: outer ghost trail, mid, inner
@@ -1603,7 +1612,6 @@ class GameScene extends Phaser.Scene {
         ];
         blobs.forEach(({ color, r, alpha }) => {
             g.fillStyle(color, alpha);
-            // Irregular blob via multiple offset circles
             for (let i = 0; i < 5; i++) {
                 const ox = (Math.random() - 0.5) * r * 0.7;
                 const oy = (Math.random() - 0.5) * r * 0.7 - r * 0.15;
@@ -3802,6 +3810,7 @@ class GameScene extends Phaser.Scene {
 
         // Teleport behind opponent
         this.time.delayedCall(200, () => {
+            if (!opponent || !opponent.active) { if (fighter.sprite) fighter.sprite.setAlpha(1); return; }
             const behindX = opponent.x - direction * 60;
             fighter.x = behindX;
             fighter.y = opponent.y;
@@ -5404,8 +5413,8 @@ class GameScene extends Phaser.Scene {
         const dist = Phaser.Math.Distance.Between(fighter.x, fighter.y, opponent.x, opponent.y);
         if (dist < attack.range) {
             this.applyDamage(opponent, attack.damage, attack.knockback, direction);
-            // Heal fighter
-            fighter.health = Math.min(fighter.maxHealth, fighter.health + 10);
+            // Reduce fighter damage percentage
+            fighter.damage = Math.max(0, fighter.damage - 10);
         }
 
         this.tweens.add({
@@ -5449,7 +5458,7 @@ class GameScene extends Phaser.Scene {
             bubble.destroy();
         });
 
-        this.applyDamage(opponent, attack.damage, attack.knockback, 0);
+        this.applyDamage(opponent, attack.damage, attack.knockback, direction);
     }
 
     // SMITE - Crusader divine hammer
@@ -5510,6 +5519,7 @@ class GameScene extends Phaser.Scene {
             y: opponent.y,
             duration: 300,
             onUpdate: () => {
+                if (!opponent || !opponent.active || steal.hasHit) return;
                 const dist = Phaser.Math.Distance.Between(steal.x, steal.y, opponent.x, opponent.y);
                 if (dist < 30 && !steal.hasHit) {
                     steal.hasHit = true;
@@ -5554,6 +5564,7 @@ class GameScene extends Phaser.Scene {
                     duration: 600,
                     onUpdate: () => {
                         const opponent = fighter === this.player1 ? this.player2 : this.player1;
+                        if (!opponent || !opponent.active || ball.hasHit) return;
                         const dist = Phaser.Math.Distance.Between(ball.x, ball.y, opponent.x, opponent.y);
                         if (dist < 30 && !ball.hasHit) {
                             ball.hasHit = true;
@@ -6044,15 +6055,16 @@ class GameScene extends Phaser.Scene {
         }
 
         // Pull opponent and slow
-        opponent.body.setVelocityY(-200);
+        if (opponent && opponent.active && opponent.body) opponent.body.setVelocityY(-200);
         this.time.delayedCall(100, () => {
-            opponent.body.setVelocityY(300);
+            if (opponent && opponent.active && opponent.body) opponent.body.setVelocityY(300);
         });
 
         this.time.delayedCall(200, () => {
+            if (!opponent || !opponent.active) return;
             const dist = Phaser.Math.Distance.Between(well.x, well.y, opponent.x, opponent.y);
             if (dist < 80) {
-                this.applyDamage(opponent, attack.damage, attack.knockback, 0);
+                this.applyDamage(opponent, attack.damage, attack.knockback, direction);
             }
         });
 
