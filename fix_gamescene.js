@@ -88,9 +88,7 @@ console.log('Music hook applied, total changes:', changes);
         if (endIdx === -1) { console.warn('WARNING: createPixelSlash end not found'); }
         else {
             console.log('createPixelSlash:', startIdx, '->', endIdx);
-            const newFn = `    createPixelSlash(fighter, direction) {
-        const x = fighter.x + direction * 60;
-        const y = fighter.y - 20;
+            const newFn = `    createPixelSlash(x, y, direction, color, size) {
         const g = this.add.graphics();
 
         // Three arc layers: outer ghost trail, mid, inner
