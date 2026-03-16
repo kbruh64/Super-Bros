@@ -686,19 +686,16 @@ class GameScene extends Phaser.Scene {
         const S = 8; // pixel block size
         const isMain = type === 'main';
 
-        // Draw pixel-art graphics (centered at x, y like the zone below)
         const g = this.add.graphics();
-        const ox = -width / 2; // offset so drawing is centered
+        const ox = -width / 2;
         const oy = -height / 2;
 
         if (isMain) {
-            // Grass top row
             const grassColors = [0x4caf50, 0x43a047, 0x388e3c];
             for (let bx = 0; bx < width; bx += S) {
                 g.fillStyle(grassColors[Math.floor(bx / S) % grassColors.length], 1);
                 g.fillRect(ox + bx, oy, Math.min(S, width - bx), S);
             }
-            // Dirt rows
             const dirtColors = [0x8d6e63, 0x795548, 0x6d4c41];
             for (let by = S; by < height; by += S) {
                 for (let bx = 0; bx < width; bx += S) {
@@ -706,7 +703,6 @@ class GameScene extends Phaser.Scene {
                     g.fillRect(ox + bx, oy + by, Math.min(S, width - bx), Math.min(S, height - by));
                 }
             }
-            // Stone brick lines
             for (let row = 1; row * S * 2 < height; row++) {
                 const by = row * S * 2;
                 const offset = (row % 2) * S * 2;
@@ -716,7 +712,6 @@ class GameScene extends Phaser.Scene {
                 }
             }
         } else {
-            // Floating platform: cyan top + blue crystal blocks
             const topColors = [0x00e5ff, 0x00bcd4, 0x0097a7];
             for (let bx = 0; bx < width; bx += S) {
                 g.fillStyle(topColors[Math.floor(bx / S) % topColors.length], 1);
@@ -737,13 +732,10 @@ class GameScene extends Phaser.Scene {
 
         g.setPosition(x, y);
 
-        // Physics zone (same as original)
         const platform = this.add.zone(x, y, width, height);
         this.physics.add.existing(platform, true);
-
         platform.graphics = g;
         platform.isPassthrough = type === 'floating';
-
         return platform;
     }
 
@@ -1552,9 +1544,7 @@ class GameScene extends Phaser.Scene {
     }
 
     // Create pixelated slash trail
-    createPixelSlash(fighter, direction) {
-        const x = fighter.x + direction * 60;
-        const y = fighter.y - 20;
+    createPixelSlash(x, y, direction, color, size) {
         const g = this.add.graphics();
 
         // Three arc layers: outer ghost trail, mid, inner
