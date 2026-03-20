@@ -14,7 +14,10 @@
       "Bash(python -c:*)",
       "Bash(python3:*)",
       "Bash(node -:*)",
-      "Bash(node fix_gamescene.js)"
+      "Bash(node fix_gamescene.js)",
+      "Bash(grep -n '`' fix_gamescene.js)",
+      "Bash(node -e \":*)",
+      "Bash(grep -c '`' fix_gamescene.js)"
     ]
   }
 }

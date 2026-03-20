@@ -295,6 +295,112 @@ console.log('Music hook applied, total changes:', changes);
             console.log('Replaced createPlatform');
         }
     }
+// ── 11. Replace createMeleeEffect using brace counting ──
+{
+    const fnMarker = '    createMeleeEffect(';
+    const startIdx = src.indexOf(fnMarker);
+    if (startIdx === -1) { console.warn('WARNING: createMeleeEffect not found'); }
+    else {
+        const endIdx = findFunctionEnd(src, startIdx);
+        if (endIdx === -1) { console.warn('WARNING: createMeleeEffect end not found'); }
+        else {
+            console.log('createMeleeEffect:', startIdx, '->', endIdx, 'length:', endIdx - startIdx);
+            const newFn = fs.readFileSync('melee_effect_new.js', 'utf8').trimEnd();
+            /*    createMeleeEffect(fighter, direction, effectType) {
+        const x = fighter.x + direction * 40;
+        const y = fighter.y - 10;
+        const col = fighter.characterData.color || 0xffffff;
+
+        // Determine style from effectType
+        const isRanged   = /shot|rail|beam|data|kunai|poison|arrow|bullet/.test(effectType);
+        const isHeavy    = /rage|smash|dragon|stomp|hammer/.test(effectType);
+        const isVoid     = /void|dark|shadow|reap|scythe/.test(effectType);
+        const isEnergy   = /spark|lightning|psi|beam|data|phase/.test(effectType);
+
+        // ── Arc slash ──
+        const g = this.add.graphics();
+        const arcColor  = isVoid ? 0x9900cc : isEnergy ? 0x44eeff : col;
+        const arcColor2 = isVoid ? 0x440066 : isEnergy ? 0xffffff : 0xffffff;
+        const arcR      = isHeavy ? 64 : isRanged ? 20 : 48;
+
+        // Ghost outer trail
+        g.lineStyle(isHeavy ? 10 : 7, arcColor2, 0.15);
+        const a0 = direction > 0 ? -Math.PI * 0.6 : Math.PI * 0.4;
+        const a1 = direction > 0 ?  Math.PI * 0.6 : Math.PI * 1.6;
+        g.beginPath();
+        g.arc(x, y, arcR + 14, a0, a1, direction < 0);
+        g.strokePath();
+
+        // Main arc
+        g.lineStyle(isHeavy ? 7 : 5, arcColor, 0.9);
+        g.beginPath();
+        g.arc(x, y, arcR, a0, a1, direction < 0);
+        g.strokePath();
+
+        // Inner bright edge
+        g.lineStyle(2, arcColor2, 0.7);
+        g.beginPath();
+        g.arc(x, y, arcR - 8, a0, a1, direction < 0);
+        g.strokePath();
+
+        // Speed lines (3 short streaks behind the swing)
+        for (let i = 0; i < 4; i++) {
+            const ang  = a0 + (a1 - a0) * (i / 4);
+            const rx   = x + Math.cos(ang) * arcR;
+            const ry   = y + Math.sin(ang) * arcR;
+            const len  = isHeavy ? 22 : 14;
+            g.lineStyle(2, arcColor2, 0.4 - i * 0.07);
+            g.beginPath();
+            g.moveTo(rx, ry);
+            g.lineTo(rx - direction * len, ry);
+            g.strokePath();
+        }
+
+        this.tweens.add({
+            targets: g,
+            alpha: 0,
+            scaleX: isHeavy ? 1.4 : 1.2,
+            scaleY: isHeavy ? 1.4 : 1.2,
+            duration: isHeavy ? 200 : 140,
+            ease: 'Power2',
+            onComplete: () => g.destroy()
+        });
+
+        // ── Impact flash ──
+        const flash = this.add.graphics();
+        flash.fillStyle(0xffffff, 0.85);
+        flash.fillCircle(x, y, isHeavy ? 18 : 11);
+        flash.fillStyle(arcColor, 0.6);
+        flash.fillCircle(x, y, isHeavy ? 10 : 6);
+        this.tweens.add({
+            targets: flash, alpha: 0, scale: isHeavy ? 2.2 : 1.8,
+            duration: 80, ease: 'Power3', onComplete: () => flash.destroy()
+        });
+
+        // ── Sparks ──
+        const sparkCount = isHeavy ? 8 : 5;
+        for (let i = 0; i < sparkCount; i++) {
+            const spark = this.add.graphics();
+            const ang = (direction > 0 ? 0 : Math.PI) + (Math.random() - 0.5) * Math.PI * 0.9;
+            const spd  = 80 + Math.random() * 120;
+            spark.fillStyle(i % 2 === 0 ? arcColor : arcColor2, 1);
+            spark.fillRect(-2, -2, isHeavy ? 5 : 3, isHeavy ? 5 : 3);
+            spark.setPosition(x, y);
+            this.tweens.add({
+                targets: spark,
+                x: x + Math.cos(ang) * spd,
+                y: y + Math.sin(ang) * spd,
+                alpha: 0,
+                duration: 150 + Math.random() * 80,
+                ease: 'Power2',
+                onComplete: () => spark.destroy()
+            });
+        }
+    }*/
+            src = src.slice(0, startIdx) + newFn + src.slice(endIdx);
+            console.log('Replaced createMeleeEffect');
+        }
+    }
 }
 
 const lines = src.split('\n').length;
