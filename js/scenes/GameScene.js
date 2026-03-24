@@ -1586,79 +1586,48 @@ class GameScene extends Phaser.Scene {
 
     // Create pixelated hit impact effect when damage is taken
     createPixelHitEffect(x, y) {
-        const g = this.add.graphics();
-
-        // Ground shadow
-        g.fillStyle(0x000000, 0.18);
-        g.fillEllipse(x, y + 55, 90, 22);
-
-        // Fire blobs: red -> orange -> yellow -> white core
-        const blobs = [
-            { color: 0xcc1100, r: 38, alpha: 0.85 },
-            { color: 0xff4400, r: 30, alpha: 0.90 },
-            { color: 0xff9900, r: 22, alpha: 0.95 },
-            { color: 0xffee44, r: 13, alpha: 1.00 },
-            { color: 0xffffff, r:  6, alpha: 1.00 },
-        ];
-        blobs.forEach(({ color, r, alpha }) => {
-            g.fillStyle(color, alpha);
-            for (let i = 0; i < 5; i++) {
-                const ox = (Math.random() - 0.5) * r * 0.7;
-                const oy = (Math.random() - 0.5) * r * 0.7 - r * 0.15;
-                g.fillCircle(x + ox, y + oy, r * (0.55 + Math.random() * 0.45));
-            }
-        });
-
-        // Lightning bolts
-        for (let b = 0; b < 4; b++) {
-            const ang = (b / 4) * Math.PI * 2 + Math.random() * 0.4;
-            const len = 36 + Math.random() * 24;
-            g.lineStyle(3, 0xffffff, 0.80);
-            g.beginPath();
-            let cx = x, cy = y;
-            for (let s = 0; s < 4; s++) {
-                const nx = cx + Math.cos(ang) * (len / 4) + (Math.random() - 0.5) * 14;
-                const ny = cy + Math.sin(ang) * (len / 4) + (Math.random() - 0.5) * 14;
-                g.lineTo(nx, ny);
-                cx = nx; cy = ny;
-            }
-            g.strokePath();
-        }
-
-        // Center white flash
-        g.fillStyle(0xffffff, 0.95);
-        g.fillCircle(x, y, 10);
-
-        // Upward sparks
-        for (let i = 0; i < 7; i++) {
-            const sx = x + (Math.random() - 0.5) * 50;
-            const sy = y - 10 - Math.random() * 40;
-            g.fillStyle(Math.random() > 0.5 ? 0xffee44 : 0xff9900, 0.90);
-            g.fillRect(sx, sy, 4, 4);
-        }
-
+        // White core flash
+        const flash = this.add.graphics();
+        flash.fillStyle(0xffffff, 1);
+        flash.fillCircle(x, y, 10);
         this.tweens.add({
-            targets: g,
-            alpha: 0,
-            scaleX: 1.5,
-            scaleY: 1.5,
-            y: g.y - 20,
-            duration: 320,
-            ease: 'Power2',
-            onComplete: () => g.destroy()
+            targets: flash, alpha: 0, scale: 2.5,
+            duration: 100, ease: 'Power3',
+            onComplete: () => flash.destroy()
         });
 
-        // POW text
-        const words = ['POW!', 'BAM!', 'ZAP!'];
-        const word = words[Math.floor(Math.random() * words.length)];
-        const txt = this.add.text(x + (Math.random() - 0.5) * 40, y - 50, word, {
-            fontSize: '28px', fontFamily: 'monospace',
-            color: '#ffee44', stroke: '#cc4400', strokeThickness: 5
-        }).setOrigin(0.5);
+        // Star-burst lines
+        const burst = this.add.graphics();
+        for (let i = 0; i < 6; i++) {
+            const ang = (i / 6) * Math.PI * 2 + Math.random() * 0.3;
+            const len = 18 + Math.random() * 14;
+            burst.lineStyle(2, i % 2 === 0 ? 0xffffff : 0xffee44, 0.9);
+            burst.beginPath();
+            burst.moveTo(x + Math.cos(ang) * 6, y + Math.sin(ang) * 6);
+            burst.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+            burst.strokePath();
+        }
         this.tweens.add({
-            targets: txt, y: txt.y - 40, alpha: 0, duration: 500,
-            ease: 'Power2', onComplete: () => txt.destroy()
+            targets: burst, alpha: 0, scale: 1.6,
+            duration: 140, ease: 'Power2',
+            onComplete: () => burst.destroy()
         });
+
+        // Pixel sparks
+        for (let i = 0; i < 4; i++) {
+            const sp = this.add.graphics();
+            const ang = (i / 4) * Math.PI * 2 + Math.random() * 0.6;
+            sp.fillStyle(i % 2 === 0 ? 0xffffff : 0xffcc00, 1);
+            sp.fillRect(-2, -2, 4, 4);
+            sp.setPosition(x, y);
+            this.tweens.add({
+                targets: sp,
+                x: x + Math.cos(ang) * (40 + Math.random() * 30),
+                y: y + Math.sin(ang) * (40 + Math.random() * 30),
+                alpha: 0, duration: 180, ease: 'Power2',
+                onComplete: () => sp.destroy()
+            });
+        }
     }
 
     createMeleeEffect(fighter, direction, effectType) {
