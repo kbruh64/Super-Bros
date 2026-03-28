@@ -6333,11 +6333,12 @@ class GameScene extends Phaser.Scene {
     }
 
     checkBlastZones() {
+        if (this.gameOver) return;
         const zones = this.currentArena.blastZones;
 
         [this.player1, this.player2].forEach(fighter => {
-            // Skip if fighter is invincible (spawn protection)
             if (fighter.isInvincible) return;
+            if (this.gameOver) return;
 
             if (fighter.x < zones.left || fighter.x > zones.right ||
                 fighter.y < zones.top || fighter.y > zones.bottom) {
@@ -6348,13 +6349,19 @@ class GameScene extends Phaser.Scene {
 
     handleKO(fighter) {
         if (fighter.isInvincible) return;
+        if (this.gameOver) return;
+
+        // Set invincible immediately to block any re-entry this frame
+        fighter.isInvincible = true;
+        fighter.body.enable = false;
+        fighter.setAlpha(0);
 
         fighter.stocks--;
         SFX.ko();
 
         // Check game over first
         if (fighter.stocks <= 0) {
-            // Final stock lost - trigger full KO cutscene
+            this.gameOver = true;
             this.endGame(fighter.opponent);
             return;
         }
@@ -6455,10 +6462,6 @@ class GameScene extends Phaser.Scene {
             this.respawnFighter(fighter);
         }
 
-        // Make fighter temporarily invincible and hidden during KO animation
-        fighter.isInvincible = true;
-        fighter.body.enable = false;
-        fighter.setAlpha(0);
     }
 
     respawnFighter(fighter) {
