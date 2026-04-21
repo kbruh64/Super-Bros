@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Super Bros - Platform Fighter</title>
     <style>
         html, body {
@@ -277,6 +280,26 @@
             border-color: #ff00ff;
             box-shadow: 0 0 14px rgba(255, 0, 255, 0.4);
         }
+
+        /* Mobile pause button */
+        #mobile-pause-btn {
+            position: fixed;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.55);
+            color: #00ffff;
+            border: 2px solid rgba(0, 255, 255, 0.4);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 1000;
+            display: none;
+        }
+        @media (max-width: 900px), (pointer: coarse) {
+            #mobile-pause-btn.game-active { display: block; }
+        }
         body.dark-theme  .minigame-btn { color: #00ff41; border-color: rgba(0,255,65,0.4);   text-shadow: 0 0 8px rgba(0,255,65,0.7); }
         body.dark-theme  .minigame-btn:hover { border-color:#00ff41; box-shadow:0 0 14px rgba(0,255,65,0.4);   background:rgba(0,255,65,0.1); }
         body.fire-theme  .minigame-btn { color: #ff8800; border-color: rgba(255,120,0,0.4); text-shadow: 0 0 8px rgba(255,120,0,0.7); }
@@ -534,6 +557,133 @@
             letter-spacing: 1px;
             position: relative; z-index: 1;
         }
+
+        /* ══════════════════════════════════════════════
+           MOBILE RESPONSIVE
+        ══════════════════════════════════════════════ */
+        @media (max-width: 900px), (pointer: coarse) {
+            body { overflow: hidden; touch-action: none; }
+
+            #game-container {
+                border-width: 2px;
+                border-radius: 4px;
+            }
+
+            .controls-info { display: none; }
+
+            .theme-switcher {
+                top: 6px; right: 6px;
+                padding: 4px 8px;
+            }
+            .theme-switcher label { display: none; }
+
+            .minigame-btn {
+                top: 6px; left: 6px;
+                padding: 4px 10px;
+                font-size: 11px;
+            }
+
+            /* Minigame panel responsive */
+            .mg-panel {
+                width: 94vw;
+                max-width: 440px;
+                padding: 12px 10px 10px;
+            }
+            .mg-hole { height: 72px; }
+            .mg-pit  { width: 90px; height: 30px; }
+            .mg-mole { width: 90px; font-size: 42px; }
+            .mg-grid { gap: 8px; padding: 10px; }
+        }
+
+        /* ══════════════════════════════════════════════
+           VIRTUAL TOUCH GAMEPAD
+        ══════════════════════════════════════════════ */
+        .touch-pad {
+            display: none; /* hidden by default; shown by touch.js on mobile */
+            position: fixed;
+            bottom: 12px;
+            z-index: 2000;
+            pointer-events: none; /* containers pass through; children handle events */
+        }
+        .touch-pad-left  { left: 8px; }
+        .touch-pad-right { right: 8px; }
+
+        .touch-dpad {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            pointer-events: auto;
+        }
+
+        .touch-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        /* For player 2, actions go above dpad */
+        .touch-pad-right .touch-actions {
+            margin-top: 0;
+            margin-bottom: 8px;
+            order: -1;
+        }
+        .touch-pad-right { display: flex; flex-direction: column; align-items: center; }
+        .touch-pad-left  { display: flex; flex-direction: column; align-items: center; }
+
+        .touch-btn {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.45);
+            color: #00ffff;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 14px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            text-shadow: 0 0 6px rgba(0,255,255,0.7);
+            transition: background 0.08s;
+        }
+
+        .touch-btn.active,
+        .touch-btn:active {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0,255,255,0.5);
+        }
+
+        /* D-pad layout — cross shape */
+        .touch-up    { top: 0;   left: 43px; }
+        .touch-down  { bottom: 0; left: 43px; }
+        .touch-left  { top: 43px; left: 0;   }
+        .touch-right { top: 43px; right: 0;  }
+
+        /* Action buttons — not absolutely positioned inside dpad */
+        .touch-jump, .touch-attack, .touch-special {
+            position: static;
+            border-radius: 50%;
+        }
+        .touch-jump    { border-color: rgba(0,255,0,0.6);   color: #00ff88; width: 50px; height: 50px; font-size: 10px; font-weight: bold; }
+        .touch-attack  { border-color: rgba(255,80,0,0.6);  color: #ff8844; width: 46px; height: 46px; font-size: 10px; font-weight: bold; }
+        .touch-special { border-color: rgba(255,0,255,0.6); color: #ff44ff; width: 46px; height: 46px; font-size: 10px; font-weight: bold; }
+
+        .touch-jump.active    { background: rgba(0,255,136,0.25); }
+        .touch-attack.active  { background: rgba(255,80,0,0.25); }
+        .touch-special.active { background: rgba(255,0,255,0.25); }
+
+        /* Only show pads on touch/small screens */
+        @media (max-width: 900px), (pointer: coarse) {
+            .touch-pad { display: flex; }
+        }
     </style>
 </head>
 <body>
@@ -595,6 +745,9 @@
         </select>
     </div>
 
+    <!-- Mobile pause button (only visible on touch devices during game) -->
+    <button id="mobile-pause-btn" style="display:none">⏸</button>
+
     <div id="game-container"></div>
     <div id="loading">Loading Super Bros...</div>
     <div class="controls-info">
@@ -619,6 +772,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script src="js/touch.js"></script>
     <script src="js/constants.js"></script>
     <script src="js/characters.js"></script>
     <script src="js/arenas.js"></script>
@@ -634,6 +788,30 @@
     <script src="js/music.js"></script>
     <script src="js/sfx.js"></script>
     <script>
+    // ── Mobile pause button + touch pad scene management ────────────────────
+    (function () {
+        const pauseBtn = document.getElementById('mobile-pause-btn');
+
+        pauseBtn.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if (typeof game !== 'undefined' && game.scene.isActive('GameScene')) {
+                const gs = game.scene.getScene('GameScene');
+                if (gs && !gs.gameOver) gs.togglePause();
+            }
+        }, { passive: false });
+
+        // Poll the active Phaser scene to show/hide touch controls & pause button
+        setInterval(() => {
+            if (typeof game === 'undefined') return;
+            const inGame = game.scene.isActive('GameScene');
+            pauseBtn.classList.toggle('game-active', inGame);
+            if (window.TouchInput) {
+                if (inGame) window.TouchInput.show();
+                else        window.TouchInput.hide();
+            }
+        }, 200);
+    })();
+
     // ── Minigame + global SFX hooks ─────────────────────────────────────────
     (function () {
         // ── DOM refs ──

@@ -1032,6 +1032,15 @@ class GameScene extends Phaser.Scene {
                 this.togglePause();
             }
         });
+
+        // Show mobile touch controls if on a touch device
+        if (window.TouchInput) {
+            window.TouchInput.show();
+        }
+    }
+
+    shutdown() {
+        if (window.TouchInput) window.TouchInput.hide();
     }
 
     setupCollisions() {
@@ -1288,27 +1297,30 @@ class GameScene extends Phaser.Scene {
     }
 
     processInput() {
+        const t1 = window.TouchInput ? window.TouchInput.getState(1) : {};
+        const t2 = window.TouchInput ? window.TouchInput.getState(2) : {};
+
         // Player 1
         this.player1.inputState = {
-            left: this.p1Keys.left.isDown,
-            right: this.p1Keys.right.isDown,
-            up: this.p1Keys.up.isDown,
-            down: this.p1Keys.down.isDown,
-            jump: Phaser.Input.Keyboard.JustDown(this.p1Keys.up),
-            attack: Phaser.Input.Keyboard.JustDown(this.p1Keys.attack) || Phaser.Input.Keyboard.JustDown(this.p1Keys.attackAlt),
-            special: Phaser.Input.Keyboard.JustDown(this.p1Keys.special) || Phaser.Input.Keyboard.JustDown(this.p1Keys.specialAlt)
+            left:    this.p1Keys.left.isDown    || !!t1.left,
+            right:   this.p1Keys.right.isDown   || !!t1.right,
+            up:      this.p1Keys.up.isDown      || !!t1.up,
+            down:    this.p1Keys.down.isDown    || !!t1.down,
+            jump:    Phaser.Input.Keyboard.JustDown(this.p1Keys.up)    || !!t1.jump,
+            attack:  Phaser.Input.Keyboard.JustDown(this.p1Keys.attack) || Phaser.Input.Keyboard.JustDown(this.p1Keys.attackAlt) || !!t1.attack,
+            special: Phaser.Input.Keyboard.JustDown(this.p1Keys.special) || Phaser.Input.Keyboard.JustDown(this.p1Keys.specialAlt) || !!t1.special
         };
 
         // Player 2 (if not AI)
         if (this.gameMode !== 'single') {
             this.player2.inputState = {
-                left: this.p2Keys.left.isDown,
-                right: this.p2Keys.right.isDown,
-                up: this.p2Keys.up.isDown,
-                down: this.p2Keys.down.isDown,
-                jump: Phaser.Input.Keyboard.JustDown(this.p2Keys.up),
-                attack: Phaser.Input.Keyboard.JustDown(this.p2Keys.attack) || Phaser.Input.Keyboard.JustDown(this.p2Keys.attackAlt),
-                special: Phaser.Input.Keyboard.JustDown(this.p2Keys.special) || Phaser.Input.Keyboard.JustDown(this.p2Keys.specialAlt)
+                left:    this.p2Keys.left.isDown    || !!t2.left,
+                right:   this.p2Keys.right.isDown   || !!t2.right,
+                up:      this.p2Keys.up.isDown      || !!t2.up,
+                down:    this.p2Keys.down.isDown    || !!t2.down,
+                jump:    Phaser.Input.Keyboard.JustDown(this.p2Keys.up)    || !!t2.jump,
+                attack:  Phaser.Input.Keyboard.JustDown(this.p2Keys.attack) || Phaser.Input.Keyboard.JustDown(this.p2Keys.attackAlt) || !!t2.attack,
+                special: Phaser.Input.Keyboard.JustDown(this.p2Keys.special) || Phaser.Input.Keyboard.JustDown(this.p2Keys.specialAlt) || !!t2.special
             };
         }
     }
